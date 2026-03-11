@@ -1,2 +1,2 @@
 # Z-kit
-React UI library for web developers/designers
+React UI kit for web developers/designers
