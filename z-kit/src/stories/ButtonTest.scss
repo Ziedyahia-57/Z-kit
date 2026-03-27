@@ -1,0 +1,125 @@
+// Design tokens / variables
+$primary-color: #00cccc;
+$secondary-color: #436e6e;
+$white-color: #fff;
+$disabled-color: #b3b3b3;
+$hover-color: #00b3b3;
+$hover-color-secondary: #345454;
+$hover-color-outline: #00b3b313;
+$border-radius: 6px;
+$padding: 10px;
+$font-size: 16px;
+$line-height: 1.5;
+$gap: 8px;
+
+
+// Size configurations
+$sizes: 'small', 'medium', 'large', 'xlarge';
+
+// Base button styles
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, font-size 0.2s ease;
+    border: 1px solid;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+}
+
+// Size styles
+@each $size in $sizes {
+    .#{$size} {
+        @if $size =='small' {
+            padding: 9px;
+            font-size: 14px;
+            line-height: 1.4;
+
+            svg {
+                width: 14px;
+                height: 14px;
+            }
+        }
+
+        @else if $size =='medium' {
+            padding: 10px;
+            font-size: 16px;
+            line-height: 1.5;
+
+            svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+
+        @else if $size =='large' {
+            padding: 12px;
+            font-size: 16px;
+            line-height: 1.5;
+
+            svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+
+        @else if $size =='xlarge' {
+            padding: 14px;
+            font-size: 16px;
+            line-height: 1.5;
+
+            svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+    }
+
+
+}
+
+// Variant styles
+.primary {
+    background-color: #00cccc;
+    color: #fff;
+
+    &:hover:not(:disabled) {
+        background-color: #00b3b3;
+    }
+}
+
+.secondary {
+    background-color: #436e6e;
+    color: #fff;
+
+    &:hover:not(:disabled) {
+        background-color: #345454;
+    }
+}
+
+.outline {
+    background-color: transparent;
+    color: #00cccc;
+    border-color: #00cccc;
+
+    &:hover:not(:disabled) {
+        background-color: #00b3b313;
+    }
+}
+
+.ghost {
+    background-color: transparent;
+    color: #436e6e;
+    border-color: transparent;
+
+    &:hover:not(:disabled) {
+        background-color: #00b3b313;
+    }
+}
