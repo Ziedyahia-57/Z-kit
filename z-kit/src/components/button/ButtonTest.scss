@@ -1,4 +1,4 @@
-@use '../variables';
+@use '../tokens';
 
 // Base button styles
 .button {
@@ -8,7 +8,10 @@
     gap: 8px;
     border-radius: 6px;
     cursor: pointer;
-    transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease;
+    line-height: 100%;
+    font-weight: 600;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease, transform 0.2s ease;
     border: 1px solid;
 }
 
@@ -67,9 +70,9 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
 .primary {
     background-color: var(--primary-600);
     border-color: var(--primary-600);
-    color: #fff;
+    color: var(--gray-50);
 
-    //hover
+    // Hover
     &:hover:not(:disabled) {
         background-color: var(--primary-700);
         border-color: var(--primary-700);
@@ -82,11 +85,38 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
         transform: scale(0.99);
     }
 
-    //disabled
+    // Disabled
     &:disabled {
         background-color: var(--primary-200);
         border-color: var(--primary-200);
+        color: var(--gray-50);
         cursor: not-allowed;
+    }
+
+    // Dark Mode
+    body[data-dark="true"] & {
+        background-color: var(--primary-500);
+        border-color: var(--primary-500);
+        color: var(--gray-50);
+
+        // Dark Mode: Hover
+        &:hover:not(:disabled) {
+            background-color: var(--primary-400);
+            border-color: var(--primary-400);
+        }
+
+        // Dark Mode: Active (click/tap)
+        &:active:not(:disabled) {
+            background-color: var(--primary-300);
+            border-color: var(--primary-300);
+        }
+
+        // Dark Mode: Disabled
+        &:disabled {
+            background-color: var(--primary-800);
+            border-color: var(--primary-800);
+            color: var(--gray-400);
+        }
     }
 }
 
@@ -95,7 +125,7 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
     border-color: var(--primary-600);
     color: var(--primary-600);
 
-    //hover
+    // Hover
     &:hover:not(:disabled) {
         border-color: var(--primary-700);
         color: var(--primary-700);
@@ -108,11 +138,36 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
         transform: scale(0.99);
     }
 
-    //disabled
+    // Disabled
     &:disabled {
         border-color: var(--primary-200);
         color: var(--primary-200);
         cursor: not-allowed;
+    }
+
+    // Dark Mode
+    body[data-dark="true"] & {
+        background-color: transparent;
+        border-color: var(--primary-500);
+        color: var(--primary-500);
+
+        // Dark Mode: Hover
+        &:hover:not(:disabled) {
+            border-color: var(--primary-400);
+            color: var(--primary-400);
+        }
+
+        // Dark Mode: Active (click/tap)
+        &:active:not(:disabled) {
+            border-color: var(--primary-300);
+            color: var(--primary-300);
+        }
+
+        // Dark Mode: Disabled
+        &:disabled {
+            border-color: var(--primary-800);
+            color: var(--primary-800);
+        }
     }
 }
 
@@ -121,7 +176,7 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
     border-color: transparent;
     color: var(--primary-600);
 
-    //hover
+    // Hover
     &:hover:not(:disabled) {
         background-color: var(--primary-50);
         color: var(--primary-700);
@@ -134,9 +189,30 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
         transform: scale(0.99);
     }
 
-    //disabled
+    // Disabled
     &:disabled {
         color: var(--primary-200);
         cursor: not-allowed;
+    }
+
+    // Dark Mode
+    body[data-dark="true"] & {
+        color: var(--primary-500);
+
+        &:hover:not(:disabled) {
+            background-color: var(--primary-900);
+            color: var(--primary-400);
+        }
+
+        // Dark Mode: Active (click/tap)
+        &:active:not(:disabled) {
+            background-color: var(--primary-800);
+            color: var(--primary-300);
+        }
+
+        // Dark Mode: Disabled
+        &:disabled {
+            color: var(--primary-800);
+        }
     }
 }

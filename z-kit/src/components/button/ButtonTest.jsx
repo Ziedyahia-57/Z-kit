@@ -135,6 +135,5 @@ ButtonTest.propTypes = {
     iconPosition: PropTypes.oneOf(['left', 'right']),
     buttonType: PropTypes.oneOf(['label', 'label & icon', 'icon']),
     primaryColor: PropTypes.string,
-    secondaryColor: PropTypes.string,
     onClick: PropTypes.func,
 };

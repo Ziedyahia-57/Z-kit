@@ -1,6 +1,10 @@
 @use 'sass:color';
 
+//primary color
 $primary-color: #0667F9;
+
+//grayscale color
+$gray-color: #808080;
 
 //status colors
 $warning-color: #F98006;
@@ -8,7 +12,7 @@ $danger-color: #F90606;
 $success-color: #06F980;
 $info-color: #06A8F9;
 
-$shades: (
+$color-shades: (
     50: 95%,
     100: 90%,
     200: 80%,
@@ -21,9 +25,24 @@ $shades: (
     900: 10%,
     950: 5%
 );
+$gray-shades: (
+    25: 100%,
+    50: 95%,
+    100: 90%,
+    200: 80%,
+    300: 70%,
+    400: 60%,
+    500: 50%,
+    600: 40%,
+    700: 30%,
+    800: 20%,
+    900: 10%,
+    950: 5%,
+    975: 0%,
+);
 
 :root {
-    @each $shade, $lightness in $shades {
+    @each $shade, $lightness in $color-shades {
         //primary color scale:
         --primary-#{$shade}: #{color.change($primary-color, $lightness: $lightness)};
 
@@ -39,4 +58,10 @@ $shades: (
         //info color scale:
         --blue-#{$shade}: #{color.change($info-color, $lightness: $lightness)};
     }
+
+    @each $shade, $lightness in $gray-shades {
+        //gray color scale:
+        --gray-#{$shade}: #{color.change($gray-color, $lightness: $lightness)};
+    }
+
 }

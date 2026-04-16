@@ -1,9 +1,32 @@
 import { ButtonTest } from "./ButtonTest";
+import { useEffect } from "react";
+
+// Decorator that responds to a darkMode arg
+const withDarkModeControl = (Story, context) => {
+  const { darkMode = false } = context.args;
+
+  useEffect(() => {
+    if (darkMode) {
+      document.body.setAttribute("data-dark", "true");
+    } else {
+      document.body.removeAttribute("data-dark");
+    }
+
+    return () => {
+      document.body.removeAttribute("data-dark");
+    };
+  }, [darkMode]);
+
+  return (
+    <Story />
+  );
+};
 
 const meta = {
   title: "Z-kit/Button",
   component: ButtonTest,
   tags: ["autodocs"],
+  decorators: [withDarkModeControl], // ✅ Add decorators here
   parameters: {
     docs: {
       description: {
@@ -12,6 +35,11 @@ const meta = {
     },
   },
   argTypes: {
+    darkMode: {
+      control: { type: "boolean" },
+      name: "Dark Mode",
+      description: "Toggle dark mode theme",
+    },
     primaryColor: {
       control: "color",
       name: "Primary Color",
@@ -19,45 +47,50 @@ const meta = {
     },
     variant: {
       control: { type: "select" },
+      name: "Variant",
       options: ["primary", "secondary", "ghost"],
       description: "Defines the variant of the button",
     },
     size: {
       control: { type: "select" },
+      name: "Size",
       options: ["small", "medium", "large", "xlarge"],
       description: "Defines the size of the button",
     },
     buttonType: {
       control: "radio",
       options: ["label", "label & icon", "icon"],
-      name: "Button Type",
+      name: "Button Type", // ✅ Fixed: removed duplicate name
       description: "Choose button display mode",
     },
     disabled: {
       control: { type: "boolean" },
+      name: "Disabled",
       description: "Defines if the button is disabled",
     },
     label: {
       control: "text",
+      name: "Label",
       description: "Label of the button",
-      if: { arg: "buttonType", neq: "icon" }, // Only show for label & icon
+      if: { arg: "buttonType", neq: "icon" },
     },
     icon: {
       control: { type: "select" },
       options: ["play", "pause", "star", "heart", "check", "plus"],
       name: "Icon (when applicable)",
       description: "Icon to display when button type includes icon",
-      if: { arg: "buttonType", neq: "label" }, // Only show when icon is used
+      if: { arg: "buttonType", neq: "label" },
     },
     iconPosition: {
       control: { type: "select" },
       options: ["left", "right"],
       name: "Icon Position",
       description: "Position of icon relative to label",
-      if: { arg: "buttonType", eq: "label & icon" }, // Only show for label & icon
+      if: { arg: "buttonType", eq: "label & icon" },
     },
     onClick: {
       action: "clicked",
+      name: "onClick",
       description: "Defines the action to be performed when the button is clicked",
     },
   },
@@ -67,13 +100,14 @@ export default meta;
 
 export const Button = {
   args: {
+    darkMode: false, // ✅ Added darkMode to args
     variant: "primary",
     primaryColor: "#0667F9",
     label: "Button",
-    size: "medium",
+    size: "large",
     disabled: false,
-    icon: false,
+    buttonType: "label", // ✅ Added buttonType
+    icon: null, // ✅ Changed from false to null
+    iconPosition: "left",
   },
 };
-
-// export const Template = (args) => <ButtonTest {...args} />;
