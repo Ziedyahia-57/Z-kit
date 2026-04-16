@@ -3,9 +3,9 @@
 // Base button styles
 .button {
     display: inline-flex;
+    gap: 8px;
     align-items: center;
     justify-content: center;
-    gap: 8px;
     border-radius: 6px;
     cursor: pointer;
     line-height: 100%;

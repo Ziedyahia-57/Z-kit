@@ -45,16 +45,24 @@ $gray-shades: (
     @each $shade, $lightness in $color-shades {
         //primary color scale:
         --primary-#{$shade}: #{color.change($primary-color, $lightness: $lightness)};
+    }
 
+    @each $shade, $lightness in $color-shades {
         //warning color scale:
         --orange-#{$shade}: #{color.change($warning-color, $lightness: $lightness)};
+    }
 
+    @each $shade, $lightness in $color-shades {
         //danger color scale:
         --red-#{$shade}: #{color.change($danger-color, $lightness: $lightness)};
+    }
 
+    @each $shade, $lightness in $color-shades {
         //success color scale:
         --green-#{$shade}: #{color.change($success-color, $lightness: $lightness)};
+    }
 
+    @each $shade, $lightness in $color-shades {
         //info color scale:
         --blue-#{$shade}: #{color.change($info-color, $lightness: $lightness)};
     }
@@ -64,4 +72,27 @@ $gray-shades: (
         --gray-#{$shade}: #{color.change($gray-color, $lightness: $lightness)};
     }
 
+}
+
+
+//*******Typography********//
+@for $i from 1 through 6 {
+    h#{$i} {
+        font-size: 1rem * pow(1.25, 7 - $i);
+        font-weight: 700;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        margin: 0;
+    }
+
+    p {
+        font-size: 1rem;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        margin: 0;
+    }
+
+    small {
+        font-size: 0.8rem;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        margin: 0;
+    }
 }

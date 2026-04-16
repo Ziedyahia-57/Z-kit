@@ -2,51 +2,6 @@ import React from "react";
 import PropTypes from "prop-types"
 import './ButtonTest.scss'
 
-// Color utility functions
-const hexToRgb = (hex) => {
-    const cleanHex = hex.replace('#', '');
-
-    let r, g, b;
-    if (cleanHex.length === 3) {
-        r = parseInt(cleanHex[0] + cleanHex[0], 16);
-        g = parseInt(cleanHex[1] + cleanHex[1], 16);
-        b = parseInt(cleanHex[2] + cleanHex[2], 16);
-    } else if (cleanHex.length === 6) {
-        r = parseInt(cleanHex.substring(0, 2), 16);
-        g = parseInt(cleanHex.substring(2, 4), 16);
-        b = parseInt(cleanHex.substring(4, 6), 16);
-    } else {
-        return null;
-    }
-
-    return { r, g, b };
-};
-
-const darkenColor = (color, percent) => {
-    if (!color) return color;
-
-    const rgb = hexToRgb(color);
-    if (!rgb) return color;
-
-    const r = Math.max(0, Math.floor(rgb.r * (1 - percent / 100)));
-    const g = Math.max(0, Math.floor(rgb.g * (1 - percent / 100)));
-    const b = Math.max(0, Math.floor(rgb.b * (1 - percent / 100)));
-
-    return `rgb(${r}, ${g}, ${b})`;
-};
-
-const lightenColor = (color, percent) => {
-    if (!color) return color;
-
-    const rgb = hexToRgb(color);
-    if (!rgb) return color;
-
-    const r = Math.min(255, Math.floor(rgb.r + (255 - rgb.r) * (percent / 100)));
-    const g = Math.min(255, Math.floor(rgb.g + (255 - rgb.g) * (percent / 100)));
-    const b = Math.min(255, Math.floor(rgb.b + (255 - rgb.b) * (percent / 100)));
-
-    return `rgb(${r}, ${g}, ${b})`;
-};
 
 export const ButtonTest = ({
     variant = "primary",
@@ -56,14 +11,9 @@ export const ButtonTest = ({
     icon = null,
     iconPosition = "left",
     buttonType = "label", // "label", "label & icon", "icon"
-    primaryColor = '#0667F9',
     onClick,
     ...props
 }) => {
-    // Create CSS custom properties object
-    const customProperties = {
-        '--primary-color': primaryColor,
-    };
 
     // Determine if we should show label and icon based on buttonType
     const showLabel = buttonType === 'label' || buttonType === 'label & icon';
@@ -73,7 +23,7 @@ export const ButtonTest = ({
     const isTextWithIcon = buttonType === 'label & icon';
 
     // Add mode class for styling
-    const buttonModeClass = isIconOnly ? 'icon-only' : (isTextOnly ? 'text-only' : 'text-with-icon');
+    const ContentType = isIconOnly ? 'icon-only' : (isTextOnly ? 'text-only' : 'text-with-icon');
 
     // Render icon if needed
     const renderIcon = () => {
@@ -108,10 +58,9 @@ export const ButtonTest = ({
 
     return (
         <button
-            className={`button ${size} ${variant} ${buttonModeClass}`}
+            className={`button ${size} ${variant} ${ContentType}`}
             disabled={disabled}
             onClick={onClick}
-            style={customProperties}
             aria-label={isIconOnly ? label : undefined}
             {...props}
         >
@@ -134,6 +83,5 @@ ButtonTest.propTypes = {
     ]),
     iconPosition: PropTypes.oneOf(['left', 'right']),
     buttonType: PropTypes.oneOf(['label', 'label & icon', 'icon']),
-    primaryColor: PropTypes.string,
     onClick: PropTypes.func,
 };

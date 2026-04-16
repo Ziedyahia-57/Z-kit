@@ -26,7 +26,7 @@ const meta = {
   title: "Z-kit/Button",
   component: ButtonTest,
   tags: ["autodocs"],
-  decorators: [withDarkModeControl], // ✅ Add decorators here
+  decorators: [withDarkModeControl],
   parameters: {
     docs: {
       description: {
@@ -39,11 +39,6 @@ const meta = {
       control: { type: "boolean" },
       name: "Dark Mode",
       description: "Toggle dark mode theme",
-    },
-    primaryColor: {
-      control: "color",
-      name: "Primary Color",
-      description: "Main color used for primary and outline variants",
     },
     variant: {
       control: { type: "select" },
@@ -100,14 +95,13 @@ export default meta;
 
 export const Button = {
   args: {
-    darkMode: false, // ✅ Added darkMode to args
+    darkMode: false,
     variant: "primary",
-    primaryColor: "#0667F9",
     label: "Button",
     size: "large",
     disabled: false,
-    buttonType: "label", // ✅ Added buttonType
-    icon: null, // ✅ Changed from false to null
+    buttonType: "label",
+    icon: null,
     iconPosition: "left",
   },
 };
