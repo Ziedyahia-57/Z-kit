@@ -1,7 +1,7 @@
 import { ButtonTest } from "./ButtonTest";
 
 const meta = {
-  title: "Z-kit/ButtonTest",
+  title: "Z-kit/Button",
   component: ButtonTest,
   tags: ["autodocs"],
   parameters: {
@@ -17,14 +17,9 @@ const meta = {
       name: "Primary Color",
       description: "Main color used for primary and outline variants",
     },
-    secondaryColor: {
-      control: "color",
-      name: "Secondary Color",
-      description: "Secondary color used for secondary and ghost variants",
-    },
     variant: {
       control: { type: "select" },
-      options: ["primary", "secondary", "outline", "ghost"],
+      options: ["primary", "secondary", "ghost"],
       description: "Defines the variant of the button",
     },
     size: {
@@ -69,13 +64,11 @@ const meta = {
 };
 
 export default meta;
-// 👇 Type helper to reduce boilerplate
 
 export const Button = {
   args: {
     variant: "primary",
-    primaryColor: "#1a1a1a",
-    secondaryColor: "#272727",
+    primaryColor: "#0667F9",
     label: "Button",
     size: "medium",
     disabled: false,

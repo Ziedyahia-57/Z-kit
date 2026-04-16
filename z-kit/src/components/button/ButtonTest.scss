@@ -1,3 +1,5 @@
+@use '../variables';
+
 // Base button styles
 .button {
     display: inline-flex;
@@ -6,13 +8,8 @@
     gap: 8px;
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease;
     border: 1px solid;
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
 }
 
 // Size styles (unchanged)
@@ -68,46 +65,78 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
 
 // Variant styles using CSS variables
 .primary {
-    background-color: var(--button-primary-color);
-    border-color: var(--button-primary-color);
+    background-color: var(--primary-600);
+    border-color: var(--primary-600);
     color: #fff;
 
+    //hover
     &:hover:not(:disabled) {
-        background-color: var(--button-primary-dark);
-        border-color: var(--button-primary-dark);
+        background-color: var(--primary-700);
+        border-color: var(--primary-700);
+    }
+
+    // Active (click/tap)
+    &:active:not(:disabled) {
+        background-color: var(--primary-800);
+        border-color: var(--primary-800);
+        transform: scale(0.99);
+    }
+
+    //disabled
+    &:disabled {
+        background-color: var(--primary-200);
+        border-color: var(--primary-200);
+        cursor: not-allowed;
     }
 }
 
 .secondary {
-    background-color: var(--button-secondary-color);
-    border-color: var(--button-secondary-color);
-    color: #fff;
-
-    &:hover:not(:disabled) {
-        background-color: var(--button-secondary-dark);
-        border-color: var(--button-secondary-dark);
-    }
-}
-
-.outline {
     background-color: transparent;
-    border-color: var(--button-primary-color);
-    color: var(--button-primary-color);
+    border-color: var(--primary-600);
+    color: var(--primary-600);
 
+    //hover
     &:hover:not(:disabled) {
-        background-color: var(--button-primary-light);
-        border-color: var(--button-primary-dark);
-        color: var(--button-primary-dark);
+        border-color: var(--primary-700);
+        color: var(--primary-700);
+    }
+
+    // Active (click/tap)
+    &:active:not(:disabled) {
+        border-color: var(--primary-800);
+        color: var(--primary-800);
+        transform: scale(0.99);
+    }
+
+    //disabled
+    &:disabled {
+        border-color: var(--primary-200);
+        color: var(--primary-200);
+        cursor: not-allowed;
     }
 }
 
 .ghost {
     background-color: transparent;
     border-color: transparent;
-    color: var(--button-secondary-color);
+    color: var(--primary-600);
 
+    //hover
     &:hover:not(:disabled) {
-        background-color: var(--button-secondary-light);
-        color: var(--button-secondary-dark);
+        background-color: var(--primary-50);
+        color: var(--primary-700);
+    }
+
+    // Active (click/tap)
+    &:active:not(:disabled) {
+        background-color: var(--primary-100);
+        color: var(--primary-800);
+        transform: scale(0.99);
+    }
+
+    //disabled
+    &:disabled {
+        color: var(--primary-200);
+        cursor: not-allowed;
     }
 }

@@ -1,0 +1,42 @@
+@use 'sass:color';
+
+$primary-color: #0667F9;
+
+//status colors
+$warning-color: #F98006;
+$danger-color: #F90606;
+$success-color: #06F980;
+$info-color: #06A8F9;
+
+$shades: (
+    50: 95%,
+    100: 90%,
+    200: 80%,
+    300: 70%,
+    400: 60%,
+    500: 50%,
+    600: 40%,
+    700: 30%,
+    800: 20%,
+    900: 10%,
+    950: 5%
+);
+
+:root {
+    @each $shade, $lightness in $shades {
+        //primary color scale:
+        --primary-#{$shade}: #{color.change($primary-color, $lightness: $lightness)};
+
+        //warning color scale:
+        --orange-#{$shade}: #{color.change($warning-color, $lightness: $lightness)};
+
+        //danger color scale:
+        --red-#{$shade}: #{color.change($danger-color, $lightness: $lightness)};
+
+        //success color scale:
+        --green-#{$shade}: #{color.change($success-color, $lightness: $lightness)};
+
+        //info color scale:
+        --blue-#{$shade}: #{color.change($info-color, $lightness: $lightness)};
+    }
+}

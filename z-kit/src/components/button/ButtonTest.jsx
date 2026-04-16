@@ -56,19 +56,13 @@ export const ButtonTest = ({
     icon = null,
     iconPosition = "left",
     buttonType = "label", // "label", "label & icon", "icon"
-    primaryColor = '#1a1a1a',
-    secondaryColor = '#272727',
+    primaryColor = '#0667F9',
     onClick,
     ...props
 }) => {
     // Create CSS custom properties object
     const customProperties = {
-        '--button-primary-color': primaryColor,
-        '--button-secondary-color': secondaryColor,
-        '--button-primary-dark': darkenColor(primaryColor, 15),
-        '--button-secondary-dark': darkenColor(secondaryColor, 15),
-        '--button-primary-light': lightenColor(primaryColor, 90),
-        '--button-secondary-light': lightenColor(secondaryColor, 90),
+        '--primary-color': primaryColor,
     };
 
     // Determine if we should show label and icon based on buttonType
@@ -129,7 +123,7 @@ export const ButtonTest = ({
 };
 
 ButtonTest.propTypes = {
-    variant: PropTypes.oneOf(['primary', 'secondary', 'outline', 'ghost']),
+    variant: PropTypes.oneOf(['primary', 'secondary', 'ghost']),
     size: PropTypes.oneOf(['small', 'medium', 'large', 'xlarge']),
     disabled: PropTypes.bool,
     label: PropTypes.string,
