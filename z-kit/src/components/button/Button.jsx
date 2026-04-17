@@ -1,9 +1,9 @@
 import React from "react";
 import PropTypes from "prop-types"
-import './ButtonTest.scss'
+import './Button.scss'
 
 
-export const ButtonTest = ({
+export const Button = ({
     variant = "primary",
     size = "medium",
     disabled = false,
@@ -62,7 +62,6 @@ export const ButtonTest = ({
             disabled={disabled}
             onClick={onClick}
             aria-label={isIconOnly ? label : undefined}
-            {...props}
         >
             {showIcon && iconPosition === "left" && renderIcon()}
             {showLabel && <span className="button-label">{label}</span>}
@@ -71,7 +70,7 @@ export const ButtonTest = ({
     );
 };
 
-ButtonTest.propTypes = {
+Button.propTypes = {
     variant: PropTypes.oneOf(['primary', 'secondary', 'ghost']),
     size: PropTypes.oneOf(['small', 'medium', 'large', 'xlarge']),
     disabled: PropTypes.bool,

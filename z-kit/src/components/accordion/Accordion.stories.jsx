@@ -3,10 +3,10 @@ import { useEffect } from 'react';
 
 // Decorator that responds to a darkMode arg
 const withDarkModeControl = (Story, context) => {
-    const { darkMode = false } = context.args;
+    const { darkmode = false } = context.args;
 
     useEffect(() => {
-        if (darkMode) {
+        if (darkmode) {
             document.body.setAttribute("data-dark", "true");
         } else {
             document.body.removeAttribute("data-dark");
@@ -15,7 +15,7 @@ const withDarkModeControl = (Story, context) => {
         return () => {
             document.body.removeAttribute("data-dark");
         };
-    }, [darkMode]);
+    }, [darkmode]);
 
     return (
         <Story />
@@ -35,7 +35,7 @@ const meta = {
         },
     },
     argTypes: {
-        darkMode: {
+        darkmode: {
             control: { type: "boolean" },
             name: "Dark Mode",
             description: "Toggle dark mode theme",
@@ -71,9 +71,9 @@ const meta = {
 
 export default meta;
 
-export const Button = {
+export const accordion = {
     args: {
-        darkMode: false,
+        darkmode: false,
         question: "Title",
         answer: "Answer the frequently asked question in a simple sentence, a longish paragraph, or even in a list.",
     },
