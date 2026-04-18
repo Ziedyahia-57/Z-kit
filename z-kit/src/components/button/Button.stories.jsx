@@ -96,7 +96,7 @@ export default meta;
 
 export const button = {
   args: {
-    darkmode: false,
+    darkmode: true,
     variant: "primary",
     label: "Button",
     size: "large",

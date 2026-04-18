@@ -80,10 +80,10 @@ export default meta;
 export const input = {
     args: {
         darkmode: false,
-        label: "Username",
+        label: "Label",
         disabled: false,
         error: false,
-        placeholder: "Enter your username",
-        showIcon: false,
+        placeholder: "Placeholder",
+        showIcon: true,
     }
 }

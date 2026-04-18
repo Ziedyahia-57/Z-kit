@@ -13,6 +13,18 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease, transform 0.2s ease;
     border: 1px solid;
+
+    ::selection {
+        background-color: var(--gray-800);
+        color: var(--gray-200);
+    }
+
+    body[data-dark="true"] & {
+        ::selection {
+            background-color: var(--gray-200);
+            color: var(--gray-800);
+        }
+    }
 }
 
 // Size styles (unchanged)
@@ -70,7 +82,7 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
 .primary {
     background-color: var(--primary-600);
     border-color: var(--primary-600);
-    color: var(--gray-50);
+    color: var(--gray-25);
 
     // Hover
     &:hover:not(:disabled) {
@@ -97,7 +109,7 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
     body[data-dark="true"] & {
         background-color: var(--primary-500);
         border-color: var(--primary-500);
-        color: var(--gray-50);
+        color: var(--gray-25);
 
         // Dark Mode: Hover
         &:hover:not(:disabled) {

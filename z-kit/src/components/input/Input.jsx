@@ -78,6 +78,7 @@ export class Input extends React.Component {
                     {this.renderIcon()}
                     <input
                         type="text"
+                        autoComplete='off'
                         className={`TextInput ${this.props.error ? 'error' : ''}`}
                         id='TextInput'
                         value={this.state.value}

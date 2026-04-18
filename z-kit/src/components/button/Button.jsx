@@ -1,7 +1,11 @@
 import React from "react";
 import PropTypes from "prop-types"
 import './Button.scss'
+import { soundManager } from '../../utils/soundUtils';
+import clickSoundFile from '../../assets/sounds/click.mp3';
 
+// Load sound once (could be done in a central location)
+soundManager.loadSound('click', clickSoundFile, 1);
 
 export const Button = ({
     variant = "primary",
@@ -12,6 +16,8 @@ export const Button = ({
     iconPosition = "left",
     buttonType = "label", // "label", "label & icon", "icon"
     onClick,
+    enableSound = true,
+    soundVolume = 1,
     ...props
 }) => {
 
@@ -56,11 +62,20 @@ export const Button = ({
         return iconToRender;
     };
 
+    const handleClick = (e) => {
+        // Play sound using soundManager
+        if (enableSound) {
+            soundManager.play('click', soundVolume);
+        }
+        if (onClick) onClick(e);
+    };
+
+
     return (
         <button
             className={`button ${size} ${variant} ${ContentType}`}
             disabled={disabled}
-            onClick={onClick}
+            onClick={handleClick}
             aria-label={isIconOnly ? label : undefined}
         >
             {showIcon && iconPosition === "left" && renderIcon()}
@@ -83,4 +98,6 @@ Button.propTypes = {
     iconPosition: PropTypes.oneOf(['left', 'right']),
     buttonType: PropTypes.oneOf(['label', 'label & icon', 'icon']),
     onClick: PropTypes.func,
+    soundVolume: PropTypes.number,
+    enableSound: PropTypes.bool,
 };

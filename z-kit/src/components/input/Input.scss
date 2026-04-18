@@ -5,6 +5,18 @@
     flex-direction: column;
     gap: 8px;
 
+    ::selection {
+        background-color: var(--gray-800);
+        color: var(--gray-200);
+    }
+
+    body[data-dark="true"] & {
+        ::selection {
+            background-color: var(--gray-200);
+            color: var(--gray-800);
+        }
+    }
+
     label p {
         transition: color 0.2s ease;
         color: var(--gray-950);
