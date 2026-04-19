@@ -98,6 +98,6 @@ Button.propTypes = {
     iconPosition: PropTypes.oneOf(['left', 'right']),
     buttonType: PropTypes.oneOf(['label', 'label & icon', 'icon']),
     onClick: PropTypes.func,
-    soundVolume: PropTypes.number,
     enableSound: PropTypes.bool,
+    soundVolume: PropTypes.number,
 };
