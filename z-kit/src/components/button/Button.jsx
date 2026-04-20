@@ -1,6 +1,6 @@
 import React from "react";
-import PropTypes from "prop-types"
-import './Button.scss'
+import PropTypes from "prop-types";
+import './Button.scss';
 import { soundManager } from '../../utils/soundUtils';
 import clickSoundFile from '../../assets/sounds/click.mp3';
 
@@ -10,6 +10,7 @@ soundManager.loadSound('click', clickSoundFile, 1);
 export const Button = ({
     variant = "primary",
     size = "medium",
+    colorScheme = "primary", // New prop for color scheme
     disabled = false,
     label = "Button",
     icon = null,
@@ -18,6 +19,7 @@ export const Button = ({
     onClick,
     enableSound = true,
     soundVolume = 1,
+    className = "", // Allow custom className
     ...props
 }) => {
 
@@ -29,7 +31,17 @@ export const Button = ({
     const isTextWithIcon = buttonType === 'label & icon';
 
     // Add mode class for styling
-    const ContentType = isIconOnly ? 'icon-only' : (isTextOnly ? 'text-only' : 'text-with-icon');
+    const contentTypeClass = isIconOnly ? 'icon-only' : (isTextOnly ? 'text-only' : 'text-with-icon');
+
+    // Combine all classes
+    const buttonClasses = [
+        'button',
+        size,
+        variant,
+        colorScheme, // Add color scheme class
+        contentTypeClass,
+        className
+    ].filter(Boolean).join(' ');
 
     // Render icon if needed
     const renderIcon = () => {
@@ -70,13 +82,13 @@ export const Button = ({
         if (onClick) onClick(e);
     };
 
-
     return (
         <button
-            className={`button ${size} ${variant} ${ContentType}`}
+            className={buttonClasses}
             disabled={disabled}
             onClick={handleClick}
             aria-label={isIconOnly ? label : undefined}
+            {...props}
         >
             {showIcon && iconPosition === "left" && renderIcon()}
             {showLabel && <span className="button-label">{label}</span>}
@@ -88,6 +100,7 @@ export const Button = ({
 Button.propTypes = {
     variant: PropTypes.oneOf(['primary', 'secondary', 'ghost']),
     size: PropTypes.oneOf(['small', 'medium', 'large', 'xlarge']),
+    colorScheme: PropTypes.oneOf(['primary', 'warning', 'error', 'success', 'info']),
     disabled: PropTypes.bool,
     label: PropTypes.string,
     icon: PropTypes.oneOfType([
@@ -100,4 +113,19 @@ Button.propTypes = {
     onClick: PropTypes.func,
     enableSound: PropTypes.bool,
     soundVolume: PropTypes.number,
+    className: PropTypes.string,
+};
+
+Button.defaultProps = {
+    variant: 'primary',
+    size: 'medium',
+    colorScheme: 'primary',
+    disabled: false,
+    label: 'Button',
+    icon: null,
+    iconPosition: 'left',
+    buttonType: 'label',
+    enableSound: true,
+    soundVolume: 1,
+    className: '',
 };

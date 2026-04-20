@@ -10,7 +10,7 @@ $gray-color: #808080;
 $warning-color: #F98006;
 $danger-color: #F90606;
 $success-color: #06F980;
-$info-color: #06A8F9;
+$info-color: #06d0f9;
 
 $color-shades: (
     50: 95%,
@@ -64,7 +64,7 @@ $gray-shades: (
 
     @each $shade, $lightness in $color-shades {
         //info color scale:
-        --blue-#{$shade}: #{color.change($info-color, $lightness: $lightness)};
+        --lightBlue-#{$shade}: #{color.change($info-color, $lightness: $lightness)};
     }
 
     @each $shade, $lightness in $gray-shades {

@@ -44,7 +44,7 @@ const meta = {
         color: {
             control: { type: "select" },
             name: "color",
-            options: ["gray", "red", "orange", "lime", "green", "light blue", "blue", "purple", "pink"],
+            options: ["gray", "red", "orange", "yellow", "lime", "green", "lightBlue", "blue", "purple", "pink"],
             description: "Defines the color of the tag",
         },
         label: {

@@ -19,9 +19,7 @@ export const Tag = ({
 }) => {
 
     const showIcon = tagType === 'label & icon';
-
-    // Convert color name to CSS class name
-    const colorClass = color === 'light blue' ? 'light-blue' : color;
+    const colorClass = color;
 
     const renderIcon = () => {
         if (!showIcon) return null;
@@ -70,7 +68,7 @@ export const Tag = ({
     };
 
     return (
-        <div className={`Tag ${colorClass}`} onClick={handleClick}>
+        <div className={`tag ${colorClass}`} onClick={handleClick}>
             {showIcon && renderIcon()}
             <p>{label}</p>
             {removable && (
@@ -86,7 +84,7 @@ export const Tag = ({
 }
 
 Tag.propTypes = {
-    color: PropTypes.oneOf(['gray', 'red', 'orange', 'lime', 'green', 'light blue', 'blue', 'purple', 'pink']),
+    color: PropTypes.oneOf(['gray', 'red', 'orange', 'yellow', 'lime', 'green', 'lightBlue', 'blue', 'purple', 'pink']),
     label: PropTypes.string,
     tagType: PropTypes.oneOf(['label', 'label & icon']),
     icon: PropTypes.oneOfType([

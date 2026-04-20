@@ -1,0 +1,67 @@
+@use '../tokens';
+
+$types: (
+    'success': "green",
+    'info': "lightBlue",
+    'warning': "orange",
+    'error': "red"
+);
+
+@each $type, $color in $types {
+    .toast.#{$type} {
+        position: relative;
+        background-color: var(--#{$color}-100);
+        border: 1px solid var(--#{$color}-200);
+        border-radius: 8px;
+        color: var(--#{$color}-800);
+        padding: 24px 48px 24px 24px;
+        display: inline-flex;
+        flex-direction: column;
+        gap: 16px;
+        max-width: 604px;
+        width: fit-content;
+        box-sizing: border-box;
+        transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease;
+
+
+        .content {
+            display: inline-flex;
+            gap: 8px;
+        }
+
+        .close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 24px;
+            height: 24px;
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+
+            &:hover {
+                background-color: var(--#{$color}-200);
+                border-radius: 4px;
+            }
+        }
+
+        .actions {
+            margin-left: auto;
+            display: flex;
+            gap: 16px;
+        }
+
+        body[data-dark="true"] & {
+            background-color: var(--#{$color}-900);
+            border: 1px solid var(--#{$color}-800);
+            color: var(--#{$color}-200);
+
+            .close:hover {
+                border-radius: 4px;
+                background-color: var(--#{$color}-800);
+            }
+        }
+    }
+}

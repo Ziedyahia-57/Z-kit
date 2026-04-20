@@ -3,10 +3,11 @@
 
 $gray-color: #808080;
 $red-color: #F90606;
-$orange-color: #F98006;
+$orange-color: #f98006;
+$yellow-color: #F9D006;
 $lime-color: #57f906;
 $green-color: #06F980;
-$light-blue-color: #06A8F9;
+$lightBlue-color: #06d0f9;
 $blue-color: #0667F9;
 $purple-color: #a806f9;
 $pink-color: #f90680;
@@ -15,9 +16,10 @@ $colors: (
     'gray': $gray-color,
     'red': $red-color,
     'orange': $orange-color,
+    'yellow': $yellow-color,
     'lime': $lime-color,
     'green': $green-color,
-    'light-blue': $light-blue-color,
+    'lightBlue': $lightBlue-color,
     'blue': $blue-color,
     'purple': $purple-color,
     'pink': $pink-color
@@ -46,7 +48,7 @@ $color-shades: (
     }
 }
 
-.Tag {
+.tag {
     display: inline-flex;
     padding: 8px;
     border-radius: 8px;
@@ -79,31 +81,16 @@ $color-shades: (
     // Apply styles for each color using loop
     @each $color-name, $base-color in $colors {
         &.#{$color-name} {
-            @if $color-name =='gray' {
-                // Gray specific light mode styles
-                background-color: var(--gray-100);
-                border: 1px solid var(--gray-200);
-                color: var(--gray-600);
+            background-color: var(--#{$color-name}-100);
+            border: 1px solid var(--#{$color-name}-200);
+            color: var(--#{$color-name}-800);
 
-                &:hover {
-                    background-color: var(--gray-200);
-                    border-color: var(--gray-300);
-                    color: var(--gray-600);
-                }
+            &:hover {
+                background-color: var(--#{$color-name}-200);
+                border-color: var(--#{$color-name}-300);
+                color: var(--#{$color-name}-800);
             }
 
-            @else {
-                // Other colors light mode styles
-                background-color: var(--#{$color-name}-50);
-                border: 1px solid var(--#{$color-name}-100);
-                color: var(--#{$color-name}-600);
-
-                &:hover {
-                    background-color: var(--#{$color-name}-100);
-                    border-color: var(--#{$color-name}-200);
-                    color: var(--#{$color-name}-600);
-                }
-            }
         }
     }
 
@@ -111,30 +98,14 @@ $color-shades: (
     body[data-dark="true"] & {
         @each $color-name, $base-color in $colors {
             &.#{$color-name} {
-                @if $color-name =='gray' {
-                    // Gray specific dark mode styles
-                    background-color: var(--gray-900);
-                    border-color: var(--gray-800);
-                    color: var(--gray-400);
+                background-color: var(--#{$color-name}-900);
+                border-color: var(--#{$color-name}-800);
+                color: var(--#{$color-name}-200);
 
-                    &:hover {
-                        background-color: var(--gray-800);
-                        border-color: var(--gray-700);
-                        color: var(--gray-400);
-                    }
-                }
-
-                @else {
-                    // Other colors dark mode styles
-                    background-color: var(--#{$color-name}-950);
-                    border-color: var(--#{$color-name}-900);
-                    color: var(--#{$color-name}-400);
-
-                    &:hover {
-                        background-color: var(--#{$color-name}-900);
-                        border-color: var(--#{$color-name}-800);
-                        color: var(--#{$color-name}-400);
-                    }
+                &:hover {
+                    background-color: var(--#{$color-name}-800);
+                    border-color: var(--#{$color-name}-700);
+                    color: var(--#{$color-name}-200);
                 }
             }
         }
