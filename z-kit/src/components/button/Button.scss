@@ -78,51 +78,51 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
     }
 }
 
-// Color scheme mixin to reduce code duplication
-@mixin button-colors($color-base, $shade-50, $shade-100, $shade-200, $shade-300, $shade-400, $shade-500, $shade-600, $shade-700, $shade-800, $shade-900, $shade-950) {
+// Color scheme mixin for non-primary colors
+@mixin button-state($color-base, $shade-50, $shade-100, $shade-200, $shade-300, $shade-400, $shade-500, $shade-600, $shade-700, $shade-800, $shade-900, $shade-950) {
 
     // Primary variant
     &.primary {
-        background-color: $shade-600;
-        border-color: $shade-600;
+        background-color: $shade-800;
+        border-color: $shade-700;
         color: var(--gray-25);
 
         &:hover:not(:disabled) {
             background-color: $shade-700;
-            border-color: $shade-700;
+            border-color: $shade-600;
         }
 
         &:active:not(:disabled) {
-            background-color: $shade-800;
-            border-color: $shade-800;
+            background-color: $shade-600;
+            border-color: $shade-500;
             transform: scale(0.99);
         }
 
         &:disabled {
-            background-color: $shade-200;
-            border-color: $shade-200;
+            background-color: $shade-300;
+            border-color: $shade-300;
             color: var(--gray-50);
             cursor: not-allowed;
         }
 
         body[data-dark="true"] & {
-            background-color: $shade-500;
-            border-color: $shade-500;
+            background-color: $shade-800;
+            border-color: $shade-700;
             color: var(--gray-25);
 
             &:hover:not(:disabled) {
-                background-color: $shade-400;
-                border-color: $shade-400;
+                background-color: $shade-700;
+                border-color: $shade-600;
             }
 
             &:active:not(:disabled) {
-                background-color: $shade-300;
-                border-color: $shade-300;
+                background-color: $shade-600;
+                border-color: $shade-500;
             }
 
             &:disabled {
-                background-color: $shade-800;
-                border-color: $shade-800;
+                background-color: $shade-700;
+                border-color: $shade-700;
                 color: var(--gray-400);
             }
         }
@@ -131,8 +131,8 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
     // Secondary variant
     &.secondary {
         background-color: transparent;
-        border-color: $shade-600;
-        color: $shade-600;
+        border-color: $shade-800;
+        color: $shade-800;
 
         &:hover:not(:disabled) {
             border-color: $shade-700;
@@ -140,34 +140,34 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
         }
 
         &:active:not(:disabled) {
-            border-color: $shade-800;
-            color: $shade-800;
+            border-color: $shade-600;
+            color: $shade-600;
             transform: scale(0.99);
         }
 
         &:disabled {
-            border-color: $shade-200;
-            color: $shade-200;
+            border-color: $shade-300;
+            color: $shade-300;
             cursor: not-allowed;
         }
 
         body[data-dark="true"] & {
-            border-color: $shade-500;
-            color: $shade-500;
+            border-color: $shade-200;
+            color: $shade-200;
 
             &:hover:not(:disabled) {
-                border-color: $shade-400;
-                color: $shade-400;
-            }
-
-            &:active:not(:disabled) {
                 border-color: $shade-300;
                 color: $shade-300;
             }
 
+            &:active:not(:disabled) {
+                border-color: $shade-400;
+                color: $shade-400;
+            }
+
             &:disabled {
-                border-color: $shade-800;
-                color: $shade-800;
+                border-color: $shade-700;
+                color: $shade-700;
             }
         }
     }
@@ -176,7 +176,7 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
     &.ghost {
         background-color: transparent;
         border-color: transparent;
-        color: $shade-600;
+        color: $shade-800;
 
         &:hover:not(:disabled) {
             background-color: $shade-50;
@@ -185,48 +185,174 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
 
         &:active:not(:disabled) {
             background-color: $shade-100;
-            color: $shade-800;
+            color: $shade-600;
             transform: scale(0.99);
         }
 
         &:disabled {
-            color: $shade-200;
+            color: $shade-300;
             cursor: not-allowed;
         }
 
         body[data-dark="true"] & {
-            color: $shade-500;
+            color: $shade-200;
 
             &:hover:not(:disabled) {
-                background-color: $shade-950;
-                color: $shade-400;
+                background-color: $shade-800;
+                color: $shade-300;
             }
 
             &:active:not(:disabled) {
                 background-color: $shade-900;
-                color: $shade-300;
+                color: $shade-400;
             }
 
             &:disabled {
-                color: $shade-800;
+                color: $shade-700;
             }
         }
     }
 }
 
-// Apply color schemes
-.button {
-    // Primary color scheme (default)
-    @include button-colors(var(--primary-color),
-        var(--primary-50), var(--primary-100), var(--primary-200),
-        var(--primary-300), var(--primary-400), var(--primary-500),
-        var(--primary-600), var(--primary-700), var(--primary-800),
-        var(--primary-900), var(--primary-950));
+// Primary color scheme (direct implementation for future customization)
+.button.primaryColor {
+
+    // Primary variant
+    &.primary {
+        background-color: var(--primary-600);
+        border-color: var(--primary-600);
+        color: var(--gray-25);
+
+        &:hover:not(:disabled) {
+            background-color: var(--primary-700);
+            border-color: var(--primary-700);
+        }
+
+        &:active:not(:disabled) {
+            background-color: var(--primary-800);
+            border-color: var(--primary-800);
+            transform: scale(0.99);
+        }
+
+        &:disabled {
+            background-color: var(--primary-200);
+            border-color: var(--primary-200);
+            color: var(--gray-50);
+            cursor: not-allowed;
+        }
+
+        body[data-dark="true"] & {
+            background-color: var(--primary-500);
+            border-color: var(--primary-500);
+            color: var(--gray-25);
+
+            &:hover:not(:disabled) {
+                background-color: var(--primary-400);
+                border-color: var(--primary-400);
+            }
+
+            &:active:not(:disabled) {
+                background-color: var(--primary-300);
+                border-color: var(--primary-300);
+            }
+
+            &:disabled {
+                background-color: var(--primary-800);
+                border-color: var(--primary-800);
+                color: var(--gray-400);
+            }
+        }
+    }
+
+    // Secondary variant
+    &.secondary {
+        background-color: transparent;
+        border-color: var(--primary-600);
+        color: var(--primary-600);
+
+        &:hover:not(:disabled) {
+            border-color: var(--primary-700);
+            color: var(--primary-700);
+        }
+
+        &:active:not(:disabled) {
+            border-color: var(--primary-800);
+            color: var(--primary-800);
+            transform: scale(0.99);
+        }
+
+        &:disabled {
+            border-color: var(--primary-200);
+            color: var(--primary-200);
+            cursor: not-allowed;
+        }
+
+        body[data-dark="true"] & {
+            border-color: var(--primary-500);
+            color: var(--primary-500);
+
+            &:hover:not(:disabled) {
+                border-color: var(--primary-400);
+                color: var(--primary-400);
+            }
+
+            &:active:not(:disabled) {
+                border-color: var(--primary-300);
+                color: var(--primary-300);
+            }
+
+            &:disabled {
+                border-color: var(--primary-800);
+                color: var(--primary-800);
+            }
+        }
+    }
+
+    // Ghost variant
+    &.ghost {
+        background-color: transparent;
+        border-color: transparent;
+        color: var(--primary-600);
+
+        &:hover:not(:disabled) {
+            background-color: var(--primary-50);
+            color: var(--primary-700);
+        }
+
+        &:active:not(:disabled) {
+            background-color: var(--primary-100);
+            color: var(--primary-800);
+            transform: scale(0.99);
+        }
+
+        &:disabled {
+            color: var(--primary-200);
+            cursor: not-allowed;
+        }
+
+        body[data-dark="true"] & {
+            color: var(--primary-500);
+
+            &:hover:not(:disabled) {
+                background-color: var(--primary-950);
+                color: var(--primary-400);
+            }
+
+            &:active:not(:disabled) {
+                background-color: var(--primary-900);
+                color: var(--primary-300);
+            }
+
+            &:disabled {
+                color: var(--primary-800);
+            }
+        }
+    }
 }
 
 // Warning color scheme
-.button.warning {
-    @include button-colors(var(--orange-color),
+.button.warningColor {
+    @include button-state(var(--orange-color),
         var(--orange-50), var(--orange-100), var(--orange-200),
         var(--orange-300), var(--orange-400), var(--orange-500),
         var(--orange-600), var(--orange-700), var(--orange-800),
@@ -234,8 +360,8 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
 }
 
 // Error/Danger color scheme
-.button.error {
-    @include button-colors(var(--red-color),
+.button.errorColor {
+    @include button-state(var(--red-color),
         var(--red-50), var(--red-100), var(--red-200),
         var(--red-300), var(--red-400), var(--red-500),
         var(--red-600), var(--red-700), var(--red-800),
@@ -243,8 +369,8 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
 }
 
 // Success color scheme
-.button.success {
-    @include button-colors(var(--green-color),
+.button.successColor {
+    @include button-state(var(--green-color),
         var(--green-50), var(--green-100), var(--green-200),
         var(--green-300), var(--green-400), var(--green-500),
         var(--green-600), var(--green-700), var(--green-800),
@@ -252,8 +378,8 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
 }
 
 // Info color scheme
-.button.info {
-    @include button-colors(var(--lightBlue-color),
+.button.infoColor {
+    @include button-state(var(--lightBlue-color),
         var(--lightBlue-50), var(--lightBlue-100), var(--lightBlue-200),
         var(--lightBlue-300), var(--lightBlue-400), var(--lightBlue-500),
         var(--lightBlue-600), var(--lightBlue-700), var(--lightBlue-800),

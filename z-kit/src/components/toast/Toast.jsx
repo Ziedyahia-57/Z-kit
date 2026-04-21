@@ -18,6 +18,8 @@ export const Toast = ({
     position = "bottom",
     index = 0,
     totalToasts = 1,
+    enableSound = true,
+    soundVolume = 1,
 }) => {
     const [visible, setVisible] = React.useState(true);
 
@@ -27,7 +29,7 @@ export const Toast = ({
         if (typeof iconToRender === 'string') {
             const iconMap = {
                 'success': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
-                'error': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>,
+                'error': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ban-icon lucide-ban"><circle cx="12" cy="12" r="10" /><path d="M4.929 4.929 19.07 19.071" /></svg>,
                 'warning': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-triangle-alert-icon lucide-triangle-alert"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>,
                 'info': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info-icon lucide-info"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>,
             };
@@ -68,11 +70,11 @@ export const Toast = ({
         </div>
         {requiresAction && (
             <div className="actions">
-                <Button variant="ghost" colorScheme={type} onClick={onCancel} label={cancelText}></Button>
-                <Button variant="primary" colorScheme={type} onClick={onConfirm} label={confirmText}></Button>
+                <Button variant="ghost" colorScheme={`${type}Color`} onClick={onCancel} label={cancelText}></Button>
+                <Button variant="primary" colorScheme={`${type}Color`} onClick={onConfirm} label={confirmText}></Button>
             </div>
         )}
-    </div>
+    </div >
 }
 
 Toast.propTypes = {
@@ -88,6 +90,8 @@ Toast.propTypes = {
     position: PropTypes.string,
     index: PropTypes.number,
     totalToasts: PropTypes.number,
+    enableSound: PropTypes.bool,
+    soundVolume: PropTypes.number,
 }
 
 Toast.defaultProps = {
@@ -100,4 +104,6 @@ Toast.defaultProps = {
     onCancel: () => { },
     index: 0,
     totalToasts: 1,
+    enableSound: true,
+    soundVolume: 1,
 }

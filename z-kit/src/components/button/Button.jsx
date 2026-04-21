@@ -10,7 +10,7 @@ soundManager.loadSound('click', clickSoundFile, 1);
 export const Button = ({
     variant = "primary",
     size = "medium",
-    colorScheme = "primary", // New prop for color scheme
+    colorScheme = "primaryColor", // New prop for color scheme
     disabled = false,
     label = "Button",
     icon = null,
@@ -100,7 +100,7 @@ export const Button = ({
 Button.propTypes = {
     variant: PropTypes.oneOf(['primary', 'secondary', 'ghost']),
     size: PropTypes.oneOf(['small', 'medium', 'large', 'xlarge']),
-    colorScheme: PropTypes.oneOf(['primary', 'warning', 'error', 'success', 'info']),
+    colorScheme: PropTypes.oneOf(['primaryColor', 'warningColor', 'errorColor', 'successColor', 'infoColor']),
     disabled: PropTypes.bool,
     label: PropTypes.string,
     icon: PropTypes.oneOfType([
@@ -119,7 +119,7 @@ Button.propTypes = {
 Button.defaultProps = {
     variant: 'primary',
     size: 'medium',
-    colorScheme: 'primary',
+    colorScheme: 'primaryColor',
     disabled: false,
     label: 'Button',
     icon: null,

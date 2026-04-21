@@ -98,6 +98,7 @@ export const button = {
   args: {
     darkmode: true,
     variant: "primary",
+    colorScheme: "primaryColor",
     label: "Button",
     size: "large",
     disabled: false,
