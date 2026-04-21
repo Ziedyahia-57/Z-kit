@@ -106,19 +106,6 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
         }
 
         body[data-dark="true"] & {
-            background-color: $shade-800;
-            border-color: $shade-700;
-            color: var(--gray-25);
-
-            &:hover:not(:disabled) {
-                background-color: $shade-700;
-                border-color: $shade-600;
-            }
-
-            &:active:not(:disabled) {
-                background-color: $shade-600;
-                border-color: $shade-500;
-            }
 
             &:disabled {
                 background-color: $shade-700;
