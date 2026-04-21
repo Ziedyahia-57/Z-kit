@@ -99,8 +99,8 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
         }
 
         &:disabled {
-            background-color: $shade-300;
-            border-color: $shade-300;
+            background-color: $shade-200;
+            border-color: $shade-200;
             color: var(--gray-50);
             cursor: not-allowed;
         }
@@ -108,8 +108,8 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
         body[data-dark="true"] & {
 
             &:disabled {
-                background-color: $shade-700;
-                border-color: $shade-700;
+                background-color: $shade-800;
+                border-color: $shade-800;
                 color: var(--gray-400);
             }
         }
@@ -133,8 +133,8 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
         }
 
         &:disabled {
-            border-color: $shade-300;
-            color: $shade-300;
+            border-color: $shade-200;
+            color: $shade-200;
             cursor: not-allowed;
         }
 
@@ -153,8 +153,8 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
             }
 
             &:disabled {
-                border-color: $shade-700;
-                color: $shade-700;
+                border-color: $shade-800;
+                color: $shade-800;
             }
         }
     }
@@ -166,18 +166,18 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
         color: $shade-800;
 
         &:hover:not(:disabled) {
-            background-color: $shade-50;
+            background-color: $shade-200;
             color: $shade-700;
         }
 
         &:active:not(:disabled) {
-            background-color: $shade-100;
+            background-color: $shade-300;
             color: $shade-600;
             transform: scale(0.99);
         }
 
         &:disabled {
-            color: $shade-300;
+            color: $shade-200;
             cursor: not-allowed;
         }
 
@@ -190,12 +190,12 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
             }
 
             &:active:not(:disabled) {
-                background-color: $shade-900;
+                background-color: $shade-700;
                 color: $shade-400;
             }
 
             &:disabled {
-                color: $shade-700;
+                color: $shade-800;
             }
         }
     }

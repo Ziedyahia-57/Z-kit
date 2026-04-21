@@ -71,6 +71,7 @@ export const Toast = ({
         {requiresAction && (
             <div className="actions">
                 <Button variant="ghost" colorScheme={`${type}Color`} onClick={onCancel} label={cancelText}></Button>
+                <Button variant="secondary" colorScheme={`${type}Color`} onClick={onCancel} label={cancelText}></Button>
                 <Button variant="primary" colorScheme={`${type}Color`} onClick={onConfirm} label={confirmText}></Button>
             </div>
         )}
