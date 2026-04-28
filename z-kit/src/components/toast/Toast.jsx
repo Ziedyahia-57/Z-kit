@@ -19,7 +19,6 @@ export const Toast = ({
     index = 0,
     totalToasts = 1,
     enableSound = true,
-    soundVolume = 1,
 }) => {
     const [visible, setVisible] = React.useState(true);
 
@@ -52,7 +51,7 @@ export const Toast = ({
         e.stopPropagation();
         // Play sound using soundManager
         if (enableSound) {
-            soundManager.play('click', soundVolume);
+            soundManager.play('click', 1);
         }
         setVisible(false);
     };
@@ -62,16 +61,24 @@ export const Toast = ({
             {type && renderIcon()}
             <p className="toastMessage">{message}</p>
         </div>
-        <div className="close" onClick={handleRemove}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x-icon lucide-x">
-                <path d="M18 6 6 18" />
-                <path d="m6 6 12 12" />
-            </svg>
-        </div>
+        <Button
+            className="close"
+            variant="ghost"
+            colorScheme={`${type}Color`}
+            size="small"
+            buttonType="icon"
+            icon={
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x-icon lucide-x">
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                </svg>
+            }
+            onClick={handleRemove} enableSound={enableSound}
+        />
         {requiresAction && (
             <div className="actions">
-                <Button variant="ghost" colorScheme={`${type}Color`} onClick={onCancel} label={cancelText}></Button>
-                <Button variant="primary" colorScheme={`${type}Color`} onClick={onConfirm} label={confirmText}></Button>
+                <Button variant="ghost" colorScheme={`${type}Color`} onClick={onCancel} label={cancelText} enableSound={enableSound}></Button>
+                <Button variant="primary" colorScheme={`${type}Color`} onClick={onConfirm} label={confirmText} enableSound={enableSound}></Button>
             </div>
         )}
     </div >
@@ -91,7 +98,6 @@ Toast.propTypes = {
     index: PropTypes.number,
     totalToasts: PropTypes.number,
     enableSound: PropTypes.bool,
-    soundVolume: PropTypes.number,
 }
 
 Toast.defaultProps = {
@@ -105,5 +111,4 @@ Toast.defaultProps = {
     index: 0,
     totalToasts: 1,
     enableSound: true,
-    soundVolume: 1,
 }

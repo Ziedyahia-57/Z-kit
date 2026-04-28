@@ -15,7 +15,6 @@ export const Tag = ({
     removable = false,
     onClick,
     enableSound = true,
-    soundVolume = 1,
 }) => {
 
     const showIcon = tagType === 'label & icon';
@@ -54,7 +53,7 @@ export const Tag = ({
         e.stopPropagation();
         // Play sound using soundManager
         if (enableSound) {
-            soundManager.play('click', soundVolume);
+            soundManager.play('click', 1);
         }
         if (onClick) onClick(e);
     };
@@ -62,7 +61,7 @@ export const Tag = ({
     const handleClick = () => {
         // Play sound using soundManager
         if (enableSound) {
-            soundManager.play('click', soundVolume);
+            soundManager.play('click', 1);
         }
         if (onClick) onClick(e);
     };
@@ -95,7 +94,6 @@ Tag.propTypes = {
     removable: PropTypes.bool,
     onClick: PropTypes.func,
     enableSound: PropTypes.bool,
-    soundVolume: PropTypes.number,
 }
 
 Tag.defaultProps = {
@@ -105,5 +103,4 @@ Tag.defaultProps = {
     icon: 'chart',
     removable: false,
     enableSound: true,
-    soundVolume: 1,
 };

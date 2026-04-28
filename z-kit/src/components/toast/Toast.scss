@@ -33,16 +33,10 @@ $types: (
             position: absolute;
             top: 8px;
             right: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 8px;
-            border-radius: 4px;
-            transition: background-color 0.2s ease;
-            cursor: pointer;
 
-            &:hover {
-                background-color: var(--#{$color}-200);
+            svg {
+                width: 20px;
+                height: 20px;
             }
         }
 

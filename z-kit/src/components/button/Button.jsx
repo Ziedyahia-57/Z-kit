@@ -18,7 +18,6 @@ export const Button = ({
     buttonType = "label", // "label", "label & icon", "icon"
     onClick,
     enableSound = true,
-    soundVolume = 1,
     className = "", // Allow custom className
     ...props
 }) => {
@@ -77,7 +76,7 @@ export const Button = ({
     const handleClick = (e) => {
         // Play sound using soundManager
         if (enableSound) {
-            soundManager.play('click', soundVolume);
+            soundManager.play('click', 1);
         }
         if (onClick) onClick(e);
     };
@@ -112,7 +111,6 @@ Button.propTypes = {
     buttonType: PropTypes.oneOf(['label', 'label & icon', 'icon']),
     onClick: PropTypes.func,
     enableSound: PropTypes.bool,
-    soundVolume: PropTypes.number,
     className: PropTypes.string,
 };
 
@@ -126,6 +124,5 @@ Button.defaultProps = {
     iconPosition: 'left',
     buttonType: 'label',
     enableSound: true,
-    soundVolume: 1,
     className: '',
 };
