@@ -18,6 +18,7 @@
     }
 
     label p {
+        text-transform: capitalize;
         transition: color 0.2s ease;
         color: var(--gray-950);
 
@@ -26,7 +27,7 @@
         }
     }
 
-    &:has(.TextInput:disabled) label p {
+    &:has(.text-input:disabled) label p {
         color: var(--gray-600);
 
         body[data-dark="true"] & {
@@ -34,13 +35,34 @@
         }
     }
 
-    &:has(.TextInput.error) label p {
+    &:has(.text-input.error) label p {
         color: var(--red-600);
 
         body[data-dark="true"] & {
             color: var(--red-400);
         }
     }
+
+    &:has(.text-input:not(:placeholder-shown):not(:disabled)) {
+        .input-icon svg {
+            stroke: var(--gray-950);
+
+            body[data-dark="true"] & {
+                stroke: var(--gray-50);
+            }
+        }
+    }
+
+    &:has(.text-input.error:not(:placeholder-shown):not(:disabled)) {
+        .input-icon svg {
+            stroke: var(--red-600);
+
+            body[data-dark="true"] & {
+                stroke: var(--red-400);
+            }
+        }
+    }
+
 
     .input-wrapper {
         position: relative;
@@ -61,11 +83,11 @@
 
         svg {
             display: block;
-            stroke: var(--gray-400);
+            stroke: var(--gray-600);
             transition: stroke 0.2s ease;
 
             body[data-dark="true"] & {
-                stroke: var(--gray-600);
+                stroke: var(--gray-400);
             }
         }
 
@@ -75,7 +97,7 @@
         }
     }
 
-    .TextInput {
+    .text-input {
         --caret-color: var(--gray-950);
 
         width: 97px;
@@ -94,9 +116,9 @@
             color: var(--gray-400);
         }
 
-        &:hover:not(:disabled),
-        &:active:not(:disabled),
-        &:focus:not(:disabled) {
+        &:hover:not(:disabled):not(.error),
+        &:active:not(:disabled):not(.error),
+        &:focus:not(:disabled):not(.error) {
             background-color: var(--gray-25);
             border-color: var(--gray-200);
         }
@@ -122,6 +144,10 @@
             }
         }
 
+        &.error:not(:placeholder-shown) {
+            color: var(--red-600);
+        }
+
         body[data-dark="true"] & {
             --caret-color: var(--gray-50);
 
@@ -133,9 +159,9 @@
                 color: var(--gray-600);
             }
 
-            &:hover:not(:disabled),
-            &:active:not(:disabled),
-            &:focus:not(:disabled) {
+            &:hover:not(:disabled):not(.error),
+            &:active:not(:disabled):not(.error),
+            &:focus:not(:disabled):not(.error) {
                 background-color: var(--gray-900);
                 border-color: var(--gray-700);
             }
@@ -154,23 +180,28 @@
                 border-color: var(--red-400);
 
                 &:active:not(:disabled),
-                &:hover:not(:disabled) {
+                &:hover:not(:disabled),
+                &:focus:not(:disabled) {
                     border-color: var(--red-400);
                 }
+            }
+
+            &.error:not(:placeholder-shown) {
+                color: var(--red-400);
             }
         }
     }
 
     // ===== HAS ICON STYLES =====
     &.has-icon {
-        .TextInput {
+        .text-input {
             padding-left: 37px;
         }
     }
 
     // ===== ICON FADED STYLES =====
     &.icon-faded {
-        .TextInput {
+        .text-input {
             padding-left: 16px;
             width: calc(97px + 21px); // Original width + icon space
         }

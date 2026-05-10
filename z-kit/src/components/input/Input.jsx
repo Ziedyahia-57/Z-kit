@@ -73,21 +73,20 @@ export class Input extends React.Component {
 
         return (
             <div className={`input ${this.state.showIcon ? 'has-icon' : ''} ${shouldFadeOut ? 'icon-faded' : ''}`}>
-                <label><p>{this.props.label}</p></label>
+                {this.props.label && <label><p>{this.props.label}</p></label>}
                 <div className="input-wrapper">
                     {this.renderIcon()}
                     <input
                         type="text"
                         autoComplete='off'
-                        className={`TextInput ${this.props.error ? 'error' : ''}`}
-                        id='TextInput'
+                        className={`text-input ${this.props.error ? 'error' : ''}`}
+                        id='text-input'
                         value={this.state.value}
                         onChange={this.handleChange}
                         onFocus={this.handleFocus}
                         onBlur={this.handleBlur}
                         placeholder={this.props.placeholder}
                         disabled={this.props.disabled}
-                        error={this.props.error}
                     />
                 </div>
             </div>
@@ -97,14 +96,14 @@ export class Input extends React.Component {
 
 Input.propTypes = {
     label: PropTypes.string,
-    placeholder: PropTypes.string,
+    placeholder: PropTypes.string.isRequired,
     disabled: PropTypes.bool,
     error: PropTypes.bool,
     showIcon: PropTypes.bool,
     fadeIconOnFocus: PropTypes.bool,
     onChange: PropTypes.func,
     onFocus: PropTypes.func,
-    onBlur: PropTypes.func,
+    onBlur: PropTypes.func
 }
 
 Input.defaultProps = {
@@ -113,5 +112,5 @@ Input.defaultProps = {
     disabled: false,
     error: false,
     showIcon: false,
-    fadeIconOnFocus: true,
+    fadeIconOnFocus: true
 }

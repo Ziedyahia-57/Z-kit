@@ -1,6 +1,5 @@
-import { Input } from './Input';
+import { Select } from './Select';
 import { useEffect } from 'react';
-
 
 // Decorator that responds to a darkMode arg
 const withDarkModeControl = (Story, context) => {
@@ -24,27 +23,22 @@ const withDarkModeControl = (Story, context) => {
 };
 
 const meta = {
-    title: "Z-kit/Input",
-    component: Input,
+    title: "Z-kit/Select",
+    component: Select,
     tags: ["autodocs"],
     decorators: [withDarkModeControl],
     parameters: {
         docs: {
             description: {
-                story: "Text Input UI Component",
+                story: "Select UI Component",
             },
-        }
+        },
     },
     argTypes: {
         darkmode: {
             control: { type: "boolean" },
             name: "Dark Mode",
             description: "Toggle dark mode theme",
-        },
-        label: {
-            control: { type: "text" },
-            name: "Label",
-            description: "Label for the input",
         },
         placeholder: {
             control: { type: "text" },
@@ -62,28 +56,22 @@ const meta = {
             description: "Defines if the button is in an error state",
             if: { arg: "disabled", neq: "true" },
         },
-        showIcon: {
-            control: { type: "boolean" },
-            name: "Show Icon",
-            description: "Toggle icon visibility inside the input",
-        },
         onClick: {
             action: "clicked",
             name: "onClick",
             description: "Defines the action to be performed when the accordion is clicked",
         },
-    }
-}
+    },
+};
 
 export default meta;
 
-export const input = {
+export const select = {
     args: {
         darkmode: false,
-        label: "label",
+        label: 'label',
+        placeholder: "Placeholder",
         disabled: false,
         error: false,
-        placeholder: "Placeholder",
-        showIcon: true,
-    }
-}
+    },
+};

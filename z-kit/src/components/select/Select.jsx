@@ -1,10 +1,9 @@
-// Accordion.jsx with SoundManager
-import React from "react";
-import PropTypes from "prop-types";
-import './Accordion.scss'
+import React from 'react';
+import "./Select.scss";
 import { motion, useAnimation } from "motion/react";
 import { soundManager } from '../../utils/soundUtils';
 import clickSoundFile from '../../assets/sounds/click.mp3';
+import PropTypes from 'prop-types';
 
 // Load sound once (could be done in a central location)
 soundManager.loadSound('click', clickSoundFile, 1);
@@ -46,18 +45,28 @@ const ChevronDownIcon = React.forwardRef(({ duration = 0.2, ...props }, ref) => 
 
 ChevronDownIcon.displayName = "ChevronDownIcon";
 
-export class Accordion extends React.Component {
+export class Select extends React.Component {
     constructor(props) {
-        super(props);
+        super(props)
         this.state = {
-            active: false
-        };
+            open: false,
+            input: ''
+        }
+        this.toggleSelect = this.toggleSelect.bind(this)
         this.chevronRef = React.createRef();
-    }
 
-    toggleAccordion = () => {
+        if (props.enableSound) {
+            const preloadAudio = new Audio(clickSoundFile);
+            preloadAudio.load();
+            // Store in window to prevent garbage collection
+            window._preloadedAudio = preloadAudio;
+        }
+    };
+
+
+    toggleSelect() {
         const { active } = this.state;
-        const { enableSound = true, soundVolume = 1, disabled = false, onToggle } = this.props;
+        const { enableSound = this.props.enableSound, soundVolume = 1, disabled, onToggle } = this.props;
 
         if (disabled) return;
 
@@ -78,31 +87,18 @@ export class Accordion extends React.Component {
             }
         });
     }
-
     render() {
-        const {
-            question,
-            answer,
-            disabled = false,
-            customClass = ""
-        } = this.props;
-
         return (
-            <div
-                className={`accordion ${disabled ? 'accordion--disabled' : ''} ${customClass}`}
-                onClick={this.toggleAccordion}
-                role="button"
-                tabIndex={disabled ? -1 : 0}
-                aria-expanded={this.state.active}
-                aria-disabled={disabled}
-                onKeyPress={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        this.toggleAccordion();
-                    }
-                }}
-            >
-                <div className="title">
-                    <h6>{question}</h6>
+            <div className="select">
+                {this.props.label && <label><p>{this.props.label}</p></label>}
+                <button
+                    className={`select-wrapper ${this.props.error ? 'error' : ''}`}
+                    onClick={this.toggleSelect}
+                    aria-expanded={this.state.active}
+                    disabled={this.props.disabled}
+                    value={this.state.input}
+                >
+                    {this.state.input !== '' ? <p>{this.state.input}</p> : <p className="placeholder">{this.props.placeholder}</p>}
                     <ChevronDownIcon
                         ref={this.chevronRef}
                         duration={0.2}
@@ -110,31 +106,24 @@ export class Accordion extends React.Component {
                         height={20}
                         strokeWidth={3}
                     />
-                </div>
-                <div className={`content ${this.state.active ? 'open' : 'closed'}`}>
-                    <div>
-                        <p>{answer}</p>
-                    </div>
-                </div>
+                </button>
             </div>
-        );
+        )
     }
 }
 
-Accordion.propTypes = {
-    question: PropTypes.string.isRequired,
-    answer: PropTypes.string.isRequired,
-    disabled: PropTypes.bool,
-    soundVolume: PropTypes.number,
-    enableSound: PropTypes.bool,
-    onToggle: PropTypes.func,
-    customClass: PropTypes.string
-};
-
-Accordion.defaultProps = {
-    question: "Click to expand",
-    answer: "Content goes here",
+Select.defaultProps = {
+    label: 'Select',
+    placeholder: 'Placeholder',
     disabled: false,
-    enableSound: true,
-    soundVolume: 1
-};
+    error: false,
+    enableSound: true
+}
+
+Select.propTypes = {
+    label: PropTypes.string,
+    placeholder: PropTypes.string.isRequired,
+    disabled: PropTypes.bool,
+    error: PropTypes.bool,
+    enableSound: PropTypes.bool
+}
