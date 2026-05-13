@@ -1,0 +1,185 @@
+@use '../tokens';
+
+.radio {
+
+    .radio-wrapper {
+        display: grid;
+        // col 1: indicator (16px) | col 2: label/details (rest)
+        grid-template-columns: 16px 1fr;
+        grid-template-rows: auto auto;
+        align-items: center;
+        column-gap: 12px;
+        width: fit-content;
+        overflow: hidden;
+        cursor: pointer;
+
+        // Hide the native input completely
+        .radio-button {
+            display: none;
+        }
+
+        // ── Dedicated custom indicator ──────────────────────────────────
+        .radio-indicator {
+            grid-column: 1;
+            grid-row: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+
+            // inactive light: 
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            transition: background 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+            flex-shrink: 0;
+
+            // Inner dot transparent by default
+            &::after {
+                content: "";
+                display: block;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: transparent;
+                transition: background 0.2s ease;
+            }
+        }
+
+        // active light:
+        .radio-button:checked~.radio-indicator {
+            border-color: var(--primary-600);
+            background: var(--gray-50);
+
+            &::after {
+                background: var(--primary-600);
+            }
+        }
+
+        // ── Label (text) ─────────────────────────────────────────────────
+        .radio-label {
+            grid-column: 2;
+            grid-row: 1;
+            text-transform: capitalize;
+            transition: color 0.2s ease;
+            color: var(--gray-950);
+            cursor: pointer;
+
+            p {
+                margin: 0;
+            }
+        }
+
+        // ── Details ──────────────────────────────────────────────────────
+        .radio-details {
+            grid-column: 2;
+            grid-row: 2;
+            text-transform: capitalize;
+            transition: color 0.2s ease;
+            color: var(--gray-600);
+            cursor: pointer;
+
+            p {
+                margin: 0;
+            }
+        }
+
+        // ── Dark mode ─────────────────────────────────────────────────────
+        body[data-dark="true"] & {
+
+            // inactive dark:
+            .radio-indicator {
+                background: var(--gray-900);
+                border-color: var(--gray-800);
+
+                &::after {
+                    background: transparent;
+                }
+            }
+
+            // active dark:
+            .radio-button:checked~.radio-indicator {
+                border-color: var(--primary-500);
+                background: var(--gray-950);
+
+                &::after {
+                    background: var(--primary-500);
+                }
+            }
+
+            .radio-label {
+                color: var(--gray-50);
+            }
+
+            .radio-details {
+                color: var(--gray-400);
+            }
+        }
+    }
+
+    // ── Disabled state ────────────────────────────────────────────────────
+    &.disabled {
+
+        // inactive light disabled:
+        .radio-indicator {
+            background: var(--gray-50);
+            border-color: var(--gray-100);
+            cursor: not-allowed;
+
+            &::after {
+                background: transparent;
+            }
+        }
+
+        // active light disabled:
+        .radio-button:checked~.radio-indicator {
+            border-color: var(--primary-200);
+
+            &::after {
+                background: var(--primary-200);
+            }
+        }
+
+        .radio-label {
+            color: var(--gray-600);
+            cursor: not-allowed;
+        }
+
+        .radio-details {
+            color: var(--gray-400);
+            cursor: not-allowed;
+        }
+
+        body[data-dark="true"] & {
+
+            // inactive dark disabled:
+            .radio-indicator {
+                background: var(--gray-950);
+                border-color: var(--gray-900);
+
+                &::after {
+                    background: transparent;
+                }
+            }
+
+            // active dark disabled:
+            .radio-button:checked~.radio-indicator {
+                border-color: var(--primary-800);
+
+                &::after {
+                    background: var(--primary-800);
+                }
+            }
+
+            .radio-label {
+                color: var(--gray-400);
+            }
+
+            .radio-details {
+                color: var(--gray-200);
+            }
+        }
+    }
+}

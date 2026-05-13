@@ -100,4 +100,8 @@ $gray-shades: (
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
         margin: 0;
     }
+
+    input::spelling-error {
+        text-decoration: 4px dashed underline var(--red-500);
+    }
 }
