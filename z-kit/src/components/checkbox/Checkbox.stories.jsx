@@ -1,4 +1,4 @@
-import { Radio } from './Radio';
+import { Checkbox } from './Checkbox';
 import { useEffect, useState } from 'react';
 
 // Decorator that responds to a darkMode arg
@@ -23,14 +23,14 @@ const withDarkModeControl = (Story, context) => {
 };
 
 const meta = {
-    title: "Z-kit/Radio",
-    component: Radio,
+    title: "Z-kit/Checkbox",
+    component: Checkbox,
     tags: ["autodocs"],
     decorators: [withDarkModeControl],
     parameters: {
         docs: {
             description: {
-                story: "Radio UI Component",
+                story: "Checkbox UI Component",
             },
         },
     },
@@ -43,80 +43,93 @@ const meta = {
         label: {
             control: { type: "text" },
             name: "Label",
-            description: "Label text for the radio button",
+            description: "Label text for the checkbox button",
         },
         details: {
             control: { type: "text" },
             name: "Details",
-            description: "Details text for the radio button",
+            description: "Details text for the checkbox button",
         },
         disabled: {
             control: { type: "boolean" },
             name: "Disabled",
-            description: "Defines if the radio button is disabled",
+            description: "Defines if all checkboxes are disabled",
         },
         onClick: {
             action: "clicked",
             name: "onClick",
-            description: "Defines the action to be performed when the radio button is clicked",
+            description: "Defines the action to be performed when the checkbox button is clicked",
         },
     },
 };
 
 export default meta;
 
-// Interactive wrapper to manage radio group state
-const RadioGroup = ({ radios, globalDisabled }) => {
-    const [selectedIndex, setSelectedIndex] = useState(0);
+// Checkbox group wrapper to manage multiple checkbox states
+const CheckboxGroup = ({ checkboxes, globalDisabled }) => {
+    const [checkedStates, setCheckedStates] = useState(
+        checkboxes.map(checkbox => checkbox.checked || false)
+    );
+
+    const handleToggle = (index) => {
+        setCheckedStates(prev => {
+            const newStates = [...prev];
+            newStates[index] = !newStates[index];
+            return newStates;
+        });
+    };
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {radios.map((radio, index) => (
-                <Radio
+            {checkboxes.map((checkbox, index) => (
+                <Checkbox
                     key={index}
-                    {...radio}
-                    disabled={globalDisabled || radio.disabled}
-                    checked={selectedIndex === index}
-                    onClick={() => setSelectedIndex(index)}
+                    {...checkbox}
+                    disabled={globalDisabled || checkbox.disabled}
+                    checked={checkedStates[index]}
+                    onClick={() => handleToggle(index)}
                 />
             ))}
         </div>
     );
 };
 
-export const radio = {
+export const checkbox = {
     render: (args) => (
-        <RadioGroup
+        <CheckboxGroup
             globalDisabled={args.disabled}
-            radios={[
+            checkboxes={[
                 {
-                    label: 'default',
+                    label: 'Default',
                     details: 'Standard spacing for most use cases.',
-                    disabled: false,
                     enableSound: args.enableSound,
-                    checked: args.checked,
+                    checked: true,
+                    disabled: false,
+                    indeterminate: false,
                 },
                 {
                     label: 'Comfortable',
                     details: 'More space between elements.',
-                    disabled: false,
                     enableSound: args.enableSound,
+                    checked: false,
+                    disabled: false,
+                    indeterminate: false,
                 },
                 {
                     label: 'Compact',
                     details: 'Minimal spacing for dense layouts.',
-                    disabled: false,
                     enableSound: args.enableSound,
+                    checked: false,
+                    disabled: false,
+                    indeterminate: true,
                 },
             ]}
         />
     ),
     args: {
         darkmode: false,
-        label: 'label',
-        details: "details",
-        disabled: false,
         enableSound: true,
+        disabled: false, // Global disabled control
         onClick: () => { },
     },
 };

@@ -1,48 +1,51 @@
 import React from "react";
-import "./Radio.scss";
+import "./Switch.scss";
 import { soundManager } from '../../utils/soundUtils';
 import clickSoundFile from '../../assets/sounds/click.mp3';
 import PropTypes from 'prop-types';
 
 soundManager.loadSound('click', clickSoundFile, 1);
 
-export class Radio extends React.Component {
+export class Switch extends React.Component {
     constructor(props) {
         super(props);
     }
 
     handleClick = (e) => {
         e.stopPropagation();
-        const { enableSound = true, disabled = false, checked } = this.props;
+        const { enableSound = true, disabled = false } = this.props;
 
-        if (disabled || checked) return;
+        if (disabled) return;
 
-        if (enableSound) {
-            soundManager.play('click', 1);
-        }
-        this.props.onClick(true);
+        this.setState({ checked: !this.props.checked }, () => {
+            if (enableSound) {
+                soundManager.play('click', 1);
+            }
+            this.props.onClick(this.props.checked);
+        });
     }
 
     render() {
         const { label, details, disabled, checked } = this.props;
-        const id = `radio-${label.replace(/\s+/g, '-').toLowerCase()}`;
+        const id = `switchComponent-${label.replace(/\s+/g, '-').toLowerCase()}`;
 
         return (
-            <div className={`radio ${disabled ? 'disabled' : ''}`}>
-                <div className="radio-wrapper" onClick={this.handleClick}>
+            <div className={`switchComponent ${disabled ? 'disabled' : ''} `}>
+                <div className='switchComponent-wrapper' onClick={this.handleClick}>
                     <input
-                        className="radio-button"
-                        type="radio"
+                        className="switchComponent-button"
+                        type="checkbox"
                         id={id}
                         checked={checked}
                         onChange={() => { }}
                         onClick={(e) => e.stopPropagation()}
                         disabled={disabled}
                     />
-                    <span className="radio-indicator" aria-hidden="true" />
+                    <span className="switchComponent-indicator" aria-hidden="true">
+                    </span>
                     <label
                         htmlFor={id}
-                        className="radio-label"
+                        className="switchComponent-label"
                         onClick={(e) => e.preventDefault()}
                     >
                         <p>{label}</p>
@@ -50,7 +53,7 @@ export class Radio extends React.Component {
                     {details && (
                         <label
                             htmlFor={id}
-                            className="radio-details"
+                            className="switchComponent-details"
                             onClick={(e) => e.preventDefault()}
                         >
                             <p>{details}</p>
@@ -62,7 +65,7 @@ export class Radio extends React.Component {
     }
 }
 
-Radio.propTypes = {
+Switch.propTypes = {
     checked: PropTypes.bool,
     label: PropTypes.string.isRequired,
     details: PropTypes.string,
@@ -71,10 +74,8 @@ Radio.propTypes = {
     onClick: PropTypes.func.isRequired,
 }
 
-Radio.defaultProps = {
+Switch.defaultProps = {
     checked: false,
-    label: 'label',
-    details: 'this is where label details should be written.',
     disabled: false,
     enableSound: true,
     onClick: () => { },

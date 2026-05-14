@@ -83,25 +83,25 @@ $gray-shades: (
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
         margin: 0;
     }
+}
 
-    p {
-        font-size: 1rem;
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        margin: 0;
-    }
+p {
+    font-size: 1rem;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    margin: 0;
+}
 
-    input {
-        font-size: 1rem;
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    }
+input {
+    font-size: 1rem;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
 
-    small {
-        font-size: 0.8rem;
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        margin: 0;
-    }
+small {
+    font-size: 0.8rem;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    margin: 0;
+}
 
-    input::spelling-error {
-        text-decoration: 4px dashed underline var(--red-500);
-    }
+input::spelling-error {
+    text-decoration: 4px dashed underline var(--red-500);
 }
