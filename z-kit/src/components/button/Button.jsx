@@ -99,7 +99,7 @@ export const Button = ({
 Button.propTypes = {
     variant: PropTypes.oneOf(['primary', 'secondary', 'ghost']),
     size: PropTypes.oneOf(['small', 'medium', 'large', 'xlarge']),
-    colorScheme: PropTypes.oneOf(['primaryColor', 'warningColor', 'errorColor', 'successColor', 'infoColor']),
+    colorScheme: PropTypes.oneOf(['primaryColor', 'warningColor', 'errorColor', 'successColor', 'infoColor', 'neutralColor']),
     disabled: PropTypes.bool,
     label: PropTypes.string,
     icon: PropTypes.oneOfType([

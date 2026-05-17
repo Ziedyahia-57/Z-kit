@@ -85,7 +85,8 @@ $gray-shades: (
     }
 }
 
-p {
+p,
+span {
     font-size: 1rem;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     margin: 0;

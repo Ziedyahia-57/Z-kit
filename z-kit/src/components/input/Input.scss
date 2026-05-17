@@ -19,7 +19,7 @@
 
 
     // ---- Label styling ----
-    label p {
+    .input-label {
         text-transform: capitalize;
         transition: color 0.2s ease;
         color: var(--gray-950);
@@ -29,7 +29,7 @@
         }
     }
 
-    &:has(.text-input:disabled) label p {
+    &:has(.text-input:disabled) .input-label {
         color: var(--gray-600);
 
         body[data-dark="true"] & {
@@ -37,7 +37,8 @@
         }
     }
 
-    &:has(.text-input.error) label p {
+
+    &:has(.text-input.error) .input-label {
         color: var(--red-600);
 
         body[data-dark="true"] & {
@@ -70,6 +71,8 @@
     .input-wrapper {
         position: relative;
         display: inline-block;
+
+
     }
 
     .input-icon {

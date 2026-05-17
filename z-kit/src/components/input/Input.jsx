@@ -70,17 +70,18 @@ export class Input extends React.Component {
 
     render() {
         const shouldFadeOut = this.state.isFocused && this.props.fadeIconOnFocus;
+        const id = `input-${this.props.label.replace(/\s+/g, '-').toLowerCase()}`;
 
         return (
             <div className={`input ${this.state.showIcon ? 'has-icon' : ''} ${shouldFadeOut ? 'icon-faded' : ''}`}>
-                {this.props.label && <label><p>{this.props.label}</p></label>}
+                <label className='input-label'><p>{this.props.label}</p></label>
                 <div className="input-wrapper">
                     {this.renderIcon()}
                     <input
                         type="text"
                         autoComplete='off'
                         className={`text-input ${this.props.error ? 'error' : ''}`}
-                        id='text-input'
+                        id={id}
                         value={this.state.value}
                         onChange={this.handleChange}
                         onFocus={this.handleFocus}
@@ -95,6 +96,7 @@ export class Input extends React.Component {
 }
 
 Input.propTypes = {
+    label: PropTypes.string.isRequired,
     label: PropTypes.string,
     placeholder: PropTypes.string.isRequired,
     disabled: PropTypes.bool,
@@ -108,6 +110,7 @@ Input.propTypes = {
 
 Input.defaultProps = {
     label: 'label',
+    details: 'details',
     placeholder: 'placeholder',
     disabled: false,
     error: false,
