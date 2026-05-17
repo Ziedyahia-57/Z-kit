@@ -51,10 +51,15 @@ const meta = {
             name: "Single Kbd Shortcut",
             description: "Shortcut text for single Kbd element",
         },
-        group1Shortcut: {
+        group1Shortcut1: {
             control: { type: "text" },
             name: "Group 1 - First Shortcut",
             description: "First shortcut in first group",
+        },
+        group1Shortcut2: {
+            control: { type: "text" },
+            name: "Group 1 - Second Shortcut",
+            description: "Second shortcut in first group",
         },
         group2Shortcut1: {
             control: { type: "text" },
@@ -77,7 +82,8 @@ export const AllVariants = {
         darkmode: false,
         mode: 'icons',
         singleShortcut: 'shift + s',
-        group1Shortcut: 'ctrl + c',
+        group1Shortcut1: 'ctrl',
+        group1Shortcut2: 'c',
         group2Shortcut1: 'ctrl',
         group2Shortcut2: 'a',
     },
@@ -85,7 +91,8 @@ export const AllVariants = {
         const {
             mode,
             singleShortcut,
-            group1Shortcut,
+            group1Shortcut1,
+            group1Shortcut2,
             group2Shortcut1,
             group2Shortcut2
         } = args;
@@ -100,7 +107,8 @@ export const AllVariants = {
 
 
                 <KbdGroup>
-                    <Kbd mode={mode}>{group1Shortcut}</Kbd>
+                    <Kbd mode={mode}>{group1Shortcut1}</Kbd>
+                    <Kbd mode={mode}>{group1Shortcut2}</Kbd>
                 </KbdGroup>
 
 
