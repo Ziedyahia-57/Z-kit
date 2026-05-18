@@ -23,6 +23,8 @@ export class Kbd extends React.Component {
     isSpecialKey(key) {
         const normalized = key?.toLowerCase();
         return normalized === "ctrl" ||
+            normalized === "command" ||
+            normalized === "cmd" ||
             normalized === "shift" ||
             normalized === "alt" ||
             normalized === "bksp" ||
@@ -44,7 +46,7 @@ export class Kbd extends React.Component {
     getSpecialKeyType(key) {
         const normalized = key?.toLowerCase();
 
-        if (normalized === "ctrl") return "ctrl";
+        if (normalized === "ctrl" || normalized === "command" || normalized === "cmd") return "ctrl";
         if (normalized === "shift") return "shift";
         if (normalized === "alt") return "alt";
         if (normalized === "bksp" || normalized === "bsp" || normalized === "bs" || normalized === "backspace") return "bksp";

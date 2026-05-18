@@ -31,7 +31,7 @@
 $sizes: 'small', 'medium', 'large', 'xlarge';
 
 @each $size in $sizes {
-    .#{$size} {
+    button.#{$size} {
         @if $size =='small' {
             padding: 9px;
             font-size: 14px;
