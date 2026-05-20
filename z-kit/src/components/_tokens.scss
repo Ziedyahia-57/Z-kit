@@ -106,3 +106,7 @@ small {
 input::spelling-error {
     text-decoration: 4px dashed underline var(--red-500);
 }
+
+* {
+    -webkit-tap-highlight-color: transparent;
+}
