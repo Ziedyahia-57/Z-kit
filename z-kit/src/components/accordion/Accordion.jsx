@@ -1,4 +1,4 @@
-// Accordion.jsx with SoundManager
+// Accordion.jsx with external control support
 import React from "react";
 import PropTypes from "prop-types";
 import './Accordion.scss'
@@ -49,15 +49,31 @@ ChevronDownIcon.displayName = "ChevronDownIcon";
 export class Accordion extends React.Component {
     constructor(props) {
         super(props);
+        // Use checked prop if provided, otherwise use internal state
+        const isControlled = props.checked !== undefined;
         this.state = {
-            active: false
+            active: isControlled ? props.checked : false,
+            isControlled
         };
         this.chevronRef = React.createRef();
     }
 
+    // Sync internal state when controlled prop changes
+    componentDidUpdate(prevProps) {
+        if (this.state.isControlled && prevProps.checked !== this.props.checked) {
+            this.setState({ active: this.props.checked });
+            // Update chevron animation based on new state
+            if (this.props.checked) {
+                this.chevronRef.current?.startAnimation();
+            } else {
+                this.chevronRef.current?.stopAnimation();
+            }
+        }
+    }
+
     toggleAccordion = () => {
-        const { active } = this.state;
-        const { enableSound = true, soundVolume = 1, disabled = false, onToggle } = this.props;
+        const { active, isControlled } = this.state;
+        const { enableSound = true, soundVolume = 1, disabled = false, onToggle, checked } = this.props;
 
         if (disabled) return;
 
@@ -66,17 +82,28 @@ export class Accordion extends React.Component {
             soundManager.play('click', soundVolume);
         }
 
-        if (active) {
-            this.chevronRef.current?.stopAnimation();
-        } else {
+        const newActiveState = !active;
+
+        // Handle animation
+        if (newActiveState) {
             this.chevronRef.current?.startAnimation();
+        } else {
+            this.chevronRef.current?.stopAnimation();
         }
 
-        this.setState({ active: !this.state.active }, () => {
+        if (!isControlled) {
+            // Uncontrolled mode - update internal state
+            this.setState({ active: newActiveState }, () => {
+                if (onToggle) {
+                    onToggle(newActiveState);
+                }
+            });
+        } else {
+            // Controlled mode - just call onToggle
             if (onToggle) {
-                onToggle(this.state.active);
+                onToggle(newActiveState);
             }
-        });
+        }
     }
 
     render() {
@@ -87,13 +114,15 @@ export class Accordion extends React.Component {
             customClass = ""
         } = this.props;
 
+        const { active } = this.state;
+
         return (
             <div
                 className={`accordion ${disabled ? 'accordion--disabled' : ''} ${customClass}`}
                 onClick={this.toggleAccordion}
                 role="button"
                 tabIndex={disabled ? -1 : 0}
-                aria-expanded={this.state.active}
+                aria-expanded={active}
                 aria-disabled={disabled}
                 onKeyPress={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -111,7 +140,7 @@ export class Accordion extends React.Component {
                         strokeWidth={3}
                     />
                 </div>
-                <div className={`content ${this.state.active ? 'open' : 'closed'}`}>
+                <div className={`content ${active ? 'open' : 'closed'}`}>
                     <div>
                         <p>{answer}</p>
                     </div>
@@ -128,7 +157,8 @@ Accordion.propTypes = {
     soundVolume: PropTypes.number,
     enableSound: PropTypes.bool,
     onToggle: PropTypes.func,
-    customClass: PropTypes.string
+    customClass: PropTypes.string,
+    checked: PropTypes.bool  // New prop for controlled mode
 };
 
 Accordion.defaultProps = {

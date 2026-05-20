@@ -365,7 +365,7 @@ export class Search extends React.Component {
                 <div className="search-wrapper">
                     {this.renderIcons()}
                     <input
-                        type="text"
+                        type='search'
                         autoComplete='off'
                         className='search-input'
                         id='search-input'

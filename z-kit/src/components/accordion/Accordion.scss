@@ -9,7 +9,6 @@
     border-radius: 8px;
     color: var(--gray-950);
     max-width: 640px;
-    width: stretch;
     display: inline-flex;
     flex-direction: column;
     gap: 8px;
@@ -23,7 +22,7 @@
 
     .title {
         display: inline-flex;
-        width: stretch;
+        width: 100%;
         align-items: center;
     }
 
@@ -35,7 +34,6 @@
         display: grid;
         grid-template-rows: 0fr;
         transition: grid-template-rows 0.3s ease;
-        width: stretch;
         color: var(--gray-600);
 
         &.open {
