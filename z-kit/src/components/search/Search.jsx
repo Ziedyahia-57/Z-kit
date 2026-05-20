@@ -369,6 +369,8 @@ export class Search extends React.Component {
                         autoComplete='off'
                         className='search-input'
                         id='search-input'
+                        autocapitalize="none"
+                        autocorrect="off"
                         ref={this.searchInputRef}
                         value={this.state.value}
                         onChange={this.handleChange}
