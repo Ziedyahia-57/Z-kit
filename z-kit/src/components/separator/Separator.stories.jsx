@@ -1,6 +1,6 @@
 import React from 'react';
 import { Separator } from './Separator';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 // Decorator that responds to a darkMode arg
 const withDarkModeControl = (Story, context) => {
@@ -52,11 +52,11 @@ const meta = {
 
 export default meta;
 
-// Helper wrapper to demonstrate separators properly
-const DemoContainer = ({ orientation, children }) => {
-    const [isDark, setIsDark] = React.useState(false);
+// Hook to check dark mode
+const useDarkMode = () => {
+    const [isDark, setIsDark] = useState(false);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const checkDarkMode = () => {
             setIsDark(document.body.getAttribute('data-dark') === 'true');
         };
@@ -69,6 +69,12 @@ const DemoContainer = ({ orientation, children }) => {
         return () => observer.disconnect();
     }, []);
 
+    return isDark;
+};
+
+// Helper wrapper to demonstrate separators properly
+const DemoContainer = ({ orientation, children }) => {
+    const isDark = useDarkMode();
     const background = isDark ? 'var(--gray-950)' : 'var(--gray-50)';
     const border = isDark ? 'var(--gray-800)' : 'var(--gray-200)';
 
@@ -118,23 +124,26 @@ export const separator = {
     },
     render: (args) => {
         const { orientation } = args;
+        const isDark = useDarkMode();
+        const pColor = isDark ? 'var(--gray-50)' : 'var(--gray-950)';
+        const smallColor = isDark ? 'var(--gray-400)' : 'var(--gray-600)';
 
         if (orientation === "vertical") {
             return (
                 <DemoContainer orientation="vertical">
                     <div>
-                        <p>Settings</p>
-                        <small>Manage preferences</small>
+                        <p style={{ color: pColor, margin: 0 }}>Settings</p>
+                        <small style={{ color: smallColor }}>Manage preferences</small>
                     </div>
                     <Separator {...args} />
                     <div>
-                        <p>Account</p>
-                        <small>Profile & security</small>
+                        <p style={{ color: pColor, margin: 0 }}>Account</p>
+                        <small style={{ color: smallColor }}>Profile & security</small>
                     </div>
                     <Separator {...args} />
                     <div>
-                        <p>Help</p>
-                        <small>Support & docs</small>
+                        <p style={{ color: pColor, margin: 0 }}>Help</p>
+                        <small style={{ color: smallColor }}>Support & docs</small>
                     </div>
                 </DemoContainer>
             );
@@ -143,18 +152,18 @@ export const separator = {
         return (
             <DemoContainer orientation="horizontal">
                 <div>
-                    <p>Settings</p>
-                    <small>Manage preferences</small>
+                    <p style={{ color: pColor, margin: 0 }}>Settings</p>
+                    <small style={{ color: smallColor }}>Manage preferences</small>
                 </div>
                 <Separator {...args} />
                 <div>
-                    <p>Account</p>
-                    <small>Profile & security</small>
+                    <p style={{ color: pColor, margin: 0 }}>Account</p>
+                    <small style={{ color: smallColor }}>Profile & security</small>
                 </div>
                 <Separator {...args} />
                 <div>
-                    <p>Help</p>
-                    <small>Support & docs</small>
+                    <p style={{ color: pColor, margin: 0 }}>Help</p>
+                    <small style={{ color: smallColor }}>Support & docs</small>
                 </div>
             </DemoContainer>
         );

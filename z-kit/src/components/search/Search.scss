@@ -5,18 +5,6 @@
     flex-direction: column;
     gap: 8px;
 
-    ::selection {
-        background-color: var(--gray-800);
-        color: var(--gray-200);
-    }
-
-    body[data-dark="true"] & {
-        ::selection {
-            background-color: var(--gray-200);
-            color: var(--gray-800);
-        }
-    }
-
     // ---- Input styling ----
     &:has(.search-input:not(:placeholder-shown):not(:disabled)) {
         .search-icon {

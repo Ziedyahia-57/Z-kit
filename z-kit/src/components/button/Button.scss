@@ -13,18 +13,6 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease, transform 0.2s ease;
     border: 1px solid;
-
-    ::selection {
-        background-color: var(--gray-800);
-        color: var(--gray-200);
-    }
-
-    body[data-dark="true"] & {
-        ::selection {
-            background-color: var(--gray-200);
-            color: var(--gray-800);
-        }
-    }
 }
 
 // Size styles

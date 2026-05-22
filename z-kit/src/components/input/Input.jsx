@@ -97,7 +97,6 @@ export class Input extends React.Component {
 
 Input.propTypes = {
     label: PropTypes.string.isRequired,
-    label: PropTypes.string,
     placeholder: PropTypes.string.isRequired,
     disabled: PropTypes.bool,
     error: PropTypes.bool,

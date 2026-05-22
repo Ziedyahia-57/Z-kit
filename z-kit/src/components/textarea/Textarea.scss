@@ -1,12 +1,56 @@
 @use '../tokens';
 
-.input {
+.textarea {
     display: inline-flex;
     flex-direction: column;
     gap: 8px;
 
+    .textarea-resize-row {
+        position: absolute;
+        right: 4px;
+        bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .textarea-char-count,
+    &:has(.textarea-input.error) .textarea-char-count {
+        font-size: 10px;
+        line-height: 1;
+        // Default:
+        color: var(--gray-200);
+        user-select: none;
+        transition: color 0.2s ease;
+
+        &.at-limit {
+            color: var(--gray-300);
+        }
+
+        &.flash {
+            color: var(--red-600);
+            transition: color 0s;
+            animation: shake 0.1s ease-in-out 0s 1;
+        }
+
+        body[data-dark="true"] & {
+            // Default dark:
+            color: var(--gray-800);
+
+            &.at-limit {
+                color: var(--gray-700);
+            }
+
+            &.flash {
+                color: var(--red-400);
+                transition: color 0s;
+                animation: shake 0.1s ease-in-out 0s 1;
+            }
+        }
+    }
+
     // ---- Label styling ----
-    .input-label {
+    .textarea-label {
         text-transform: capitalize;
         transition: color 0.2s ease;
         color: var(--gray-950);
@@ -16,7 +60,7 @@
         }
     }
 
-    &:has(.text-input:disabled) .input-label {
+    &:has(.textarea-input:disabled) .textarea-label {
         color: var(--gray-600);
 
         body[data-dark="true"] & {
@@ -24,8 +68,7 @@
         }
     }
 
-
-    &:has(.text-input.error) .input-label {
+    &:has(.textarea-input.error) .textarea-label {
         color: var(--red-600);
 
         body[data-dark="true"] & {
@@ -33,9 +76,9 @@
         }
     }
 
-    // ---- Input styling ----
-    &:has(.text-input:not(:placeholder-shown):not(:disabled)) {
-        .input-icon svg {
+    // ---- Textarea styling ----
+    &:has(.textarea-input:not(:placeholder-shown):not(:disabled)) {
+        .textarea-icon svg {
             stroke: var(--gray-950);
 
             body[data-dark="true"] & {
@@ -44,8 +87,8 @@
         }
     }
 
-    &:has(.text-input.error:not(:placeholder-shown):not(:disabled)) {
-        .input-icon svg {
+    &:has(.textarea-input.error:not(:placeholder-shown):not(:disabled)) {
+        .textarea-icon svg {
             stroke: var(--red-600);
 
             body[data-dark="true"] & {
@@ -54,16 +97,15 @@
         }
     }
 
-
-    .input-wrapper {
+    .textarea-wrapper {
         position: relative;
         display: inline-block;
     }
 
-    .input-icon {
+    .textarea-icon {
         position: absolute;
         left: 12px;
-        top: 50%;
+        top: 24px;
         transform: translateY(-50%);
         z-index: 1;
         display: flex;
@@ -87,17 +129,88 @@
         }
     }
 
-    .text-input {
+    .textarea-resize-handle,
+    &:has(.textarea-input.error) .textarea-resize-handle {
+        width: 14px;
+        height: 14px;
+        cursor: nwse-resize;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        // Default:
+        color: var(--gray-200);
+        transition: color 0.2s ease;
+        user-select: none;
+
+        &:hover {
+            // Hover:
+            color: var(--gray-300);
+        }
+
+        body[data-dark="true"] & {
+            // Default dark:
+            color: var(--gray-800);
+
+            &:hover {
+                // Hover dark:
+                color: var(--gray-700);
+            }
+        }
+    }
+
+    // Disabled state:
+    &:has(.textarea-input:disabled) {
+        .textarea-resize-handle {
+            color: var(--gray-300);
+            // No hover effect when disabled
+            pointer-events: none;
+
+            body[data-dark="true"] & {
+                color: var(--gray-900);
+            }
+        }
+
+        .textarea-char-count {
+            color: var(--gray-300);
+
+            body[data-dark="true"] & {
+                color: var(--gray-900);
+            }
+        }
+    }
+
+    // ===== HAS ICON STYLES =====
+    &.has-icon {
+        .textarea-input {
+            padding-left: 37px;
+        }
+    }
+
+    // ===== ICON FADED STYLES =====
+    &.icon-faded {
+        .textarea-input {
+            padding-left: 16px;
+            width: calc(97px + 21px);
+        }
+    }
+
+    // ---- Textarea input ----
+    .textarea-input {
         --caret-color: var(--gray-950);
 
         width: 97px;
         padding: 12px 16px;
         border-radius: 8px;
-        transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease, width 0.2s ease, padding-left 0.2s ease;
+        transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease, padding-left 0.2s ease;
         outline: none;
         background-color: var(--gray-25);
         border: 1px solid var(--gray-100);
         color: var(--gray-950);
+        outline: none;
+        resize: none;
+        box-sizing: border-box;
+        min-height: 47px;
+        min-width: 144px;
 
         caret-animation: manual;
         animation: customCaretPulse 2.5s infinite;
@@ -181,21 +294,6 @@
             }
         }
     }
-
-    // ===== HAS ICON STYLES =====
-    &.has-icon {
-        .text-input {
-            padding-left: 37px;
-        }
-    }
-
-    // ===== ICON FADED STYLES =====
-    &.icon-faded {
-        .text-input {
-            padding-left: 16px;
-            width: calc(97px + 21px); // Original width + icon space
-        }
-    }
 }
 
 @keyframes customCaretPulse {
@@ -209,5 +307,21 @@
     50%,
     100% {
         caret-color: transparent;
+    }
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-2px);
+    }
+
+    75% {
+        transform: translateX(2px);
     }
 }
