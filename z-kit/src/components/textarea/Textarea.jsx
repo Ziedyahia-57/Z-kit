@@ -68,6 +68,10 @@ export class Textarea extends React.Component {
     // ── Custom resize handle logic ──────────────────────────────────────
     _onResizePointerDown = (e) => {
         e.preventDefault();
+
+        // Critical for mobile - prevents page scroll while dragging
+        e.currentTarget.setPointerCapture(e.pointerId);
+
         const el = this.textareaRef.current;
         if (!el) return;
 
@@ -83,6 +87,10 @@ export class Textarea extends React.Component {
 
     _onPointerMove = (e) => {
         if (!this._resizeState) return;
+
+        // Prevent default to stop any browser behavior while dragging
+        e.preventDefault();
+
         const el = this.textareaRef.current;
         if (!el) return;
 
@@ -94,12 +102,14 @@ export class Textarea extends React.Component {
         el.style.height = `${newH}px`;
     }
 
-    _onPointerUp = () => {
+    _onPointerUp = (e) => {
+        if (this._resizeState && e.currentTarget) {
+            e.currentTarget.releasePointerCapture?.(e.pointerId);
+        }
         this._resizeState = null;
         window.removeEventListener('pointermove', this._onPointerMove);
         window.removeEventListener('pointerup', this._onPointerUp);
     }
-    // ───────────────────────────────────────────────────────────────────
 
     renderIcon = () => {
         if (!this.state.showIcon) return null;
