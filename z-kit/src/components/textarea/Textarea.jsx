@@ -16,11 +16,22 @@ export class Textarea extends React.Component {
         this._resizeState = null;
     }
 
+    // Vibration utility method
+    vibrate = (duration = 150) => {
+        // Check if browser supports vibration and is likely a mobile device
+        if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(duration);
+        }
+    }
+
     handleChange = (e) => {
         const { maxLength } = this.props;
         const newValue = e.target.value;
 
         if (maxLength > 0 && newValue.length > maxLength) {
+            // Trigger vibration when trying to exceed limit
+            this.vibrate(150);
+
             // Re-trigger flash on every keystroke at the limit
             this.setState({ charLimitFlash: false }, () => {
                 this.setState({ charLimitFlash: true });
