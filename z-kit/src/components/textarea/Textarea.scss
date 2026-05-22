@@ -131,8 +131,8 @@
 
     .textarea-resize-handle,
     &:has(.textarea-input.error) .textarea-resize-handle {
-        width: 14px;
-        height: 14px;
+        width: 8px;
+        height: 8px;
         cursor: nwse-resize;
         display: flex;
         align-items: center;
@@ -209,8 +209,8 @@
         outline: none;
         resize: none;
         box-sizing: border-box;
-        min-height: 47px;
-        min-width: 144px;
+        min-height: 50px;
+        min-width: 150px;
 
         caret-animation: manual;
         animation: customCaretPulse 2.5s infinite;
