@@ -139,13 +139,10 @@ export class Search extends React.Component {
                         this.setState({
                             faviconUrl: cachedUrl,
                             showFavicon: true,
+                            faviconVisible: false,   // ← reset; onLoad will flip this
                             previousDomain: domain,
                             faviconError: false,
                             isLoadingFavicon: false,
-                        }, () => {
-                            requestAnimationFrame(() => {
-                                this.setState({ faviconVisible: true });
-                            });
                         });
                     } else {
                         // Cached as failed - show globe
@@ -174,13 +171,10 @@ export class Search extends React.Component {
                     this.setState({
                         faviconUrl: faviconUrl,
                         showFavicon: true,
+                        faviconVisible: false,   // ← reset; onLoad will flip this
                         previousDomain: domain,
                         faviconError: false,
                         isLoadingFavicon: false,
-                    }, () => {
-                        requestAnimationFrame(() => {
-                            this.setState({ faviconVisible: true });
-                        });
                     });
                 } else {
                     // Cache failure (null means show globe)
@@ -325,6 +319,7 @@ export class Search extends React.Component {
                                 alt=""
                                 width="16"
                                 height="16"
+                                onLoad={() => this.setState({ faviconVisible: true })}
                                 // Silent error handling - if image fails, switch to globe
                                 onError={() => {
                                     // Only update if this domain is still current

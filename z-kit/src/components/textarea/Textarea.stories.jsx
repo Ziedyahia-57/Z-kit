@@ -86,7 +86,7 @@ export const textarea = {
     args: {
         darkmode: false,
         label: "label",
-        maxLength: 30,
+        maxLength: 10,
         disabled: false,
         error: false,
         placeholder: "Placeholder",
