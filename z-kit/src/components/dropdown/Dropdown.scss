@@ -74,6 +74,14 @@
                         color: var(--red-400);
                     }
                 }
+
+                &:hover {
+                    background: var(--red-50);
+
+                    body[data-dark="true"] & {
+                        background: var(--red-900);
+                    }
+                }
             }
 
             .item-label {
@@ -269,27 +277,37 @@
 }
 
 // ─── Submenu dropdown — portaled to document.body ───────────────────────────
-// A positioned wrapper; the visual shell comes from .dropdown itself
 .submenu-dropdown-portal {
     position: fixed;
     z-index: 1000;
+    visibility: hidden;
+    pointer-events: none;
+    transition: visibility 0s linear 0.125s;
 
-    // Fade + slide in from the left
+    &.is-visible {
+        visibility: visible;
+        pointer-events: auto;
+        transition-delay: 0s;
+    }
+
     .dropdown {
         opacity: 0;
-        transform: translateX(-4px);
-        animation: submenu-enter 0.15s ease forwards;
+        filter: blur(4px);
+        transition: opacity 0.125s ease, filter 0.125s ease;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 
         body[data-dark="true"] & {
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
         }
     }
-}
 
-@keyframes submenu-enter {
-    to {
+    &.is-visible .dropdown {
         opacity: 1;
-        transform: translateX(0);
+        filter: blur(0px);
+    }
+
+    &.is-leaving .dropdown {
+        opacity: 0;
+        filter: blur(4px);
     }
 }
