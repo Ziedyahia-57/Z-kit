@@ -1,12 +1,12 @@
 @use '../tokens';
 
 .separator {
-    background: var(--gray-900);
+    background: var(--gray-200);
     transition: background 0.2s ease;
 
 
     body[data-dark="true"] & {
-        background: var(--gray-100);
+        background: var(--gray-900);
     }
 
     &:where([data-orientation=vertical]) {

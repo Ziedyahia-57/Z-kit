@@ -44,17 +44,17 @@ const meta = {
         label: {
             control: { type: "text" },
             name: "Label",
-            description: "Label for the input",
+            description: "Label for the textarea",
         },
         placeholder: {
             control: { type: "text" },
             name: "Placeholder",
-            description: "Placeholder text for the input",
+            description: "Placeholder text for the textarea",
         },
         maxLength: {
             control: { type: "number" },
             name: "Max Length",
-            description: "Maximum length of the input",
+            description: "Maximum length of the textarea",
         },
         disabled: {
             control: { type: "boolean" },
@@ -67,10 +67,15 @@ const meta = {
             description: "Defines if the button is in an error state",
             if: { arg: "disabled", neq: "true" },
         },
+        errorText: {
+            control: { type: "text" },
+            name: "Error Text",
+            description: "Placeholder text for the textarea",
+        },
         showIcon: {
             control: { type: "boolean" },
             name: "Show Icon",
-            description: "Toggle icon visibility inside the input",
+            description: "Toggle icon visibility inside the textarea",
         },
         onClick: {
             action: "clicked",
@@ -89,6 +94,7 @@ export const textarea = {
         maxLength: 10,
         disabled: false,
         error: false,
+        errorText: "invalid input",
         placeholder: "Placeholder",
         showIcon: true,
     }

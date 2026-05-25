@@ -5,6 +5,26 @@
     flex-direction: column;
     gap: 8px;
 
+    // ---- Error Text styling ----
+    .input-error {
+        position: relative;
+        top: -4px;
+        text-transform: capitalize;
+        color: var(--red-600);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease;
+
+        &.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        body[data-dark="true"] & {
+            color: var(--red-400);
+        }
+    }
+
     // ---- Label styling ----
     .input-label {
         text-transform: capitalize;

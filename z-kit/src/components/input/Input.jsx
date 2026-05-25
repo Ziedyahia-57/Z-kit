@@ -90,6 +90,9 @@ export class Input extends React.Component {
                         disabled={this.props.disabled}
                     />
                 </div>
+                <label className={`input-error ${this.props.error ? 'visible' : ''}`}>
+                    <small>{this.props.errorText}</small>
+                </label>
             </div>
         )
     }
@@ -100,6 +103,7 @@ Input.propTypes = {
     placeholder: PropTypes.string.isRequired,
     disabled: PropTypes.bool,
     error: PropTypes.bool,
+    errorText: PropTypes.string,
     showIcon: PropTypes.bool,
     fadeIconOnFocus: PropTypes.bool,
     onChange: PropTypes.func,
@@ -113,6 +117,7 @@ Input.defaultProps = {
     placeholder: 'placeholder',
     disabled: false,
     error: false,
+    errorText: 'invalid input',
     showIcon: false,
     fadeIconOnFocus: true
 }

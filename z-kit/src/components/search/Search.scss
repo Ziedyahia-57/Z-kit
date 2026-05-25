@@ -4,6 +4,9 @@
     display: inline-flex;
     flex-direction: column;
     gap: 8px;
+    min-width: 200px;
+    width: min-content;
+
 
     // ---- Input styling ----
     &:has(.search-input:not(:placeholder-shown):not(:disabled)) {
@@ -109,7 +112,8 @@
     .search-input {
         --caret-color: var(--gray-950);
 
-        width: 150px;
+        width: 100%;
+        height: 40px;
         padding: 12px 36px 12px 36px; // Right padding for close icon, left padding for search icon
         gap: 8px;
         border-radius: 8px;

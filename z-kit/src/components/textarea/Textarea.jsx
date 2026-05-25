@@ -170,7 +170,31 @@ export class Textarea extends React.Component {
                     />
                     {this.renderResizeHandle()}
                 </div>
+                <label className={`textarea-error ${this.props.error ? 'visible' : ''}`}>
+                    <small>{this.props.errorText}</small>
+                </label>
             </div>
         );
     }
 }
+
+Textarea.defaultProps = {
+    fadeIconOnFocus: true,
+    maxLength: 10,
+    error: false,
+    errorText: 'invalid input',
+    placeholder: 'Placeholder',
+    disabled: false
+};
+
+Textarea.propTypes = {
+    label: PropTypes.string.isRequired,
+    fadeIconOnFocus: PropTypes.bool,
+    maxLength: PropTypes.number,
+    error: PropTypes.bool,
+    errorText: PropTypes.string,
+    placeholder: PropTypes.string.isRequired,
+    disabled: PropTypes.bool
+}
+
+export default Textarea;

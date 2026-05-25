@@ -12,6 +12,18 @@ $danger-color: #F90606;
 $success-color: #06F980;
 $info-color: #06d0f9;
 
+$yellow-color: #F9D006;
+$lime-color: #57f906;
+$purple-color: #a806f9;
+$pink-color: #f90680;
+
+$colors: (
+    'yellow': $yellow-color,
+    'lime': $lime-color,
+    'purple': $purple-color,
+    'pink': $pink-color
+);
+
 $color-shades: (
     50: 95%,
     100: 90%,
@@ -25,6 +37,7 @@ $color-shades: (
     900: 10%,
     950: 5%
 );
+
 $gray-shades: (
     25: 100%,
     50: 95%,
@@ -70,6 +83,12 @@ $gray-shades: (
     @each $shade, $lightness in $gray-shades {
         //gray color scale:
         --gray-#{$shade}: #{color.change($gray-color, $lightness: $lightness)};
+    }
+
+    @each $color-name, $base-color in $colors {
+        @each $shade, $lightness in $color-shades {
+            --#{$color-name}-#{$shade}: #{color.change($base-color, $lightness: $lightness)};
+        }
     }
 
 }

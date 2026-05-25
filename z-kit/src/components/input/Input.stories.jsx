@@ -62,6 +62,11 @@ const meta = {
             description: "Defines if the button is in an error state",
             if: { arg: "disabled", neq: "true" },
         },
+        errorText: {
+            control: { type: "text" },
+            name: "Error Text",
+            description: "Placeholder text for the textarea",
+        },
         showIcon: {
             control: { type: "boolean" },
             name: "Show Icon",
@@ -83,6 +88,7 @@ export const input = {
         label: "label",
         disabled: false,
         error: false,
+        errorText: 'invalid input',
         placeholder: "Placeholder",
         showIcon: true,
     }
