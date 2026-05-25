@@ -104,6 +104,16 @@ export const Dropdown = ({ children, search, maxHeight }) => {
         };
     }, [maxHeight]);
 
+    const handleSearchChange = (value) => {
+        const newQuery = typeof value === "string" ? value : value?.target?.value ?? "";
+        setQuery(newQuery);
+
+        // Clear all active submenus when typing in search
+        if (newQuery) {
+            window.dispatchEvent(new CustomEvent('clearDropdownSubmenus'));
+        }
+    };
+
     return (
         <DropdownSearchContext.Provider value={{ query, matchingTexts: allMatchingTexts }}>
             <div
@@ -121,7 +131,7 @@ export const Dropdown = ({ children, search, maxHeight }) => {
                     {search && (
                         <Search
                             enableFavicon={false}
-                            onChange={(value) => setQuery(typeof value === "string" ? value : value?.target?.value ?? "")}
+                            onChange={handleSearchChange}
                         />
                     )}
                     {visibleChildren.map((child, index) => {
@@ -142,6 +152,19 @@ export const Dropdown = ({ children, search, maxHeight }) => {
 export const DropdownGroup = ({ children }) => {
     // One active submenu item per group — prevents multiple submenus open simultaneously
     const [activeItem, setActiveItem] = useState(null);
+
+    // Listen for clear submenus event (triggered by search input)
+    useEffect(() => {
+        const handleClearSubmenus = () => {
+            setActiveItem(null);
+        };
+
+        window.addEventListener('clearDropdownSubmenus', handleClearSubmenus);
+
+        return () => {
+            window.removeEventListener('clearDropdownSubmenus', handleClearSubmenus);
+        };
+    }, []);
 
     const childrenArray = React.Children.toArray(children);
 
@@ -188,7 +211,6 @@ export const GroupTitle = ({ children, siblings = [] }) => {
     );
 };
 
-
 const globalConeLockRef = { current: false };
 let globalLockTimer = null;
 
@@ -217,6 +239,7 @@ if (typeof window !== 'undefined') {
         hoveredItemId = newHoveredId;
     });
 }
+
 export const GroupItem = ({
     children,
     onClick,
@@ -278,10 +301,8 @@ export const GroupItem = ({
     const text = textContent.trim();
     const hasSubmenu = !!submenuElement;
 
-    const isVisible = !matchingTexts || matchingTexts.has(text.toLowerCase());
-    if (!isVisible) return null;
-
-    // Register/unregister this instance - moved AFTER hasSubmenu is declared
+    // ✅ ALL HOOKS MUST BE BEFORE CONDITIONAL RETURN
+    // Register/unregister this instance
     useEffect(() => {
         groupItemRegistry.set(itemId, {
             isHovered: (x, y) => {
@@ -319,6 +340,25 @@ export const GroupItem = ({
             }, 125);
         }
     }, [hovered, leaving]);
+
+    // Listen for clear submenus event to close this submenu
+    useEffect(() => {
+        const handleClearSubmenus = () => {
+            if (activeItem === itemId) {
+                // Close this submenu immediately
+                cancelCloseTimer();
+                cancelOpenTimer();
+                setLeaving(false);
+                setActiveItem(null);
+            }
+        };
+
+        window.addEventListener('clearDropdownSubmenus', handleClearSubmenus);
+
+        return () => {
+            window.removeEventListener('clearDropdownSubmenus', handleClearSubmenus);
+        };
+    }, [activeItem, itemId]);
 
     // ── helpers ──────────────────────────────────────────────────────────────
     const cancelCloseTimer = () => {
@@ -413,7 +453,7 @@ export const GroupItem = ({
         coneFrozenRef.current = false;
         setLeaving(false);
         setActiveItem(itemId);
-        +   acquireGlobalConeLock(); // lock immediately so sibling mouseenter is blocked
+        acquireGlobalConeLock(); // lock immediately so sibling mouseenter is blocked
     };
 
     const closeSubmenu = (immediate = false) => {
@@ -522,8 +562,6 @@ export const GroupItem = ({
         const onSubmenu = submenuRect ? pointInRect(mx, my, submenuRect) : false;
         const onCone = isInCone(mx, my);
 
-        // ── removed the isOverOtherItem block entirely ──
-
         if (onSubmenu) {
             cancelCloseTimer();
             coneFrozenRef.current = false;
@@ -571,7 +609,6 @@ export const GroupItem = ({
         cancelCloseTimer();
         coneFrozenRef.current = false;
         closeSubmenu(true);
-        // ← releaseGlobalConeLock() removed from here
         if (debugSafetyCone) drawSafeZone();
     };
 
@@ -604,7 +641,7 @@ export const GroupItem = ({
                 if (coneSvg) coneSvg.remove();
             };
         }
-    }, [hovered, hasSubmenu, headPos]);
+    }, [hovered, hasSubmenu, headPos, debugSafetyCone]);
 
     useEffect(() => {
         return () => {
@@ -617,6 +654,10 @@ export const GroupItem = ({
             if (coneSvg) coneSvg.remove();
         };
     }, []);
+
+    // ✅ NOW do the conditional return AFTER all hooks
+    const isVisible = !matchingTexts || matchingTexts.has(text.toLowerCase());
+    if (!isVisible) return null;
 
     // ── render ────────────────────────────────────────────────────────────────
     return (
@@ -665,7 +706,6 @@ export const GroupItem = ({
         </>
     );
 };
-
 
 export const Disc = (props) => {
     return <div className="disc" style={{ background: `var(--${props.color}-500)` }}></div>;
