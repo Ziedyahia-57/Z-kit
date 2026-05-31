@@ -110,6 +110,16 @@
             &:focus:not(:disabled) {
                 border-color: var(--red-600);
             }
+
+            .select-value,
+            &>p:not(.placeholder) {
+                color: var(--red-600);
+
+                svg {
+                    color: var(--red-600);
+
+                }
+            }
         }
 
         body[data-dark="true"] & {
@@ -153,6 +163,16 @@
                 &:hover:not(:disabled),
                 &:focus:not(:disabled) {
                     border-color: var(--red-400);
+                }
+
+                .select-value,
+                &>p:not(.placeholder) {
+                    color: var(--red-400);
+
+                    svg {
+                        color: var(--red-400);
+
+                    }
                 }
             }
         }
