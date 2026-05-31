@@ -199,6 +199,10 @@
     overflow-x: hidden;
     overflow-y: auto;
 
+    &.context-menu {
+        min-width: 200px;
+    }
+
     &.is-initialized {
         transition: background 0.2s ease, border 0.2s ease, color 0.2s ease, height 0.1s ease;
     }
@@ -220,7 +224,6 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        margin-bottom: 8px;
 
         .group-item {
             display: flex;

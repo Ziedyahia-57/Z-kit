@@ -33,7 +33,7 @@ const getItemText = (item) =>
         .trim()
         .toLowerCase();
 
-export const Dropdown = ({ children, search, maxHeight }) => {
+export const Dropdown = ({ children, search, maxHeight, contextMenu, adjustmentOffset = 18 }) => {
     const [query, setQuery] = useState("");
     const [isHovered, setIsHovered] = useState(false);
     const [height, setHeight] = useState("auto");
@@ -75,7 +75,7 @@ export const Dropdown = ({ children, search, maxHeight }) => {
 
         const resizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
-                const innerHeight = entry.contentRect.height - 18;
+                const innerHeight = entry.contentRect.height - adjustmentOffset;
 
                 const style = window.getComputedStyle(dropdownEl);
                 const paddingTop = parseFloat(style.paddingTop) || 0;
@@ -104,7 +104,7 @@ export const Dropdown = ({ children, search, maxHeight }) => {
 
         resizeObserver.observe(innerEl);
         return () => resizeObserver.disconnect();
-    }, [maxHeight]);
+    }, [maxHeight, adjustmentOffset]);
 
     const handleSearchChange = (value) => {
         const newQuery = typeof value === "string" ? value : value?.target?.value ?? "";
@@ -116,7 +116,7 @@ export const Dropdown = ({ children, search, maxHeight }) => {
         <DropdownSearchContext.Provider value={{ query, matchingTexts: allMatchingTexts }}>
             <div
                 ref={dropdownRef}
-                className={`dropdown${isHovered ? " is-hovered" : ""}${isInitialized ? " is-initialized" : ""}`}
+                className={`dropdown${isHovered ? " is-hovered" : ""}${isInitialized ? " is-initialized" : ""} ${contextMenu ? " context-menu" : ""}`}
                 style={{ height, maxHeight, overflowY: isOverflowing ? "auto" : "hidden" }}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
@@ -547,7 +547,7 @@ export const GroupItem = ({
                             onMouseEnter={handleMouseEnterSubmenu}
                             onMouseLeave={() => { }}
                         >
-                            {submenuElement}
+                            {React.cloneElement(submenuElement, { adjustmentOffset: 0 })}
                         </div>,
                         document.body
                     )

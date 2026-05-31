@@ -1,5 +1,16 @@
 import { Select } from './Select';
 import { useEffect } from 'react';
+import {
+    Dropdown,
+    DropdownGroup,
+    GroupTitle,
+    GroupItem,
+    QuickActions,
+    Disc,
+    DropdownWrapper,
+    DropdownTrigger
+} from "../dropdown/Dropdown";
+
 
 // Decorator that responds to a darkMode arg
 const withDarkModeControl = (Story, context) => {
@@ -74,4 +85,32 @@ export const select = {
         disabled: false,
         error: false,
     },
+
+    render: (args) => (
+        <DropdownWrapper>
+            <DropdownTrigger><Select placeholder="Choose one...">Item</Select></DropdownTrigger>
+            <Dropdown maxHeight={250}>
+                <DropdownGroup>
+                    <GroupTitle>Fruits</GroupTitle>
+                    <GroupItem mode="icons" shortcut="ctrl a">
+                        <Disc color="red" />Apple</GroupItem>
+                    <GroupItem mode="icons" shortcut="ctrl o"><Disc color="orange" />Orange</GroupItem>
+                    <GroupItem mode="icons" shortcut="ctrl b"><Disc color="yellow" />Banana</GroupItem>
+                </DropdownGroup>
+                <DropdownGroup>
+                    <GroupTitle>Vegetables</GroupTitle>
+                    <GroupItem mode="icons" shortcut="ctrl c"><Disc color="lime" />Carrot</GroupItem>
+                    <GroupItem mode="icons" shortcut="ctrl r"><Disc color="green" />Broccoli</GroupItem>
+                    <GroupItem mode="icons" shortcut="ctrl s"><Disc color="lightBlue" />Spinach</GroupItem>
+                </DropdownGroup>
+                <DropdownGroup>
+                    <GroupTitle>Dairy</GroupTitle>
+                    <GroupItem mode="icons" shortcut="ctrl a"><Disc color="primary" />Milk</GroupItem>
+                    <GroupItem mode="icons" shortcut="ctrl o"><Disc color="purple" />Cheese</GroupItem>
+                    <GroupItem mode="icons" shortcut="ctrl b"><Disc color="pink" />Butter</GroupItem>
+                    <GroupItem mode="icons" shortcut="ctrl b"><Disc color="gray" />Cream</GroupItem>
+                </DropdownGroup>
+            </Dropdown>
+        </DropdownWrapper>
+    )
 };
