@@ -35,7 +35,7 @@
 
     .select-wrapper {
         display: inline-flex;
-        min-width: 97px;
+        min-width: 145px;
         width: fit-content;
         gap: 8px;
         align-items: center;
@@ -57,7 +57,29 @@
             color: var(--gray-600);
         }
 
-        // Hover, Active, Focus (not disabled)
+        .select-value {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            .disc {
+                flex-shrink: 0;
+            }
+
+            .item-label {
+                color: inherit;
+
+                &.danger {
+                    color: inherit;
+                }
+            }
+
+            >svg {
+                flex-shrink: 0;
+                margin-left: 0;
+            }
+        }
+
         &:hover:not(:disabled):not(.error),
         &:active:not(:disabled):not(.error),
         &:focus:not(:disabled):not(.error) {
@@ -65,7 +87,6 @@
             border-color: var(--gray-200);
         }
 
-        // Disabled
         &:disabled {
             background-color: var(--gray-200);
             border-color: var(--gray-300);
@@ -91,7 +112,6 @@
             }
         }
 
-        // Dark Mode
         body[data-dark="true"] & {
             background-color: var(--gray-900);
             border: 1px solid var(--gray-800);
@@ -136,5 +156,23 @@
                 }
             }
         }
+
+        .disc {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .select-value>svg {
+            width: 1rem;
+            height: 1rem;
+            color: var(--gray-700);
+            transition: color 0.2s ease;
+
+            body[data-dark="true"] & {
+                color: var(--gray-300);
+            }
+        }
+
     }
 }

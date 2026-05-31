@@ -3,6 +3,17 @@
 // ─── Mixin: everything inside a dropdown shell ──────────────────────────────
 @mixin dropdown-inner-styles {
     .dropdown-group {
+        font-size: 1rem;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        margin: 0;
+        transition: color 0.2s ease;
+        color: var(--gray-700);
+        transition: color 0.2s ease;
+
+        body[data-dark="true"] & {
+            color: var(--gray-300);
+        }
+
         .group-title {
             padding: 6px 8px;
 
@@ -24,8 +35,19 @@
             border-radius: 4px;
             padding: 6px 8px;
             background: var(--gray-25);
-            transition: background 0.2s ease;
+            transition: background 0.2s ease, color 0.2s ease;
             cursor: pointer;
+            outline: none;
+
+            &:focus-visible {
+                background: var(--gray-50);
+                box-shadow: inset 0 0 0 2px var(--gray-300);
+
+                body[data-dark="true"] & {
+                    background: var(--gray-900);
+                    box-shadow: inset 0 0 0 2px var(--gray-700);
+                }
+            }
 
             &:hover {
                 background: var(--gray-50);
@@ -33,6 +55,7 @@
 
             body[data-dark="true"] & {
                 background: var(--gray-950);
+                transition: background 0.2s ease, color 0.2s ease;
 
                 &:hover {
                     background: var(--gray-900);
@@ -44,6 +67,7 @@
                 height: 8px;
                 border-radius: 50%;
                 margin-right: 8px;
+                flex-shrink: 0;
             }
 
             &>svg {
@@ -61,6 +85,7 @@
             &.danger {
                 &>svg {
                     color: var(--red-600);
+                    transition: color 0.2s ease;
 
                     body[data-dark="true"] & {
                         color: var(--red-400);
@@ -69,6 +94,7 @@
 
                 .item-label {
                     color: var(--red-600);
+                    transition: color 0.2s ease;
 
                     body[data-dark="true"] & {
                         color: var(--red-400);
@@ -80,6 +106,16 @@
 
                     body[data-dark="true"] & {
                         background: var(--red-900);
+                    }
+                }
+
+                &:focus-visible {
+                    background: var(--red-50);
+                    box-shadow: inset 0 0 0 2px var(--red-300);
+
+                    body[data-dark="true"] & {
+                        background: var(--red-900);
+                        box-shadow: inset 0 0 0 2px var(--red-700);
                     }
                 }
             }
@@ -98,6 +134,7 @@
 
                 &.danger {
                     color: var(--red-600);
+                    transition: color 0.2s ease;
 
                     body[data-dark="true"] & {
                         color: var(--red-400);
@@ -152,18 +189,18 @@
 .dropdown {
     user-select: none;
     width: fit-content;
-    min-width: 222px;
+    min-width: 145px;
     height: fit-content;
     padding: 8px;
     background: var(--gray-25);
     border: 1px solid var(--gray-100);
     border-radius: 8px;
-    transition: background 0.2s ease, border 0.2s ease;
+    transition: background 0.2s ease, border 0.2s ease, color 0.2s ease;
     overflow-x: hidden;
     overflow-y: auto;
 
     &.is-initialized {
-        transition: background 0.2s ease, border 0.2s ease, height 0.1s ease;
+        transition: background 0.2s ease, border 0.2s ease, color 0.2s ease, height 0.1s ease;
     }
 
     .dropdown-inner {
@@ -213,6 +250,7 @@
             &.danger {
                 border: 1px solid var(--red-100);
                 color: var(--red-600);
+                transition: border 0.2s ease, color 0.2s ease, background 0.2s ease;
 
                 body[data-dark="true"] & {
                     border: 1px solid var(--red-900);
@@ -282,23 +320,26 @@
     z-index: 1000;
     visibility: hidden;
     pointer-events: none;
-    transition: visibility 0s linear 0.125s;
-
-    &.is-visible {
-        visibility: visible;
-        pointer-events: auto;
-        transition-delay: 0s;
-    }
+    transition: visibility 0s linear 0.1s;
 
     .dropdown {
+        width: 100%;
+        min-width: 145px;
+        box-sizing: border-box;
         opacity: 0;
         filter: blur(4px);
-        transition: opacity 0.125s ease, filter 0.125s ease;
+        transition: opacity 0.1s ease, filter 0.1s ease, background 0.2s ease, border 0.2s ease, color 0.2s ease;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 
         body[data-dark="true"] & {
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
         }
+    }
+
+    &.is-visible {
+        visibility: visible;
+        pointer-events: auto;
+        transition-delay: 0s;
     }
 
     &.is-visible .dropdown {

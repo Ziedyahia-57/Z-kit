@@ -4,8 +4,8 @@ import { motion, useAnimation } from "motion/react";
 import { soundManager } from '../../utils/soundUtils';
 import clickSoundFile from '../../assets/sounds/click.mp3';
 import PropTypes from 'prop-types';
+import { DropdownWrapperContext } from '../dropdown/Dropdown';
 
-// Load sound once (could be done in a central location)
 soundManager.loadSound('click', clickSoundFile, 1);
 
 const ChevronDownIcon = React.forwardRef(({ duration = 0.2, ...props }, ref) => {
@@ -45,60 +45,87 @@ const ChevronDownIcon = React.forwardRef(({ duration = 0.2, ...props }, ref) => 
 
 ChevronDownIcon.displayName = "ChevronDownIcon";
 
-export class Select extends React.Component {
+class SelectBase extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
         this.state = {
-            open: false,
-            input: ''
-        }
-        this.toggleSelect = this.toggleSelect.bind(this)
+            active: false,
+            input: '',
+            display: null,
+        };
+        this.toggleSelect = this.toggleSelect.bind(this);
+        this.setValue = this.setValue.bind(this);
         this.chevronRef = React.createRef();
 
         if (props.enableSound) {
             const preloadAudio = new Audio(clickSoundFile);
             preloadAudio.load();
-            // Store in window to prevent garbage collection
             window._preloadedAudio = preloadAudio;
         }
-    };
+    }
 
+    componentDidMount() {
+        this.context?.registerSetValue?.(this.setValue);
+    }
+
+    componentWillUnmount() {
+        this.context?.registerSetValue?.(null);
+    }
+
+    setValue(displayNode, rawText) {
+        this.setState({
+            input: rawText ?? '',
+            display: displayNode ?? null,
+            active: false,
+        });
+        this.chevronRef.current?.stopAnimation();
+    }
 
     toggleSelect() {
-        const { active } = this.state;
-        const { enableSound = this.props.enableSound, soundVolume = 1, disabled, onToggle } = this.props;
+        const { enableSound, soundVolume = 1, disabled, onToggle } = this.props;
 
         if (disabled) return;
 
-        // Play sound using soundManager
         if (enableSound) {
             soundManager.play('click', soundVolume);
         }
 
-        if (active) {
+        if (this.state.active) {
             this.chevronRef.current?.stopAnimation();
         } else {
             this.chevronRef.current?.startAnimation();
         }
 
         this.setState({ active: !this.state.active }, () => {
-            if (onToggle) {
-                onToggle(this.state.active);
-            }
+            if (onToggle) onToggle(this.state.active);
         });
+
+        this.context?.toggle?.();
     }
+
     render() {
+        const { error, disabled, label, placeholder, buttonRef, children } = this.props;
+        const { input, display } = this.state;
+        const triggerRef = buttonRef ?? this.context?.triggerRef;
+        const resolvedLabel = children ?? label;
+
         return (
             <div className="select">
-                {this.props.label && <label><p>{this.props.label}</p></label>}
+                {resolvedLabel && <label><p>{resolvedLabel}</p></label>}
                 <button
-                    className={`select-wrapper ${this.props.error ? 'error' : ''}`}
+                    ref={triggerRef}
+                    className={`select-wrapper ${error ? 'error' : ''}`}
                     onClick={this.toggleSelect}
                     aria-expanded={this.state.active}
-                    disabled={this.props.disabled}
-                    value={this.state.input}
+                    disabled={disabled}
+                    value={input}
                 >
-                    {this.state.input !== '' ? <p>{this.state.input}</p> : <p className="placeholder">{this.props.placeholder}</p>}
+                    {display
+                        ? <div className="select-value">{display}</div>
+                        : input !== ''
+                            ? <p>{input}</p>
+                            : <p className="placeholder">{placeholder}</p>
+                    }
                     <ChevronDownIcon
                         ref={this.chevronRef}
                         duration={0.2}
@@ -108,22 +135,34 @@ export class Select extends React.Component {
                     />
                 </button>
             </div>
-        )
+        );
     }
 }
 
-Select.defaultProps = {
-    label: 'Select',
+SelectBase.contextType = DropdownWrapperContext;
+
+SelectBase.defaultProps = {
+    label: null,
     placeholder: 'Placeholder',
     disabled: false,
     error: false,
     enableSound: true
-}
+};
 
-Select.propTypes = {
+SelectBase.propTypes = {
     label: PropTypes.string,
     placeholder: PropTypes.string.isRequired,
     disabled: PropTypes.bool,
     error: PropTypes.bool,
-    enableSound: PropTypes.bool
-}
+    enableSound: PropTypes.bool,
+    onToggle: PropTypes.func,
+    soundVolume: PropTypes.number,
+    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+    children: PropTypes.node
+};
+
+export const Select = React.forwardRef((props, ref) => (
+    <SelectBase {...props} buttonRef={ref} />
+));
+
+Select.displayName = 'Select';

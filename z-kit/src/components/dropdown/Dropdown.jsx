@@ -4,11 +4,19 @@ import "./Dropdown.scss";
 import { Separator } from "../separator/Separator";
 import { Kbd } from "../kbd/Kbd";
 import { Search } from "../search/Search";
+import { soundManager } from '../../utils/soundUtils';
+import clickSoundFile from '../../assets/sounds/click.mp3';
+
+soundManager.loadSound('click', clickSoundFile, 1);
 
 export const DropdownSearchContext = React.createContext({ query: "", matchingTexts: null });
-
-// Shared context so only one submenu per group can be open at a time
 export const DropdownSubmenuContext = React.createContext({ activeItem: null, setActiveItem: () => { } });
+export const DropdownWrapperContext = React.createContext({
+    isOpen: false,
+    toggle: () => { },
+    triggerRef: null,
+    registerSetValue: () => { },
+});
 
 const getGroupItems = (children) =>
     React.Children.toArray(children).flatMap(child => {
@@ -54,7 +62,6 @@ export const Dropdown = ({ children, search, maxHeight }) => {
 
     const visibleChildren = childrenArray.filter(child => {
         if (!React.isValidElement(child) || child.type !== DropdownGroup) return true;
-
         return getGroupItems(child.props.children).some(item =>
             getItemText(item).includes(query.toLowerCase())
         );
@@ -90,28 +97,19 @@ export const Dropdown = ({ children, search, maxHeight }) => {
 
                 if (!isInitializedRef.current) {
                     isInitializedRef.current = true;
-                    requestAnimationFrame(() => {
-                        setIsInitialized(true);
-                    });
+                    requestAnimationFrame(() => setIsInitialized(true));
                 }
             }
         });
 
         resizeObserver.observe(innerEl);
-
-        return () => {
-            resizeObserver.disconnect();
-        };
+        return () => resizeObserver.disconnect();
     }, [maxHeight]);
 
     const handleSearchChange = (value) => {
         const newQuery = typeof value === "string" ? value : value?.target?.value ?? "";
         setQuery(newQuery);
-
-        // Clear all active submenus when typing in search
-        if (newQuery) {
-            window.dispatchEvent(new CustomEvent('clearDropdownSubmenus'));
-        }
+        if (newQuery) window.dispatchEvent(new CustomEvent('clearDropdownSubmenus'));
     };
 
     return (
@@ -119,21 +117,12 @@ export const Dropdown = ({ children, search, maxHeight }) => {
             <div
                 ref={dropdownRef}
                 className={`dropdown${isHovered ? " is-hovered" : ""}${isInitialized ? " is-initialized" : ""}`}
-                style={{
-                    height: height,
-                    maxHeight: maxHeight,
-                    overflowY: isOverflowing ? "auto" : "hidden"
-                }}
+                style={{ height, maxHeight, overflowY: isOverflowing ? "auto" : "hidden" }}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
                 <div ref={innerRef} className="dropdown-inner">
-                    {search && (
-                        <Search
-                            enableFavicon={false}
-                            onChange={handleSearchChange}
-                        />
-                    )}
+                    {search && <Search enableFavicon={false} onChange={handleSearchChange} />}
                     {visibleChildren.map((child, index) => {
                         const isLastGroup = index === visibleChildren.length - 1;
                         return (
@@ -150,20 +139,12 @@ export const Dropdown = ({ children, search, maxHeight }) => {
 };
 
 export const DropdownGroup = ({ children }) => {
-    // One active submenu item per group — prevents multiple submenus open simultaneously
     const [activeItem, setActiveItem] = useState(null);
 
-    // Listen for clear submenus event (triggered by search input)
     useEffect(() => {
-        const handleClearSubmenus = () => {
-            setActiveItem(null);
-        };
-
+        const handleClearSubmenus = () => setActiveItem(null);
         window.addEventListener('clearDropdownSubmenus', handleClearSubmenus);
-
-        return () => {
-            window.removeEventListener('clearDropdownSubmenus', handleClearSubmenus);
-        };
+        return () => window.removeEventListener('clearDropdownSubmenus', handleClearSubmenus);
     }, []);
 
     const childrenArray = React.Children.toArray(children);
@@ -186,8 +167,9 @@ export const DropdownGroup = ({ children }) => {
 
     return (
         <DropdownSubmenuContext.Provider value={{ activeItem, setActiveItem }}>
+            {/* div instead of p — font styling moved to CSS on .dropdown-group */}
             <div className="dropdown-group">
-                <p>{childrenWithSiblings}</p>
+                {childrenWithSiblings}
             </div>
         </DropdownSubmenuContext.Provider>
     );
@@ -204,31 +186,23 @@ export const GroupTitle = ({ children, siblings = [] }) => {
 
     return (
         <div className="group-title">
-            <label className="title-label">
-                {children}
-            </label>
+            <label className="title-label">{children}</label>
         </div>
     );
 };
 
 const globalConeLockRef = { current: false };
 let globalLockTimer = null;
-
-// Create a registry to track all GroupItem instances
 const groupItemRegistry = new Map();
 let hoveredItemId = null;
-
-// Track mouse position globally
 let globalMouseX = 0;
 let globalMouseY = 0;
 
-// Add global mouse move listener to track position
 if (typeof window !== 'undefined') {
     window.addEventListener('mousemove', (e) => {
         globalMouseX = e.clientX;
         globalMouseY = e.clientY;
 
-        // Find which GroupItem is being hovered
         let newHoveredId = null;
         for (const [id, instance] of groupItemRegistry.entries()) {
             if (instance.isHovered(globalMouseX, globalMouseY)) {
@@ -248,8 +222,11 @@ export const GroupItem = ({
     danger,
     debugSafetyCone = false,
     coneDuration = 215,
+    enableSound = true,
+    soundVolume = 1,
 }) => {
     const { matchingTexts } = useContext(DropdownSearchContext);
+    const { onSelect } = useContext(DropdownWrapperContext);
 
     const itemId = useRef(Math.random().toString(36).slice(2)).current;
     const { activeItem, setActiveItem } = useContext(DropdownSubmenuContext);
@@ -267,7 +244,6 @@ export const GroupItem = ({
     const coneFrozenRef = useRef(false);
     const animationTimerRef = useRef(null);
 
-    // ── parse children ───────────────────────────────────────────────────────
     let submenuElement = null;
     let iconElement = null;
     let textContent = "";
@@ -280,13 +256,10 @@ export const GroupItem = ({
             } else if (child.type === Disc || child.props?.className === "disc") {
                 iconElement = child;
             } else if (child.type && typeof child.type === 'string' && child.type.toLowerCase() === 'svg') {
-                // Handle direct SVG element
                 iconElement = child;
             } else if (child.type && typeof child.type === 'function' && child.type.name === 'Svg') {
-                // Handle React component that returns SVG
                 iconElement = child;
             } else if (child.props?.viewBox && child.props?.xmlns) {
-                // Heuristic: treat as SVG if it has viewBox and xmlns props
                 iconElement = child;
             } else {
                 restChildren.push(child);
@@ -301,15 +274,19 @@ export const GroupItem = ({
     const text = textContent.trim();
     const hasSubmenu = !!submenuElement;
 
-    // ✅ ALL HOOKS MUST BE BEFORE CONDITIONAL RETURN
-    // Register/unregister this instance
+    const displayNode = (
+        <>
+            {iconElement}
+            {text && <span className="item-label">{text}</span>}
+        </>
+    );
+
     useEffect(() => {
         groupItemRegistry.set(itemId, {
             isHovered: (x, y) => {
                 if (!itemRef.current) return false;
                 const rect = itemRef.current.getBoundingClientRect();
-                return x >= rect.left && x <= rect.right &&
-                    y >= rect.top && y <= rect.bottom;
+                return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
             },
             openSubmenu: () => {
                 if (hasSubmenu && !globalConeLockRef.current && activeItem !== itemId) {
@@ -319,13 +296,9 @@ export const GroupItem = ({
             hasSubmenu,
             itemId
         });
-
-        return () => {
-            groupItemRegistry.delete(itemId);
-        };
+        return () => groupItemRegistry.delete(itemId);
     }, [hasSubmenu, activeItem, itemId]);
 
-    // Update render state when hovered/leaving changes
     useEffect(() => {
         if (hovered) {
             setShouldRenderSubmenu(true);
@@ -341,66 +314,45 @@ export const GroupItem = ({
         }
     }, [hovered, leaving]);
 
-    // Listen for clear submenus event to close this submenu
     useEffect(() => {
         const handleClearSubmenus = () => {
             if (activeItem === itemId) {
-                // Close this submenu immediately
                 cancelCloseTimer();
                 cancelOpenTimer();
                 setLeaving(false);
                 setActiveItem(null);
             }
         };
-
         window.addEventListener('clearDropdownSubmenus', handleClearSubmenus);
-
-        return () => {
-            window.removeEventListener('clearDropdownSubmenus', handleClearSubmenus);
-        };
+        return () => window.removeEventListener('clearDropdownSubmenus', handleClearSubmenus);
     }, [activeItem, itemId]);
 
-    // ── helpers ──────────────────────────────────────────────────────────────
     const cancelCloseTimer = () => {
-        if (closeTimerRef.current) {
-            clearTimeout(closeTimerRef.current);
-            closeTimerRef.current = null;
-        }
+        if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
     };
 
     const cancelOpenTimer = () => {
-        if (openTimerRef.current) {
-            clearTimeout(openTimerRef.current);
-            openTimerRef.current = null;
-        }
+        if (openTimerRef.current) { clearTimeout(openTimerRef.current); openTimerRef.current = null; }
     };
 
     const releaseGlobalConeLock = () => {
-        if (globalLockTimer) {
-            clearTimeout(globalLockTimer);
-            globalLockTimer = null;
-        }
+        if (globalLockTimer) { clearTimeout(globalLockTimer); globalLockTimer = null; }
         globalConeLockRef.current = false;
     };
 
     const acquireGlobalConeLock = () => {
         globalConeLockRef.current = true;
-        if (globalLockTimer) {
-            clearTimeout(globalLockTimer);
-        }
+        if (globalLockTimer) clearTimeout(globalLockTimer);
         globalLockTimer = setTimeout(() => {
             globalConeLockRef.current = false;
             globalLockTimer = null;
-
             if (hoveredItemId) {
                 const instance = groupItemRegistry.get(hoveredItemId);
-                if (instance && instance.hasSubmenu && instance.openSubmenu) {
-                    setTimeout(() => {
-                        instance.openSubmenu();
-                    }, 10);
+                if (instance?.hasSubmenu && instance?.openSubmenu) {
+                    setTimeout(() => instance.openSubmenu(), 10);
                 }
             }
-        }, coneDuration); // your desired duration
+        }, coneDuration);
     };
 
     const pointInRect = (px, py, rect) =>
@@ -409,29 +361,18 @@ export const GroupItem = ({
     const pointInTriangle = (px, py, p1, p2, p3) => {
         const sign = (a, b, c) => (a.x - c.x) * (b.y - c.y) - (b.x - c.x) * (a.y - c.y);
         const pt = { x: px, y: py };
-        const d1 = sign(pt, p1, p2);
-        const d2 = sign(pt, p2, p3);
-        const d3 = sign(pt, p3, p1);
-        const hasNeg = d1 < 0 || d2 < 0 || d3 < 0;
-        const hasPos = d1 > 0 || d2 > 0 || d3 > 0;
-        return !(hasNeg && hasPos);
+        const d1 = sign(pt, p1, p2), d2 = sign(pt, p2, p3), d3 = sign(pt, p3, p1);
+        return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
     };
 
     const isInCone = (mx, my) => {
         if (!submenuRef.current) return false;
         const sr = submenuRef.current.getBoundingClientRect();
-        const p1 = { x: sr.left, y: sr.top };
-        const p2 = { x: sr.left, y: sr.bottom };
-        const p3 = headPos;
-        return pointInTriangle(mx, my, p1, p2, p3);
+        return pointInTriangle(mx, my, { x: sr.left, y: sr.top }, { x: sr.left, y: sr.bottom }, headPos);
     };
 
-    // ── open / close ─────────────────────────────────────────────────────────
     const openSubmenu = () => {
-        if (globalConeLockRef.current) {
-            return;
-        }
-
+        if (globalConeLockRef.current) return;
         cancelCloseTimer();
         cancelOpenTimer();
 
@@ -440,20 +381,14 @@ export const GroupItem = ({
             const submenuWidth = 222;
             const spaceRight = window.innerWidth - rect.right;
             const openLeft = spaceRight < submenuWidth + 8;
-            setPos({
-                top: rect.top,
-                left: openLeft ? rect.left - submenuWidth - 4 : rect.right + 4,
-            });
-            setHeadPos({
-                x: rect.left + rect.width / 2,
-                y: rect.top + rect.height / 2,
-            });
+            setPos({ top: rect.top, left: openLeft ? rect.left - submenuWidth - 4 : rect.right + 4 });
+            setHeadPos({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
         }
 
         coneFrozenRef.current = false;
         setLeaving(false);
         setActiveItem(itemId);
-        acquireGlobalConeLock(); // lock immediately so sibling mouseenter is blocked
+        acquireGlobalConeLock();
     };
 
     const closeSubmenu = (immediate = false) => {
@@ -474,13 +409,10 @@ export const GroupItem = ({
         }
     };
 
-    // ── cone debug overlay ────────────────────────────────────────────────────
     const drawSafeZone = () => {
         const existingCone = document.getElementById(`safety-cone-${itemId}`);
         if (!debugSafetyCone || !hovered || !hasSubmenu || !submenuRef.current) {
             if (existingCone) existingCone.remove();
-            const strokeOverlay = document.getElementById(`safety-cone-stroke-${itemId}`);
-            if (strokeOverlay) strokeOverlay.remove();
             return;
         }
 
@@ -488,7 +420,6 @@ export const GroupItem = ({
         const p1 = { x: sr.left, y: sr.top };
         const p2 = { x: sr.left, y: sr.bottom };
         const p3 = headPos;
-
         const minX = Math.min(p1.x, p2.x, p3.x);
         const maxX = Math.max(p1.x, p2.x, p3.x);
         const minY = Math.min(p1.y, p2.y, p3.y);
@@ -498,30 +429,19 @@ export const GroupItem = ({
         if (!coneSvg) {
             coneSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             coneSvg.id = `safety-cone-${itemId}`;
-            coneSvg.style.position = "fixed";
-            coneSvg.style.pointerEvents = "none";
-            coneSvg.style.zIndex = "99999";
+            coneSvg.style.cssText = "position:fixed;pointer-events:none;z-index:99999";
             document.body.appendChild(coneSvg);
         }
 
         Object.assign(coneSvg.style, {
-            top: `${minY}px`,
-            left: `${minX}px`,
-            width: `${maxX - minX}px`,
-            height: `${maxY - minY}px`,
+            top: `${minY}px`, left: `${minX}px`,
+            width: `${maxX - minX}px`, height: `${maxY - minY}px`,
         });
 
-        // Clear previous polygon
-        while (coneSvg.firstChild) {
-            coneSvg.removeChild(coneSvg.firstChild);
-        }
+        while (coneSvg.firstChild) coneSvg.removeChild(coneSvg.firstChild);
 
-        // Create polygon for the cone
         const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-        const points = [p1, p2, p3]
-            .map(p => `${p.x - minX},${p.y - minY}`)
-            .join(" ");
-        polygon.setAttribute("points", points);
+        polygon.setAttribute("points", [p1, p2, p3].map(p => `${p.x - minX},${p.y - minY}`).join(" "));
         polygon.setAttribute("fill", "hsla(130, 100%, 50%, 0.25)");
         polygon.setAttribute("stroke", "hsla(130, 100%, 50%, 0.5)");
         polygon.setAttribute("stroke-width", "1");
@@ -529,166 +449,95 @@ export const GroupItem = ({
         coneSvg.appendChild(polygon);
     };
 
-    // ── mouse handlers ────────────────────────────────────────────────────────
     const handleMouseEnterItem = () => {
-        hoveredItemId = itemId; // track which item the cursor is over
-
-        if (globalConeLockRef.current) {
-            return; // lock is held, do nothing until it expires
-        }
-
+        hoveredItemId = itemId;
+        if (globalConeLockRef.current) return;
         cancelCloseTimer();
         cancelOpenTimer();
-        openTimerRef.current = setTimeout(() => {
-            openSubmenu();
-            openTimerRef.current = null;
-        }, 50);
+        openTimerRef.current = setTimeout(() => { openSubmenu(); openTimerRef.current = null; }, 50);
     };
 
-    const handleMouseLeaveItem = () => {
-        cancelOpenTimer();
-    };
+    const handleMouseLeaveItem = () => cancelOpenTimer();
 
     const handleMouseMove = (e) => {
         if (!hovered || !hasSubmenu) return;
-
-        const mx = e.clientX;
-        const my = e.clientY;
-
+        const mx = e.clientX, my = e.clientY;
         const itemRect = itemRef.current?.getBoundingClientRect();
         const submenuRect = submenuRef.current?.getBoundingClientRect();
-
         const onItem = itemRect ? pointInRect(mx, my, itemRect) : false;
         const onSubmenu = submenuRect ? pointInRect(mx, my, submenuRect) : false;
         const onCone = isInCone(mx, my);
 
-        if (onSubmenu) {
-            cancelCloseTimer();
-            coneFrozenRef.current = false;
-            setLeaving(false);
-            releaseGlobalConeLock();
-            return;
-        }
-
-        if (onItem && !onCone) {
-            cancelCloseTimer();
-            coneFrozenRef.current = false;
-            setLeaving(false);
-            setHeadPos({ x: mx, y: my });
-            releaseGlobalConeLock();
-            if (debugSafetyCone) drawSafeZone();
-            return;
-        }
-
-        if (onItem && onCone) {
-            cancelCloseTimer();
-            coneFrozenRef.current = true;
-            setLeaving(false);
-            releaseGlobalConeLock();
-            if (debugSafetyCone) drawSafeZone();
-            return;
-        }
-
+        if (onSubmenu) { cancelCloseTimer(); coneFrozenRef.current = false; setLeaving(false); releaseGlobalConeLock(); return; }
+        if (onItem && !onCone) { cancelCloseTimer(); coneFrozenRef.current = false; setLeaving(false); setHeadPos({ x: mx, y: my }); releaseGlobalConeLock(); if (debugSafetyCone) drawSafeZone(); return; }
+        if (onItem && onCone) { cancelCloseTimer(); coneFrozenRef.current = true; setLeaving(false); releaseGlobalConeLock(); if (debugSafetyCone) drawSafeZone(); return; }
         if (onCone && !onItem) {
-            coneFrozenRef.current = true;
-            setLeaving(false);
-            acquireGlobalConeLock();
-            if (debugSafetyCone) drawSafeZone();
-
+            coneFrozenRef.current = true; setLeaving(false); acquireGlobalConeLock(); if (debugSafetyCone) drawSafeZone();
             if (!closeTimerRef.current) {
-                closeTimerRef.current = setTimeout(() => {
-                    closeTimerRef.current = null;
-                    closeSubmenu(true);
-                }, coneDuration);
+                closeTimerRef.current = setTimeout(() => { closeTimerRef.current = null; closeSubmenu(true); }, coneDuration);
             }
             return;
         }
-
-        // Cursor is off item, off submenu, off cone — but DON'T release the lock here.
-        // The lock will expire on its own timer. Just close the submenu.
-        cancelCloseTimer();
-        coneFrozenRef.current = false;
-        closeSubmenu(true);
-        if (debugSafetyCone) drawSafeZone();
+        cancelCloseTimer(); coneFrozenRef.current = false; closeSubmenu(true); if (debugSafetyCone) drawSafeZone();
     };
 
-    const handleMouseEnterSubmenu = () => {
-        cancelCloseTimer();
-        coneFrozenRef.current = false;
-        setLeaving(false);
-        releaseGlobalConeLock();
-    };
+    const handleMouseEnterSubmenu = () => { cancelCloseTimer(); coneFrozenRef.current = false; setLeaving(false); releaseGlobalConeLock(); };
 
-    const handleMouseLeaveSubmenu = () => {
-        // handleMouseMove takes over
-    };
-
-    // ── effects ──────────────────────────────────────────────────────────────
     useEffect(() => {
         if (hovered && hasSubmenu) {
             window.addEventListener("mousemove", handleMouseMove);
-            if (debugSafetyCone) {
-                window.addEventListener("scroll", drawSafeZone);
-                window.addEventListener("resize", drawSafeZone);
-            }
+            if (debugSafetyCone) { window.addEventListener("scroll", drawSafeZone); window.addEventListener("resize", drawSafeZone); }
             return () => {
                 window.removeEventListener("mousemove", handleMouseMove);
                 window.removeEventListener("scroll", drawSafeZone);
                 window.removeEventListener("resize", drawSafeZone);
-                cancelCloseTimer();
-                cancelOpenTimer();
-                const coneSvg = document.getElementById(`safety-cone-${itemId}`);
-                if (coneSvg) coneSvg.remove();
+                cancelCloseTimer(); cancelOpenTimer();
+                document.getElementById(`safety-cone-${itemId}`)?.remove();
             };
         }
     }, [hovered, hasSubmenu, headPos, debugSafetyCone]);
 
     useEffect(() => {
         return () => {
-            cancelCloseTimer();
-            cancelOpenTimer();
-            if (animationTimerRef.current) {
-                clearTimeout(animationTimerRef.current);
-            }
-            const coneSvg = document.getElementById(`safety-cone-${itemId}`);
-            if (coneSvg) coneSvg.remove();
+            cancelCloseTimer(); cancelOpenTimer();
+            if (animationTimerRef.current) clearTimeout(animationTimerRef.current);
+            document.getElementById(`safety-cone-${itemId}`)?.remove();
         };
     }, []);
 
-    // ✅ NOW do the conditional return AFTER all hooks
     const isVisible = !matchingTexts || matchingTexts.has(text.toLowerCase());
     if (!isVisible) return null;
 
-    // ── render ────────────────────────────────────────────────────────────────
     return (
         <>
             <div
                 ref={itemRef}
                 className={`group-item${hasSubmenu ? " has-submenu" : ""}${danger ? " danger" : ""}`}
-                onClick={onClick}
+                tabIndex={0}
+                onClick={(e) => {
+                    if (enableSound && !hasSubmenu) soundManager.play('click', soundVolume);
+                    onClick?.(e);
+                    if (!hasSubmenu) onSelect?.(displayNode, text);
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        if (enableSound && !hasSubmenu) soundManager.play('click', soundVolume);
+                        onClick?.(e);
+                        if (!hasSubmenu) onSelect?.(displayNode, text);
+                    }
+                }}
                 onMouseEnter={handleMouseEnterItem}
                 onMouseLeave={handleMouseLeaveItem}
             >
                 {iconElement}
                 {text && <span className={`item-label${danger ? " danger" : ""}`}>{text}</span>}
                 {hasSubmenu && (
-                    <svg
-                        className="item-chevron"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
+                    <svg className="item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="m9 18 6-6-6-6" />
                     </svg>
                 )}
-                {shortcut && (
-                    <div className="item-shortcut">
-                        <Kbd mode={mode}>{shortcut}</Kbd>
-                    </div>
-                )}
+                {shortcut && <div className="item-shortcut"><Kbd mode={mode}>{shortcut}</Kbd></div>}
                 {hasSubmenu && shouldRenderSubmenu && submenuElement &&
                     ReactDOM.createPortal(
                         <div
@@ -696,25 +545,211 @@ export const GroupItem = ({
                             className={`submenu-dropdown-portal${leaving ? " is-leaving" : ""}${hovered && !leaving ? " is-visible" : ""}`}
                             style={{ top: pos.top, left: pos.left, position: "fixed", zIndex: 1000 }}
                             onMouseEnter={handleMouseEnterSubmenu}
-                            onMouseLeave={handleMouseLeaveSubmenu}
+                            onMouseLeave={() => { }}
                         >
                             {submenuElement}
                         </div>,
                         document.body
-                    )}
+                    )
+                }
             </div>
         </>
     );
 };
 
-export const Disc = (props) => {
-    return <div className="disc" style={{ background: `var(--${props.color}-500)` }}></div>;
+export const Disc = (props) => (
+    <div className="disc" style={{ background: `var(--${props.color}-500)` }} />
+);
+
+export const QuickActions = ({ children }) => (
+    <div className="quick-actions">{children}</div>
+);
+
+// ─── DropdownWrapper ─────────────────────────────────────────────────────────
+export const DropdownWrapper = ({ children, offset = 4 }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [isLeaving, setIsLeaving] = useState(false);
+    const [pos, setPos] = useState({ top: 0, left: 0 });
+    const [posReady, setPosReady] = useState(false);
+
+    const triggerRef = useRef(null);
+    const dropdownRef = useRef(null);
+    const closeTimerRef = useRef(null);
+    const setValueRef = useRef(null);
+    const isOpenRef = useRef(false);
+
+    isOpenRef.current = isOpen;
+
+    let triggerChild = null;
+    let dropdownChild = null;
+    const otherChildren = [];
+
+    React.Children.forEach(children, (child) => {
+        if (!React.isValidElement(child)) return;
+        if (child.type === DropdownTrigger) triggerChild = child;
+        else if (child.type === Dropdown) dropdownChild = child;
+        else otherChildren.push(child);
+    });
+
+    const computePos = (dropdownEl) => {
+        if (!triggerRef.current) return;
+        const rect = triggerRef.current.getBoundingClientRect();
+        const dropH = dropdownEl?.offsetHeight ?? 0;
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+
+        const top = dropH > 0 && spaceBelow < dropH + offset && spaceAbove > spaceBelow
+            ? rect.top - dropH - offset
+            : rect.bottom + offset;
+
+        const left = Math.max(8, Math.min(rect.left, window.innerWidth - 222 - 8));
+        setPos({ top, left });
+        setPosReady(true);
+    };
+
+    useEffect(() => {
+        if (!isOpen || !dropdownRef.current) return;
+        const el = dropdownRef.current;
+        const ro = new ResizeObserver(() => computePos(el));
+        ro.observe(el);
+        computePos(el);
+        return () => ro.disconnect();
+    }, [isOpen]);
+
+    // ── Keyboard navigation ───────────────────────────────────────────────
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const getFocusableItems = () => {
+            if (!dropdownRef.current) return [];
+            return Array.from(dropdownRef.current.querySelectorAll('.group-item:not([disabled])'));
+        };
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                close();
+                triggerRef.current?.focus();
+                return;
+            }
+
+            const items = getFocusableItems();
+            if (!items.length) return;
+
+            const focused = document.activeElement;
+            const currentIndex = items.indexOf(focused);
+
+            if (e.key === 'ArrowDown' || e.key === 'Tab' && !e.shiftKey) {
+                e.preventDefault();
+                const next = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
+                items[next]?.focus();
+            } else if (e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey)) {
+                e.preventDefault();
+                const prev = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
+                items[prev]?.focus();
+            }
+        };
+
+        // Focus first item when dropdown opens
+        requestAnimationFrame(() => {
+            const items = getFocusableItems();
+            items[0]?.focus();
+        });
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen]);
+    // ─────────────────────────────────────────────────────────────────────
+
+    const close = () => {
+        setIsLeaving(true);
+        setPosReady(false);
+        closeTimerRef.current = setTimeout(() => {
+            setIsOpen(false);
+            setIsLeaving(false);
+            closeTimerRef.current = null;
+        }, 120);
+    };
+
+    const open = () => {
+        if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
+        setIsLeaving(false);
+        setIsOpen(true);
+    };
+
+    const toggle = () => { if (isOpenRef.current) close(); else open(); };
+
+    const onSelect = (displayNode, rawText) => {
+        setValueRef.current?.(displayNode, rawText);
+        close();
+    };
+
+    const registerSetValue = (fn) => { setValueRef.current = fn; };
+
+    useEffect(() => {
+        const handlePointerDown = (e) => {
+            if (!isOpenRef.current) return;
+            if (triggerRef.current?.contains(e.target)) return;
+            if (dropdownRef.current?.contains(e.target)) return;
+            close();
+        };
+        document.addEventListener("pointerdown", handlePointerDown);
+        return () => document.removeEventListener("pointerdown", handlePointerDown);
+    }, []);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const recompute = () => computePos(dropdownRef.current);
+        window.addEventListener("scroll", recompute, true);
+        window.addEventListener("resize", recompute);
+        return () => {
+            window.removeEventListener("scroll", recompute, true);
+            window.removeEventListener("resize", recompute);
+        };
+    }, [isOpen]);
+
+    useEffect(() => () => { if (closeTimerRef.current) clearTimeout(closeTimerRef.current); }, []);
+
+    const triggerWidth = triggerRef.current?.offsetWidth ?? 0;
+    const portalWidth = Math.max(145, triggerWidth);
+
+    return (
+        <DropdownWrapperContext.Provider value={{ isOpen, toggle, triggerRef, onSelect, registerSetValue }}>
+            {triggerChild}
+            {otherChildren}
+            {(isOpen || isLeaving) && dropdownChild &&
+                ReactDOM.createPortal(
+                    <div
+                        ref={dropdownRef}
+                        className={`submenu-dropdown-portal${isLeaving ? " is-leaving" : " is-visible"}`}
+                        style={{
+                            top: pos.top,
+                            left: pos.left,
+                            position: "fixed",
+                            zIndex: 1000,
+                            width: portalWidth || undefined,
+                            visibility: posReady ? "visible" : "hidden",
+                        }}
+                    >
+                        {dropdownChild}
+                    </div>,
+                    document.body
+                )
+            }
+        </DropdownWrapperContext.Provider>
+    );
 };
 
-export const QuickActions = ({ children }) => {
-    return (
-        <div className="quick-actions">
-            {children}
-        </div>
-    );
+// ─── DropdownTrigger ─────────────────────────────────────────────────────────
+export const DropdownTrigger = ({ children }) => {
+    const { toggle, triggerRef } = useContext(DropdownWrapperContext);
+    const child = React.Children.only(children);
+
+    return React.cloneElement(child, {
+        ref: triggerRef,
+        onClick: (e) => {
+            child.props.onClick?.(e);
+            toggle();
+        },
+    });
 };
