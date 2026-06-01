@@ -5,6 +5,19 @@
     flex-direction: column;
     gap: 8px;
 
+    //Input type number arrows:
+    /* Target Chrome, Safari, Edge, and Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Target Firefox */
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+
     // ---- Error Text styling ----
     .input-error {
         position: relative;
@@ -101,9 +114,51 @@
             }
         }
 
+        .phone-icon {
+            animation: iconFadeIn 0.2s ease;
+        }
+
+        .flag {
+            display: flex;
+            opacity: 0;
+            filter: blur(4px);
+            transition: opacity 0.2s ease, filter 0.2s ease;
+
+            &.blur-in {
+                opacity: 1;
+                filter: blur(0);
+                overflow: hidden;
+                border-radius: 4px;
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    top: -50%;
+                    left: -75%;
+                    width: 50%;
+                    height: 200%;
+                    background: linear-gradient(to right,
+                            rgba(255, 255, 255, 0) 0%,
+                            rgba(255, 255, 255, 0.6) 50%,
+                            rgba(255, 255, 255, 0) 100%);
+                    transform: skewX(-15deg);
+                    animation: shine-ray 0.8s ease-out 0.5s 1 forwards;
+                }
+            }
+
+            img {
+                height: 16px;
+                border-radius: 4px;
+            }
+        }
+
         &.fade-out {
             opacity: 0;
             transform: translateY(-50%) scale(0.95);
+        }
+
+        .img {
+            animation: iconFadeIn 0.2s ease;
         }
     }
 
@@ -229,5 +284,27 @@
     50%,
     100% {
         caret-color: transparent;
+    }
+}
+
+@keyframes iconFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes shine-ray {
+    0% {
+        left: -75%;
+    }
+
+    100% {
+        left: 150%;
     }
 }

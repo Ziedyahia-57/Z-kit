@@ -1,4 +1,4 @@
-import { Input } from './Input';
+import { Input, PasswordInput, EmailInput, PhoneInput } from './Input';
 import { useEffect } from 'react';
 
 
@@ -87,9 +87,45 @@ export const input = {
         darkmode: false,
         label: "label",
         disabled: false,
-        error: false,
-        errorText: 'invalid input',
         placeholder: "Placeholder",
         showIcon: true,
+    }
+}
+export const passwordInput = {
+    args: {
+        darkmode: false,
+        label: "Password",
+        disabled: false,
+        placeholder: "Placeholder",
+        showIcon: true,
+    },
+    render: (args) => {
+        return (<PasswordInput {...args} />)
+    }
+}
+
+export const emailInput = {
+    args: {
+        darkmode: false,
+        label: "email",
+        disabled: false,
+        placeholder: "Placeholder",
+        showIcon: true,
+    },
+    render: (args) => {
+        return (<EmailInput {...args} />)
+    }
+}
+
+export const phoneInput = {
+    args: {
+        darkmode: false,
+        label: "phone",
+        disabled: false,
+        placeholder: "Placeholder",
+        showIcon: true,
+    },
+    render: (args) => {
+        return (<PhoneInput {...args} />)
     }
 }
