@@ -49,8 +49,18 @@
                 }
             }
 
+
+            .item-label {
+                font-variation-settings: "wght" 300, "opsz" 16;
+            }
+
             &:hover {
                 background: var(--gray-50);
+
+                .item-label {
+                    font-variation-settings: "wght" 375, "opsz" 16;
+                    letter-spacing: -0.1px;
+                }
             }
 
             body[data-dark="true"] & {
@@ -269,10 +279,6 @@
                         border: 1px solid var(--red-800);
                     }
                 }
-            }
-
-            .item-shortcut {
-                margin: 0;
             }
         }
     }

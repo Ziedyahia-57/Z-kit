@@ -424,7 +424,7 @@ const DIAL_CODES = [
     { code: '+244', country: 'AO', min: 13, max: 13 },
     { code: '+245', country: 'GW', min: 11, max: 11 },
     { code: '+246', country: 'IO', min: 11, max: 11 },
-    { code: '+247', country: 'AC', min: 10, max: 10 },
+    { code: '+247', country: 'SH', min: 10, max: 10 },
     { code: '+248', country: 'SC', min: 11, max: 11 },
     { code: '+249', country: 'SD', min: 13, max: 13 },
     { code: '+250', country: 'RW', min: 13, max: 13 },

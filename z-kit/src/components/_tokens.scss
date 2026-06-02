@@ -1,4 +1,5 @@
 @use 'sass:color';
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&display=swap');
 
 //primary color
 $primary-color: #0667F9;
@@ -55,6 +56,8 @@ $gray-shades: (
 );
 
 :root {
+    font-size: 16px;
+
     @each $shade, $lightness in $color-shades {
         //primary color scale:
         --primary-#{$shade}: #{color.change($primary-color, $lightness: $lightness)};
@@ -93,13 +96,20 @@ $gray-shades: (
 
 }
 
+@media screen and (max-width: 600px) {
+    :root {
+        font-size: 14px;
+    }
+
+}
 
 //*******Typography********//
 @for $i from 1 through 6 {
     h#{$i} {
         font-size: 1rem * pow(1.25, 7 - $i);
-        font-weight: 600;
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        font-weight: 500;
+        font-family: 'Inter', system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
         margin: 0;
     }
 }
@@ -107,7 +117,9 @@ $gray-shades: (
 p,
 span {
     font-size: 1rem;
+    font-weight: 300;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
     margin: 0;
     transition: color 0.2s ease;
 }
@@ -115,11 +127,13 @@ span {
 input,
 textarea {
     font-size: 1rem;
+    font-weight: 300;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 small {
     font-size: 0.8rem;
+    font-weight: 300;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     margin: 0;
     transition: color 0.2s ease;
