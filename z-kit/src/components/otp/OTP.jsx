@@ -102,6 +102,19 @@ export const OTP = ({
         // Only allow digits or alphanumerics depending on mode
         if (newValue && !charPattern.test(newValue)) return;
 
+        if (newValue === '' && values[index] !== '') {
+            const newValues = [...values];
+            for (let i = index; i < slots - 1; i++) {
+                newValues[i] = newValues[i + 1];
+            }
+            newValues[slots - 1] = '';
+            updateValues(newValues);
+            setError(false);
+            // Keep focus on the same slot (it now holds what used to be the next value)
+            inputRefs.current[index]?.focus();
+            return;
+        }
+
         const updatedValues = [...values];
         updatedValues[index] = newValue;
         updateValues(updatedValues);
@@ -136,7 +149,7 @@ export const OTP = ({
         const firstEmptyIndex = values.findIndex(v => v === '');
 
         // Ctrl+Backspace (or Cmd+Backspace) - clear all values
-        if (e.key === 'Backspace' && (e.ctrlKey || e.metaKey)) {
+        if ((e.key === 'Backspace' || e.inputType === "deleteContentBackward") && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
             updateValues(Array(slots).fill(''));
             setError(false);
