@@ -40,8 +40,8 @@
             &::after {
                 content: "";
                 display: block;
-                width: 10px;
-                height: 10px;
+                width: 8px;
+                height: 8px;
                 border-radius: 50%;
                 background: transparent;
                 transition: background 0.2s ease;
@@ -51,10 +51,10 @@
         // active light:
         .radio-button:checked~.radio-indicator {
             border-color: var(--primary-600);
-            background: var(--gray-50);
+            background: var(--primary-600);
 
             &::after {
-                background: var(--primary-600);
+                background: var(--gray-25);
             }
         }
 
@@ -94,10 +94,10 @@
             // active dark:
             .radio-button:checked~.radio-indicator {
                 border-color: var(--primary-500);
-                background: var(--gray-950);
+                background: var(--primary-500);
 
                 &::after {
-                    background: var(--primary-500);
+                    background: var(--gray-25);
                 }
             }
 
@@ -128,9 +128,10 @@
         // active light disabled:
         .radio-button:checked~.radio-indicator {
             border-color: var(--primary-200);
+            background: var(--primary-200);
 
             &::after {
-                background: var(--primary-200);
+                background: var(--gray-50);
             }
         }
 
@@ -159,9 +160,10 @@
             // active dark disabled:
             .radio-button:checked~.radio-indicator {
                 border-color: var(--primary-800);
+                background: var(--primary-800);
 
                 &::after {
-                    background: var(--primary-800);
+                    background: var(--gray-400);
                 }
             }
 
