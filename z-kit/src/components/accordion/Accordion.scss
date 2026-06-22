@@ -29,6 +29,7 @@
         display: grid;
         grid-template-rows: 0fr;
         transition: grid-template-rows 0.3s ease;
+        align-self: flex-start;
         color: var(--gray-600);
 
         &.open {
