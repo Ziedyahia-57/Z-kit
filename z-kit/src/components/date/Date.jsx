@@ -99,8 +99,38 @@ export const Date = ({ label = "label", disabled }) => {
 
         // Backspace — move to previous field when empty
         if (e.key === 'Backspace' && (value.length <= 1)) {
-            if (name === 'month' && day.length !== 0) setTimeout(() => dayRef.current?.focus(), 0);
-            if (name === 'year' && month.length !== 0) setTimeout(() => monthRef.current?.focus(), 0);
+            if (name === 'month' && day.length !== 0) setTimeout(() => dayRef.current?.focus());
+            if (name === 'month' && value.length === 0) {
+                e.preventDefault();
+
+                // Delete the last character from day input
+                if (day.length > 0) {
+                    const newDay = day.slice(0, -1);
+                    setDay(newDay);
+                    stateRef.current.day = newDay;
+
+                    // Focus day after state update
+                    setTimeout(() => dayRef.current?.focus(), 0);
+                } else {
+                    setTimeout(() => dayRef.current?.focus(), 0);
+                }
+            }
+            if (name === 'year' && value.length === 0) {
+                e.preventDefault();
+
+                // Delete the last character from month input
+                if (month.length > 0) {
+                    const newMonth = month.slice(0, -1);
+                    setMonth(newMonth);
+                    stateRef.current.month = newMonth;
+
+                    // Focus month after state update
+                    setTimeout(() => monthRef.current?.focus(), 0);
+                } else {
+                    setTimeout(() => monthRef.current?.focus(), 0);
+                }
+            }
+            if (name === 'year' && month.length !== 0) setTimeout(() => monthRef.current?.focus());
         }
 
         // Up/Down spin for day
@@ -186,7 +216,7 @@ export const Date = ({ label = "label", disabled }) => {
                 stateRef.current.month,
                 stateRef.current.year
             );
-        }, 0);
+        });
     };
 
     return (
