@@ -156,7 +156,7 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
             }
 
             // Backspace / Delete — clear segment
-            if (e.key === "Backspace" || e.key === "Delete") {
+            if (e.key === "Backspace" || e.inputType === "deleteContentBackward" || e.key === "Delete") {
                 e.preventDefault();
                 if (e.ctrlKey || e.metaKey) {
                     setValues([null, null, null]);
