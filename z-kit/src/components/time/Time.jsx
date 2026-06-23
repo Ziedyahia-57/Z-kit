@@ -16,6 +16,8 @@ function formatDisplay(h, m, s) {
 }
 
 function segmentIndex(pos) {
+    // Defensive: if pos is undefined/NaN during rapid key presses, default to 0 (hours)
+    if (typeof pos !== "number" || isNaN(pos)) return 0;
     if (pos <= 2) return 0;
     if (pos <= 5) return 1;
     return 2;
@@ -40,10 +42,19 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
 
     const selectSegment = useCallback((segIdx) => {
         const seg = SEGMENTS[segIdx];
+
+        // 1. Suppress native onSelect events immediately to prevent race conditions
+        suppressSelect.current = true;
+
         requestAnimationFrame(() => {
             if (inputRef.current) {
                 inputRef.current.setSelectionRange(seg.start, seg.end);
             }
+            // 2. Yield to the browser's event loop. Wait for any triggered onSelect 
+            // events to fire and be ignored before turning suppression off.
+            requestAnimationFrame(() => {
+                suppressSelect.current = false;
+            });
         });
     }, []);
 
