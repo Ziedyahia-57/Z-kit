@@ -236,21 +236,21 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
             }}>
                 {renderIcon()}
                 <input
-                    type="text"
                     ref={inputRef}
-                    id={id}
-                    className={`time-input${error ? " error" : ""}${!isFocused && allEmpty ? " placeholder" : ""}`}
-                    inputMode="numeric"
-                    value={isFocused || !allEmpty ? displayValue : ""}
-                    placeholder={`${PLACEHOLDER}\u2236${PLACEHOLDER}\u2236${PLACEHOLDER}`}
-                    readOnly
                     disabled={disabled}
+                    type="text"
+                    inputMode="numeric"
+                    name="time"
+                    placeholder={`${PLACEHOLDER}\u2236${PLACEHOLDER}\u2236${PLACEHOLDER}`}
+                    autoComplete="off"
+                    className={`time-input${error ? " error" : ""}${!isFocused && allEmpty ? " placeholder" : ""}`}
+                    value={isFocused || !allEmpty ? displayValue : ""}
+                    id={id}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
                     onClick={handleClick}
                     onKeyDown={handleKeyDown}
                     onSelect={handleSelect}
-                    autoComplete="off"
                     spellCheck={false}
                 />
             </div>
