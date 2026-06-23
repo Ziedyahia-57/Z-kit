@@ -63,7 +63,7 @@ export class Input extends React.Component {
 
         return (
             <div className={`input ${this.state.showIcon ? 'has-icon' : ''} ${shouldFadeOut ? 'icon-faded' : ''}`}>
-                {label && <label className='input-label'><p>{this.props.label}</p></label>}
+                {this.props.label && <label className='input-label'><p>{this.props.label}</p></label>}
                 <div className="input-wrapper">
                     {this.renderIcon()}
                     <input
@@ -209,7 +209,7 @@ export class PasswordInput extends React.Component {
 
         return (
             <div className={`input ${this.state.showIcon ? 'has-icon' : ''} ${shouldFadeOut ? 'icon-faded' : ''}`}>
-                {label && <label className='input-label'><p>{this.props.label}</p></label>}
+                {this.props.label && <label className='input-label'><p>{this.props.label}</p></label>}
                 <div className="input-wrapper">
                     {this.renderIcon()}
                     <input
@@ -303,7 +303,7 @@ export class EmailInput extends React.Component {
 
         return (
             <div className={`input ${this.state.showIcon ? 'has-icon' : ''} ${shouldFadeOut ? 'icon-faded' : ''}`}>
-                {label && <label className='input-label'><p>{this.props.label}</p></label>}
+                {this.props.label && <label className='input-label'><p>{this.props.label}</p></label>}
                 <div className="input-wrapper">
                     {this.renderIcon()}
                     <input
@@ -704,7 +704,7 @@ export class PhoneInput extends React.Component {
 
         return (
             <div className={`input ${showIcon ? 'has-icon' : ''} ${shouldFadeOut ? 'icon-faded' : ''}`}>
-                {label && <label className="input-label"><p>{this.props.label}</p></label>}
+                {this.props.label && <label className="input-label"><p>{this.props.label}</p></label>}
                 <div className="input-wrapper">
                     {this.renderIcon()}
                     <input
