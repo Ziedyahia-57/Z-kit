@@ -231,7 +231,7 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
                     ref={inputRef}
                     id={id}
                     className={`time-input${error ? " error" : ""}${!isFocused && allEmpty ? " placeholder" : ""}`}
-                    inputMode="none"
+                    inputMode="numeric"
                     value={isFocused || !allEmpty ? displayValue : ""}
                     placeholder={`${PLACEHOLDER}\u2236${PLACEHOLDER}\u2236${PLACEHOLDER}`}
                     readOnly
