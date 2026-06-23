@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import './Time.scss';
 
 const SEGMENTS = [
@@ -42,16 +42,16 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
 
     const selectSegment = useCallback((segIdx) => {
         const seg = SEGMENTS[segIdx];
-
-        // 1. Suppress native onSelect events immediately to prevent race conditions
         suppressSelect.current = true;
 
         requestAnimationFrame(() => {
             if (inputRef.current) {
-                inputRef.current.setSelectionRange(seg.start, seg.end);
+                const { selectionStart, selectionEnd } = inputRef.current;
+                // Only call setSelectionRange if the range actually needs to change
+                if (selectionStart !== seg.start || selectionEnd !== seg.end) {
+                    inputRef.current.setSelectionRange(seg.start, seg.end);
+                }
             }
-            // 2. Yield to the browser's event loop. Wait for any triggered onSelect 
-            // events to fire and be ignored before turning suppression off.
             requestAnimationFrame(() => {
                 suppressSelect.current = false;
             });
@@ -92,16 +92,20 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
         selectSegment(0);
     }, [selectSegment]);
 
+    const valuesRef = useRef(values);
+    useEffect(() => { valuesRef.current = values; }, [values]);
+
     const handleBlur = useCallback(() => {
         setIsFocused(false);
         setPendingDigit(null);
         suppressSelect.current = false;
-        setError(values.some((v) => v === null));
+        const currentValues = valuesRef.current;
+        setError(currentValues.some((v) => v === null));
         if (onChange) {
-            const allSet = values.every((v) => v !== null);
-            onChange(allSet ? { hours: values[0], minutes: values[1], seconds: values[2] } : null);
+            const allSet = currentValues.every((v) => v !== null);
+            onChange(allSet ? { hours: currentValues[0], minutes: currentValues[1], seconds: currentValues[2] } : null);
         }
-    }, [values, onChange]);
+    }, [onChange]);
 
     const handleClick = useCallback(() => {
         if (!isFocused) return;
@@ -224,7 +228,12 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
     return (
         <div className={`time ${showIcon ? 'has-icon' : ''} ${shouldFadeOut ? 'icon-faded' : ''}`}>
             <label className="time-label" htmlFor={id}><p>{label}</p></label>
-            <div className="time-wrapper">
+            <div className="time-wrapper" onMouseDown={(e) => {
+                // Prevent wrapper clicks from stealing focus away from the input
+                if (e.target !== inputRef.current) {
+                    e.preventDefault();
+                }
+            }}>
                 {renderIcon()}
                 <input
                     type="text"
