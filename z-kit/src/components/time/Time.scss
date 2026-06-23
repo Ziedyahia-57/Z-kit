@@ -1,4 +1,5 @@
 @use '../tokens';
+$width: 72px;
 
 .time {
     display: inline-flex;
@@ -111,7 +112,7 @@
         --caret-color: var(--gray-950);
         font-variant-numeric: tabular-nums;
 
-        width: 72px;
+        width: $width;
         padding: 12px 16px;
         border-radius: 8px;
         transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease, width 0.2s ease, padding-left 0.2s ease;
@@ -214,7 +215,7 @@
     &.icon-faded {
         .time-input {
             padding-left: 16px;
-            width: calc(72px + 21px); // Original width + icon space
+            width: calc($width + 21px); // Original width + icon space
         }
     }
 }
