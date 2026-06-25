@@ -7,7 +7,12 @@ const SEGMENTS = [
     { key: "seconds", min: 0, max: 59, start: 6, end: 8 },
 ];
 
-// Using figure dash (‒) for better baseline alignment with digits
+const SEGMENTS_12H = [
+    { key: "hours", min: 1, max: 12, start: 0, end: 2 },
+    { key: "minutes", min: 0, max: 59, start: 3, end: 5 },
+    { key: "seconds", min: 0, max: 59, start: 6, end: 8 },
+];
+
 const PLACEHOLDER = "\u2012\u2012";
 const pad = (v) => (v === null || v === undefined ? PLACEHOLDER : String(v).padStart(2, "0"));
 
@@ -16,20 +21,72 @@ function formatDisplay(h, m, s) {
 }
 
 function segmentIndex(pos) {
-    // Defensive: if pos is undefined/NaN during rapid key presses, default to 0 (hours)
     if (typeof pos !== "number" || isNaN(pos)) return 0;
     if (pos <= 2) return 0;
     if (pos <= 5) return 1;
     return 2;
 }
 
+function detect12h() {
+    const tryDetect = (locale) => {
+        try {
+            // resolvedOptions() directly tells us if 12h format is used
+            const formatter = new Intl.DateTimeFormat(locale, { hour: "numeric" });
+            const options = formatter.resolvedOptions();
+            if (options.hour12 !== undefined) {
+                return options.hour12;
+            }
+
+            // Fallback: format 13:00 and analyze the string
+            const formatted = new Intl.DateTimeFormat(undefined, {
+                hour: "numeric"
+            }).format(new Date(2000, 0, 1, 13));
+
+            return /\b1\b/.test(formatted);
+
+            // 24h format will show "13"
+            if (/^13/.test(formatted.trim())) return false;
+
+            // 12h format markers (covers AM/PM, Chinese, Japanese, Korean, etc.)
+            if (/[AP]\.?[Mm]\.?|午[前后後]|오후|오전/i.test(formatted)) return true;
+
+            // If hour is "1" (not "13"), likely 12h
+            const match = formatted.match(/^(\d+)/);
+            if (match && match[1] === "1") return true;
+        } catch {
+            // Intl not available
+        }
+        return null;
+    };
+
+    // undefined locale = browser's true device default (respects 24h/12h setting)
+    // navigator.language = fallback for older browsers
+    return tryDetect(undefined) ?? tryDetect(navigator.language) ?? false;
+}
+
 export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange, showIcon = false }) => {
+    const [uses12h, setUses12h] = useState(detect12h);
+
+    // Re-detect when user returns to the tab (catches settings changes)
+    useEffect(() => {
+        const handleVisibility = () => {
+            if (document.visibilityState === "visible") {
+                setUses12h(detect12h());
+            }
+        };
+        document.addEventListener("visibilitychange", handleVisibility);
+        return () => document.removeEventListener("visibilitychange", handleVisibility);
+    }, []);
+
+    const ACTIVE_SEGMENTS = uses12h ? SEGMENTS_12H : SEGMENTS;
+
     const [values, setValues] = useState([null, null, null]);
+    const [ampm, setAmpm] = useState("AM");
     const [isFocused, setIsFocused] = useState(false);
     const [activeSeg, setActiveSeg] = useState(0);
     const [pendingDigit, setPendingDigit] = useState(null);
     const [error, setError] = useState(false);
-    const [errorText, setErrorText] = useState('invalid time');
+    const [errorText] = useState("invalid time");
 
     const inputRef = useRef(null);
     const suppressSelect = useRef(false);
@@ -41,13 +98,12 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
             : formatDisplay(...values);
 
     const selectSegment = useCallback((segIdx) => {
-        const seg = SEGMENTS[segIdx];
+        const seg = ACTIVE_SEGMENTS[segIdx];
         suppressSelect.current = true;
 
         requestAnimationFrame(() => {
             if (inputRef.current) {
                 const { selectionStart, selectionEnd } = inputRef.current;
-                // Only call setSelectionRange if the range actually needs to change
                 if (selectionStart !== seg.start || selectionEnd !== seg.end) {
                     inputRef.current.setSelectionRange(seg.start, seg.end);
                 }
@@ -56,18 +112,15 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
                 suppressSelect.current = false;
             });
         });
-    }, []);
+    }, [ACTIVE_SEGMENTS]);
 
-    const commitSegment = useCallback(
-        (segIdx, val) => {
-            setValues((prev) => {
-                const next = [...prev];
-                next[segIdx] = val;
-                return next;
-            });
-        },
-        []
-    );
+    const commitSegment = useCallback((segIdx, val) => {
+        setValues((prev) => {
+            const next = [...prev];
+            next[segIdx] = val;
+            return next;
+        });
+    }, []);
 
     const advanceSegment = useCallback(
         (segIdx) => {
@@ -95,6 +148,9 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
     const valuesRef = useRef(values);
     useEffect(() => { valuesRef.current = values; }, [values]);
 
+    const ampmRef = useRef(ampm);
+    useEffect(() => { ampmRef.current = ampm; }, [ampm]);
+
     const handleBlur = useCallback(() => {
         setIsFocused(false);
         setPendingDigit(null);
@@ -103,9 +159,18 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
         setError(currentValues.some((v) => v === null));
         if (onChange) {
             const allSet = currentValues.every((v) => v !== null);
-            onChange(allSet ? { hours: currentValues[0], minutes: currentValues[1], seconds: currentValues[2] } : null);
+            onChange(
+                allSet
+                    ? {
+                        hours: currentValues[0],
+                        minutes: currentValues[1],
+                        seconds: currentValues[2],
+                        ...(uses12h && { ampm: ampmRef.current }),
+                    }
+                    : null
+            );
         }
-    }, [onChange]);
+    }, [onChange, uses12h]);
 
     const handleClick = useCallback(() => {
         if (!isFocused) return;
@@ -118,9 +183,8 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
 
     const handleKeyDown = useCallback(
         (e) => {
-            const seg = SEGMENTS[activeSeg];
+            const seg = ACTIVE_SEGMENTS[activeSeg];
 
-            // Navigation between segments
             if (e.key === "ArrowLeft" || (e.key === "Tab" && e.shiftKey)) {
                 e.preventDefault();
                 const prev = Math.max(0, activeSeg - 1);
@@ -138,7 +202,6 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
                 return;
             }
 
-            // Up/Down adjust value
             if (e.key === "ArrowUp" || e.key === "ArrowDown") {
                 e.preventDefault();
                 const step = e.shiftKey ? 10 : 1;
@@ -155,8 +218,7 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
                 return;
             }
 
-            // Backspace / Delete — clear segment
-            if (e.key === "Backspace" || e.inputType === "deleteContentBackward" || e.key === "Delete") {
+            if (e.key === "Backspace" || e.key === "Delete") {
                 e.preventDefault();
                 if (e.ctrlKey || e.metaKey) {
                     setValues([null, null, null]);
@@ -166,25 +228,28 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
                 } else {
                     commitSegment(activeSeg, null);
                     setPendingDigit(null);
-                    selectSegment(activeSeg);
+                    if (activeSeg > 0) {
+                        const prev = activeSeg - 1;
+                        setActiveSeg(prev);
+                        selectSegment(prev);
+                    } else {
+                        selectSegment(activeSeg);
+                    }
                 }
                 return;
             }
 
-            // Digit entry
             if (/^\d$/.test(e.key)) {
                 e.preventDefault();
                 const digit = parseInt(e.key, 10);
 
                 if (pendingDigit !== null) {
-                    // Second digit — combine and advance
                     const finalValue = pendingDigit * 10 + digit;
                     const clamped = Math.min(Math.max(finalValue, seg.min), seg.max);
                     commitSegment(activeSeg, clamped);
                     setPendingDigit(null);
                     advanceSegment(activeSeg);
                 } else {
-                    // First digit — replace current value with 0 + digit (right to left)
                     commitSegment(activeSeg, digit);
                     setPendingDigit(digit);
                     selectSegment(activeSeg);
@@ -192,12 +257,29 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
                 return;
             }
 
-            // Prevent any other character input
             if (e.key.length === 1) {
                 e.preventDefault();
             }
         },
-        [activeSeg, values, pendingDigit, commitSegment, advanceSegment, selectSegment]
+        [activeSeg, values, pendingDigit, commitSegment, advanceSegment, selectSegment, ACTIVE_SEGMENTS]
+    );
+
+    const handleInput = useCallback(
+        (e) => {
+            const type = e.nativeEvent.inputType;
+            if (type === "deleteContentBackward" || type === "deleteContentForward") {
+                commitSegment(activeSeg, null);
+                setPendingDigit(null);
+                if (activeSeg > 0) {
+                    const prev = activeSeg - 1;
+                    setActiveSeg(prev);
+                    selectSegment(prev);
+                } else {
+                    selectSegment(activeSeg);
+                }
+            }
+        },
+        [activeSeg, commitSegment, selectSegment]
     );
 
     const handleSelect = useCallback(() => {
@@ -213,10 +295,9 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
 
     const renderIcon = () => {
         if (!showIcon) return null;
-
         return (
             <span className={`time-icon ${isFocused && fadeIconOnFocus ? "fade-out" : ""}`}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock-icon lucide-clock"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
             </span>
         );
     };
@@ -226,14 +307,16 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
     const allEmpty = values.every((v) => v === null);
 
     return (
-        <div className={`time ${showIcon ? 'has-icon' : ''} ${shouldFadeOut ? 'icon-faded' : ''}`}>
+        <div className={`time ${showIcon ? "has-icon" : ""} ${shouldFadeOut ? "icon-faded" : ""} ${uses12h ? "has-ampm" : ""}`}>
             <label className="time-label" htmlFor={id}><p>{label}</p></label>
-            <div className="time-wrapper" onMouseDown={(e) => {
-                // Prevent wrapper clicks from stealing focus away from the input
-                if (e.target !== inputRef.current) {
-                    e.preventDefault();
-                }
-            }}>
+            <div
+                className="time-wrapper"
+                onMouseDown={(e) => {
+                    if (e.target !== inputRef.current) {
+                        e.preventDefault();
+                    }
+                }}
+            >
                 {renderIcon()}
                 <input
                     ref={inputRef}
@@ -250,13 +333,27 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
                     onBlur={handleBlur}
                     onClick={handleClick}
                     onKeyDown={handleKeyDown}
+                    onInput={handleInput}
                     onSelect={handleSelect}
                     spellCheck={false}
                 />
+                {uses12h && (
+                    <button
+                        type="button"
+                        className="time-ampm"
+                        onMouseDown={(e) => {
+                            e.preventDefault();
+                            setAmpm((p) => (p === "AM" ? "PM" : "AM"));
+                        }}
+                        aria-label={`Switch to ${ampm === "AM" ? "PM" : "AM"}`}
+                    >
+                        {ampm}
+                    </button>
+                )}
             </div>
             <span className={`time-error${error ? " visible" : ""}`}>
                 <small>{errorText}</small>
             </span>
         </div>
     );
-}
+};

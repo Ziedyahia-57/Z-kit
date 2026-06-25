@@ -39,7 +39,7 @@ export class Search extends React.Component {
 
         const tldPart = value.split('.').pop();
 
-        const validTLDs = ['com', 'org', 'net', 'io', 'co', 'dev', 'app', 'ai', 'gov', 'edu', 'mil', 'info', 'biz', 'tv', 'me'];
+        const validTLDs = ['com', 'org', 'net', 'io', 'co', 'dev', 'app', 'ai', 'gov', 'edu', 'mil', 'info', 'biz', 'tv', 'me', 'live'];
         const validSecondLevelTLDs = ['uk', 'de', 'fr', 'jp', 'cn', 'ru', 'br', 'in', 'ca', 'au', 'it', 'es', 'nl', 'se', 'no', 'dk', 'fi', 'ch', 'at', 'be', 'pl', 'mx', 'kr', 'sg', 'hk', 'tw', 'nz', 'za', 'tn', 'sa', 'gg'];
 
         if (validTLDs.includes(tldPart.toLowerCase())) {

@@ -1,5 +1,6 @@
 @use '../tokens';
-$width: 72px;
+$width: 116px;
+$ampm-btn-width: 30px; // Approximate width of AM/PM button
 
 .time {
     display: inline-flex;
@@ -45,7 +46,6 @@ $width: 72px;
         }
     }
 
-
     &:has(.time-input.error) .time-label {
         color: var(--red-600);
 
@@ -75,10 +75,11 @@ $width: 72px;
         }
     }
 
-
     .time-wrapper {
         position: relative;
-        display: inline-block;
+        display: inline-flex;
+        align-items: stretch;
+        width: calc($width + $ampm-btn-width);
     }
 
     .time-icon {
@@ -112,10 +113,10 @@ $width: 72px;
         --caret-color: var(--gray-950);
         font-variant-numeric: tabular-nums;
 
-        width: $width;
+        width: 100%;
         padding: 12px 16px;
         border-radius: 8px;
-        transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease, width 0.2s ease, padding-left 0.2s ease;
+        transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease, padding-left 0.2s ease;
         outline: none;
         background-color: var(--gray-25);
         border: 1px solid var(--gray-100);
@@ -215,7 +216,124 @@ $width: 72px;
     &.icon-faded {
         .time-input {
             padding-left: 16px;
-            width: calc($width + 21px); // Original width + icon space
+        }
+    }
+
+    // ===== AM/PM BUTTON =====
+    &.has-ampm {
+        .time-input {
+            padding-right: $ampm-btn-width;
+        }
+
+        // Hover synchronization — only when input is in normal state
+        .time-wrapper:hover:has(.time-input:not(:disabled):not(.error)) {
+            .time-input {
+                border-color: var(--gray-200);
+
+                body[data-dark="true"] & {
+                    border-color: var(--gray-700);
+                }
+            }
+
+            .time-ampm {
+                color: var(--gray-950);
+                border-color: var(--gray-200);
+
+                body[data-dark="true"] & {
+                    color: var(--gray-50);
+                    border-color: var(--gray-700);
+                }
+            }
+        }
+    }
+
+    .time-ampm {
+        position: absolute;
+        font-variant-numeric: tabular-nums;
+
+        right: 0;
+        top: 0;
+        height: 100%;
+        padding: 0 8px;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        border: 1px solid var(--gray-100);
+        border-left: none;
+        border-radius: 0 8px 8px 0;
+        background-color: var(--gray-25);
+        color: var(--gray-600);
+        cursor: pointer;
+        transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        white-space: nowrap;
+        user-select: none;
+        min-width: $ampm-btn-width;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        // Hover/active only when not in error or disabled state
+        &:not(.error):not(:disabled) {
+            &:hover {
+                background-color: var(--gray-50);
+                color: var(--gray-950);
+            }
+
+            &:active {
+                background-color: var(--gray-100);
+            }
+        }
+
+        body[data-dark="true"] & {
+            background-color: var(--gray-900);
+            border-color: var(--gray-800);
+            border-left-color: var(--gray-700);
+            color: var(--gray-400);
+
+            &:not(.error):not(:disabled) {
+                &:hover {
+                    background-color: var(--gray-800);
+                    color: var(--gray-50);
+                }
+
+                &:active {
+                    background-color: var(--gray-700);
+                }
+            }
+        }
+    }
+
+    // ---- Error state: AM/PM button matches input border, no hover effects ----
+    &:has(.time-input.error) {
+        .time-ampm {
+            border-color: var(--red-600);
+            border-left-color: var(--red-600);
+            cursor: default;
+            pointer-events: none;
+
+            body[data-dark="true"] & {
+                border-color: var(--red-400);
+                border-left-color: var(--red-400);
+            }
+        }
+    }
+
+    // ---- Disabled state: AM/PM button matches input disabled appearance ----
+    &:has(.time-input:disabled) {
+        .time-ampm {
+            background-color: var(--gray-200);
+            border-color: var(--gray-300);
+            border-left-color: var(--gray-300);
+            color: var(--gray-400);
+            cursor: not-allowed;
+            pointer-events: none;
+
+            body[data-dark="true"] & {
+                background-color: var(--gray-950);
+                border-color: var(--gray-900);
+                border-left-color: var(--gray-900);
+                color: var(--gray-600);
+            }
         }
     }
 }
