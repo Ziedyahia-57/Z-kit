@@ -226,7 +226,8 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
         }
 
         // Hover synchronization — only when input is in normal state
-        .time-wrapper:hover:has(.time-input:not(:disabled):not(.error)) {
+        .time-wrapper:hover:has(.time-input:not(:disabled):not(.error)),
+        .time-wrapper:has(.time-input:focus:not(:disabled):not(.error)) {
             .time-input {
                 border-color: var(--gray-200);
 
