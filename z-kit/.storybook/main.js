@@ -4,11 +4,11 @@ const config = {
   addons: ["@chromatic-com/storybook", "@storybook/addon-vitest", "@storybook/addon-a11y", "@storybook/addon-docs"],
   framework: "@storybook/react-vite",
   viteFinal: (config) => {
-    config.base = "/storybook/"; // Change base path
     config.server = {
       ...config.server,
       allowedHosts: true,
     };
+
     return config;
   },
 };
