@@ -51,6 +51,11 @@ const meta = {
             name: "Placeholder",
             description: "Placeholder text for the time input",
         },
+        showSeconds: {
+            control: { type: "boolean" },
+            name: "Use Seconds",
+            description: "Defines if the input should display seconds",
+        },
         disabled: {
             control: { type: "boolean" },
             name: "Disabled",
@@ -89,5 +94,6 @@ export const time = {
         disabled: false,
         placeholder: "Placeholder",
         showIcon: true,
+        showSeconds: false
     }
 }

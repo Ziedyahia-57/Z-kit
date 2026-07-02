@@ -1,30 +1,42 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import './Time.scss';
+import { ScrollSegment } from '../common/ScrollSegment';
 
-const SEGMENTS = [
+const SEGMENTS_HMS = [
     { key: "hours", min: 0, max: 23, start: 0, end: 2 },
     { key: "minutes", min: 0, max: 59, start: 3, end: 5 },
     { key: "seconds", min: 0, max: 59, start: 6, end: 8 },
 ];
 
-const SEGMENTS_12H = [
+const SEGMENTS_HM = [
+    { key: "hours", min: 0, max: 23, start: 0, end: 2 },
+    { key: "minutes", min: 0, max: 59, start: 3, end: 5 },
+];
+
+const SEGMENTS_12H_HMS = [
     { key: "hours", min: 1, max: 12, start: 0, end: 2 },
     { key: "minutes", min: 0, max: 59, start: 3, end: 5 },
     { key: "seconds", min: 0, max: 59, start: 6, end: 8 },
 ];
 
+const SEGMENTS_12H_HM = [
+    { key: "hours", min: 1, max: 12, start: 0, end: 2 },
+    { key: "minutes", min: 0, max: 59, start: 3, end: 5 },
+];
+
 const PLACEHOLDER = "\u2012\u2012";
 const pad = (v) => (v === null || v === undefined ? PLACEHOLDER : String(v).padStart(2, "0"));
 
-function formatDisplay(h, m, s) {
-    return `${pad(h)}\u2236${pad(m)}\u2236${pad(s)}`;
+function formatDisplay(values) {
+    return values.map(pad).join("\u2236");
 }
 
-function segmentIndex(pos) {
+function segmentIndex(pos, segments) {
     if (typeof pos !== "number" || isNaN(pos)) return 0;
-    if (pos <= 2) return 0;
-    if (pos <= 5) return 1;
-    return 2;
+    for (let i = 0; i < segments.length; i++) {
+        if (pos <= segments[i].end) return i;
+    }
+    return segments.length - 1;
 }
 
 function detect12h() {
@@ -64,99 +76,7 @@ function detect12h() {
     return tryDetect(undefined) ?? tryDetect(navigator.language) ?? false;
 }
 
-const ScrollSegment = ({ value, min, max, isActive, isFocused, spinDuration, spinDirection }) => {
-    const [displayValue, setDisplayValue] = useState(value);
-    const [prevValue, setPrevValue] = useState(value);
-    const [direction, setDirection] = useState(null); // 'up' | 'down' | null
-    const [animating, setAnimating] = useState(false);
-    const animationKeyRef = useRef(0);
-
-    const padVal = (v) => {
-        if (v === null || v === undefined) return "\u2012\u2012";
-        return String(v).padStart(2, "0");
-    };
-
-    const formattedDisplay = padVal(displayValue);
-    const formattedPrev = padVal(prevValue);
-
-    useEffect(() => {
-        if (value !== displayValue) {
-            let dir = spinDirection;
-
-            if (!dir) {
-                if (value !== null && displayValue !== null) {
-                    const isWrappingIncrement = (displayValue === max && value === min);
-                    const isWrappingDecrement = (displayValue === min && value === max);
-
-                    if (isWrappingIncrement) {
-                        dir = "up";
-                    } else if (isWrappingDecrement) {
-                        dir = "down";
-                    } else {
-                        dir = value > displayValue ? "up" : "down";
-                    }
-                } else if (value === null) {
-                    dir = "down";
-                } else {
-                    dir = "up";
-                }
-            }
-
-            setPrevValue(displayValue);
-            setDisplayValue(value);
-            setDirection(dir);
-            setAnimating(true);
-            animationKeyRef.current += 1;
-        }
-    }, [value, displayValue, min, max, spinDirection]);
-
-    const handleAnimationEnd = () => {
-        setAnimating(false);
-        setDirection(null);
-    };
-
-    let blurClass = "";
-    if (animating && spinDuration < 100) {
-        if (spinDuration < 40) {
-            blurClass = "blur-lg";
-        } else if (spinDuration < 75) {
-            blurClass = "blur-md";
-        } else {
-            blurClass = "blur-sm";
-        }
-    }
-
-    return (
-        <span className={`time-segment${isActive ? " active" : ""}${isFocused ? " focused" : ""}`}>
-            <span className="segment-scroll-window">
-                {animating && direction ? (
-                    <span
-                        key={animationKeyRef.current}
-                        className={`segment-scroll-inner animate-${direction} ${blurClass}`}
-                        style={{ "--spin-duration": `${spinDuration}ms` }}
-                        onAnimationEnd={handleAnimationEnd}
-                    >
-                        {direction === "up" ? (
-                            <>
-                                <span className="segment-number">{formattedPrev}</span>
-                                <span className="segment-number">{formattedDisplay}</span>
-                            </>
-                        ) : (
-                            <>
-                                <span className="segment-number">{formattedDisplay}</span>
-                                <span className="segment-number">{formattedPrev}</span>
-                            </>
-                        )}
-                    </span>
-                ) : (
-                    <span className="segment-number">{formattedDisplay}</span>
-                )}
-            </span>
-        </span>
-    );
-};
-
-export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange, showIcon = false }) => {
+export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange, showIcon = false, showSeconds = false }) => {
     const [uses12h, setUses12h] = useState(detect12h);
 
     // Re-detect when user returns to the tab (catches settings changes)
@@ -170,9 +90,11 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
         return () => document.removeEventListener("visibilitychange", handleVisibility);
     }, []);
 
-    const ACTIVE_SEGMENTS = uses12h ? SEGMENTS_12H : SEGMENTS;
+    const ACTIVE_SEGMENTS = uses12h
+        ? (showSeconds ? SEGMENTS_12H_HMS : SEGMENTS_12H_HM)
+        : (showSeconds ? SEGMENTS_HMS : SEGMENTS_HM);
 
-    const [values, setValues] = useState([null, null, null]);
+    const [values, setValues] = useState(() => Array(showSeconds ? 3 : 2).fill(null));
     const [ampm, setAmpm] = useState("AM");
     const [isFocused, setIsFocused] = useState(false);
     const [activeSeg, setActiveSeg] = useState(0);
@@ -200,10 +122,10 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
     useEffect(() => { activeSegmentsRef.current = ACTIVE_SEGMENTS; }, [ACTIVE_SEGMENTS]);
 
     const displayValue = isFocused
-        ? formatDisplay(...values)
+        ? formatDisplay(values)
         : values.every((v) => v === null)
             ? ""
-            : formatDisplay(...values);
+            : formatDisplay(values);
 
     const selectSegment = useCallback((segIdx) => {
         const seg = ACTIVE_SEGMENTS[segIdx];
@@ -233,8 +155,10 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
     const advanceSegment = useCallback(
         (segIdx) => {
             setPendingDigit(null);
-            if (segIdx < 2) {
+            const lastIdx = activeSegmentsRef.current.length - 1;
+            if (segIdx < lastIdx) {
                 const next = segIdx + 1;
+                lastArrowTimeRef.current = Date.now();
                 setActiveSeg(next);
                 selectSegment(next);
             } else {
@@ -267,13 +191,19 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
         const currentValues = valuesRef.current;
 
         const step = isShiftRef.current ? 10 : 1;
-        const current = currentValues[segIdx] ?? seg.min;
+        const currentRaw = currentValues[segIdx];
         let next;
-        if (key === "ArrowUp") {
-            next = current + step > seg.max ? seg.min : current + step;
+
+        if (currentRaw === null || currentRaw === undefined) {
+            // First press on an empty segment should land exactly on the
+            // natural starting point, not min/max + step.
+            next = key === "ArrowUp" ? seg.min : seg.max;
+        } else if (key === "ArrowUp") {
+            next = currentRaw + step > seg.max ? seg.min : currentRaw + step;
         } else {
-            next = current - step < seg.min ? seg.max : current - step;
+            next = currentRaw - step < seg.min ? seg.max : currentRaw - step;
         }
+
         commitSegment(segIdx, next);
         setPendingDigit(null);
         selectSegment(segIdx);
@@ -335,22 +265,22 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
                     ? {
                         hours: currentValues[0],
                         minutes: currentValues[1],
-                        seconds: currentValues[2],
+                        seconds: showSeconds ? currentValues[2] : 0,
                         ...(uses12h && { ampm: ampmRef.current }),
                     }
                     : null
             );
         }
-    }, [onChange, uses12h]);
+    }, [onChange, uses12h, showSeconds]);
 
     const handleClick = useCallback(() => {
         if (!isFocused) return;
         const pos = inputRef.current?.selectionStart ?? 0;
-        const seg = segmentIndex(pos);
+        const seg = segmentIndex(pos, ACTIVE_SEGMENTS);
         setActiveSeg(seg);
         setPendingDigit(null);
         selectSegment(seg);
-    }, [isFocused, selectSegment]);
+    }, [isFocused, selectSegment, ACTIVE_SEGMENTS]);
 
     const handleKeyDown = useCallback(
         (e) => {
@@ -358,6 +288,7 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
 
             if (e.key === "ArrowLeft" || (e.key === "Tab" && e.shiftKey)) {
                 e.preventDefault();
+                lastArrowTimeRef.current = Date.now();
                 const prev = Math.max(0, activeSeg - 1);
                 setActiveSeg(prev);
                 setPendingDigit(null);
@@ -366,7 +297,9 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
             }
             if (e.key === "ArrowRight" || (e.key === "Tab" && !e.shiftKey)) {
                 e.preventDefault();
-                const next = Math.min(2, activeSeg + 1);
+                lastArrowTimeRef.current = Date.now();
+                const lastIdx = ACTIVE_SEGMENTS.length - 1;
+                const next = Math.min(lastIdx, activeSeg + 1);
                 setActiveSeg(next);
                 setPendingDigit(null);
                 selectSegment(next);
@@ -401,7 +334,7 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
             if (e.key === "Backspace" || e.key === "Delete") {
                 e.preventDefault();
                 if (e.ctrlKey || e.metaKey) {
-                    setValues([null, null, null]);
+                    setValues(Array(ACTIVE_SEGMENTS.length).fill(null));
                     setPendingDigit(null);
                     setActiveSeg(0);
                     selectSegment(0);
@@ -468,13 +401,13 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
         if (Date.now() - lastArrowTimeRef.current < 150) return;
 
         const pos = inputRef.current?.selectionStart ?? 0;
-        const seg = segmentIndex(pos);
+        const seg = segmentIndex(pos, ACTIVE_SEGMENTS);
         if (seg !== activeSeg) {
             setActiveSeg(seg);
             setPendingDigit(null);
         }
         selectSegment(seg);
-    }, [isFocused, activeSeg, selectSegment]);
+    }, [isFocused, activeSeg, selectSegment, ACTIVE_SEGMENTS]);
 
     const renderIcon = () => {
         if (!showIcon) return null;
@@ -489,12 +422,13 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
     const id = `time-${label.replace(/\s+/g, "-").toLowerCase()}`;
     const allEmpty = values.every((v) => v === null);
     const showOverlay = isFocused || !allEmpty;
+    const placeholderText = ACTIVE_SEGMENTS.map(() => PLACEHOLDER).join("\u2236");
 
     return (
         <div className={`time ${showIcon ? "has-icon" : ""} ${shouldFadeOut ? "icon-faded" : ""} ${uses12h ? "has-ampm" : ""}`}>
             <label className="time-label" htmlFor={id}><p>{label}</p></label>
             <div
-                className="time-wrapper"
+                className={`time-wrapper ${!showSeconds ? "no-seconds" : ""}`}
                 onMouseDown={(e) => {
                     if (e.target !== inputRef.current) {
                         e.preventDefault();
@@ -508,7 +442,7 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
                     type="text"
                     inputMode="numeric"
                     name="time"
-                    placeholder={`${PLACEHOLDER}\u2236${PLACEHOLDER}\u2236${PLACEHOLDER}`}
+                    placeholder={placeholderText}
                     autoComplete="off"
                     className={`time-input${error ? " error" : ""}${!isFocused && allEmpty ? " placeholder" : ""} custom-render`}
                     value={isFocused || !allEmpty ? displayValue : ""}
@@ -542,16 +476,20 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
                         spinDuration={spinDuration}
                         spinDirection={spinDirection}
                     />
-                    <span className="time-separator">∶</span>
-                    <ScrollSegment
-                        value={values[2]}
-                        min={ACTIVE_SEGMENTS[2].min}
-                        max={ACTIVE_SEGMENTS[2].max}
-                        isActive={isFocused && activeSeg === 2}
-                        isFocused={isFocused}
-                        spinDuration={spinDuration}
-                        spinDirection={spinDirection}
-                    />
+                    {showSeconds && (
+                        <>
+                            <span className="time-separator">∶</span>
+                            <ScrollSegment
+                                value={values[2]}
+                                min={ACTIVE_SEGMENTS[2].min}
+                                max={ACTIVE_SEGMENTS[2].max}
+                                isActive={isFocused && activeSeg === 2}
+                                isFocused={isFocused}
+                                spinDuration={spinDuration}
+                                spinDirection={spinDirection}
+                            />
+                        </>
+                    )}
                 </div>
                 {uses12h && (
                     <button

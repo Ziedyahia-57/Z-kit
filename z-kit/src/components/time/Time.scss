@@ -46,7 +46,20 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
         }
     }
 
+    // Label and AM/PM button are always populated, so they go red on any error
     &:has(.time-input.error) .time-label {
+        color: var(--red-600);
+
+        body[data-dark="true"] & {
+            color: var(--red-400);
+        }
+    }
+
+    // Segments/separator only go red once there's actually a value to flag —
+    // an empty (placeholder-shown) error state keeps the placeholder gray
+    &:has(.time-input.error:not(:placeholder-shown)) .segment-number,
+    &:has(.time-input.error:not(:placeholder-shown)) .time-ampm,
+    &:has(.time-input.error:not(:placeholder-shown)) .time-separator {
         color: var(--red-600);
 
         body[data-dark="true"] & {
@@ -80,6 +93,11 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
         display: inline-flex;
         align-items: stretch;
         width: calc($width + $ampm-btn-width);
+        transition: width 0.2s ease;
+    }
+
+    .no-seconds {
+        width: calc($width - 25px + $ampm-btn-width);
     }
 
     .time-icon {
@@ -279,7 +297,6 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
         border-radius: 0 8px 8px 0;
         background-color: var(--gray-25);
         color: var(--gray-600);
-        cursor: pointer;
         transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
         white-space: nowrap;
         user-select: none;
@@ -287,6 +304,7 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
         display: flex;
         align-items: center;
         justify-content: center;
+        cursor: pointer;
 
         // Hover/active only when not in error or disabled state
         &:not(.error):not(:disabled) {
@@ -324,8 +342,6 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
         .time-ampm {
             border-color: var(--red-600);
             border-left-color: var(--red-600);
-            cursor: default;
-            pointer-events: none;
 
             body[data-dark="true"] & {
                 border-color: var(--red-400);
@@ -392,7 +408,7 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
                 color: var(--gray-600);
             }
 
-            .time-segment {
+            .scroll-segment {
                 color: var(--gray-400);
 
                 body[data-dark="true"] & {
@@ -402,25 +418,8 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
         }
     }
 
-    .time-segment {
-        display: inline-block;
-        position: relative;
+    .scroll-segment {
         margin: 0 -2px;
-        border-radius: 4px;
-        transition: background-color 0.2s ease, color 0.2s ease;
-        height: 1.4em;
-        display: inline-flex;
-        align-items: center;
-
-        &.active {
-            background-color: var(--primary-100);
-            color: var(--primary-700);
-
-            body[data-dark="true"] & {
-                background-color: var(--primary-900);
-                color: var(--primary-300);
-            }
-        }
     }
 
     .time-separator {
