@@ -204,6 +204,20 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
                 color: var(--red-400);
             }
         }
+
+        &.custom-render {
+            color: transparent !important;
+            caret-color: transparent !important;
+
+            &::placeholder {
+                color: transparent !important;
+            }
+
+            &::selection {
+                background-color: transparent !important;
+                color: transparent !important;
+            }
+        }
     }
 
     // ===== HAS ICON STYLES =====
@@ -256,7 +270,7 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
         right: 0;
         top: 0;
         height: 100%;
-        padding: 0 8px;
+        padding: 0 6px;
         font-size: 1rem;
         font-weight: 500;
         letter-spacing: 0.02em;
@@ -338,6 +352,133 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
             }
         }
     }
+
+    // ==== VISUAL OVERLAY & SEGMENTS SYSTEM ====
+    .time-visual-overlay {
+        position: absolute;
+        top: 1px;
+        left: 1px;
+        bottom: 1px;
+        right: 1px;
+        pointer-events: none;
+        display: inline-flex;
+        align-items: center;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.2;
+        font-size: 1rem;
+        font-weight: 300;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        color: var(--gray-950);
+        padding-left: 16px;
+        user-select: none;
+        transition: padding-left 0.2s ease, color 0.2s ease;
+
+        &.has-icon {
+            padding-left: 37px;
+        }
+
+        &.icon-faded {
+            padding-left: 16px;
+        }
+
+        body[data-dark="true"] & {
+            color: var(--gray-50);
+        }
+
+        &.is-placeholder {
+            color: var(--gray-400);
+
+            body[data-dark="true"] & {
+                color: var(--gray-600);
+            }
+
+            .time-segment {
+                color: var(--gray-400);
+
+                body[data-dark="true"] & {
+                    color: var(--gray-600);
+                }
+            }
+        }
+    }
+
+    .time-segment {
+        display: inline-block;
+        position: relative;
+        margin: 0 -2px;
+        border-radius: 4px;
+        transition: background-color 0.2s ease, color 0.2s ease;
+        height: 1.4em;
+        display: inline-flex;
+        align-items: center;
+
+        &.active {
+            background-color: var(--primary-100);
+            color: var(--primary-700);
+
+            body[data-dark="true"] & {
+                background-color: var(--primary-900);
+                color: var(--primary-300);
+            }
+        }
+    }
+
+    .time-separator {
+        display: inline-block;
+        padding: 0 2px;
+        user-select: none;
+        // opacity: 0.8;
+    }
+
+    .segment-scroll-window {
+        display: inline-block;
+        overflow: hidden;
+        height: 1.2em;
+        line-height: 1.2em;
+        vertical-align: middle;
+        position: relative;
+        min-width: 2.2ch;
+        text-align: center;
+    }
+
+    .segment-scroll-inner {
+        display: flex;
+        flex-direction: column;
+        height: 200%;
+        transform: translateY(0);
+        transition: filter 0.08s ease, opacity 0.08s ease;
+
+        &.animate-up {
+            animation: slideUp var(--spin-duration, 150ms) cubic-bezier(0.1, 0.8, 0.25, 1) forwards;
+        }
+
+        &.animate-down {
+            animation: slideDown var(--spin-duration, 150ms) cubic-bezier(0.1, 0.8, 0.25, 1) forwards;
+        }
+
+        // Motion blur states
+        &.blur-sm {
+            filter: blur(0.5px);
+            opacity: 0.9;
+        }
+
+        &.blur-md {
+            filter: blur(1.2px);
+            opacity: 0.8;
+        }
+
+        &.blur-lg {
+            filter: blur(2px);
+            opacity: 0.7;
+        }
+    }
+
+    .segment-number {
+        display: block;
+        height: 50%;
+        line-height: 1.2em;
+        text-align: center;
+    }
 }
 
 @keyframes customCaretPulse {
@@ -363,5 +504,25 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
     to {
         opacity: 1;
         transform: scale(1);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(-50%);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50%);
+    }
+
+    to {
+        transform: translateY(0);
     }
 }

@@ -64,6 +64,98 @@ function detect12h() {
     return tryDetect(undefined) ?? tryDetect(navigator.language) ?? false;
 }
 
+const ScrollSegment = ({ value, min, max, isActive, isFocused, spinDuration, spinDirection }) => {
+    const [displayValue, setDisplayValue] = useState(value);
+    const [prevValue, setPrevValue] = useState(value);
+    const [direction, setDirection] = useState(null); // 'up' | 'down' | null
+    const [animating, setAnimating] = useState(false);
+    const animationKeyRef = useRef(0);
+
+    const padVal = (v) => {
+        if (v === null || v === undefined) return "\u2012\u2012";
+        return String(v).padStart(2, "0");
+    };
+
+    const formattedDisplay = padVal(displayValue);
+    const formattedPrev = padVal(prevValue);
+
+    useEffect(() => {
+        if (value !== displayValue) {
+            let dir = spinDirection;
+
+            if (!dir) {
+                if (value !== null && displayValue !== null) {
+                    const isWrappingIncrement = (displayValue === max && value === min);
+                    const isWrappingDecrement = (displayValue === min && value === max);
+
+                    if (isWrappingIncrement) {
+                        dir = "up";
+                    } else if (isWrappingDecrement) {
+                        dir = "down";
+                    } else {
+                        dir = value > displayValue ? "up" : "down";
+                    }
+                } else if (value === null) {
+                    dir = "down";
+                } else {
+                    dir = "up";
+                }
+            }
+
+            setPrevValue(displayValue);
+            setDisplayValue(value);
+            setDirection(dir);
+            setAnimating(true);
+            animationKeyRef.current += 1;
+        }
+    }, [value, displayValue, min, max, spinDirection]);
+
+    const handleAnimationEnd = () => {
+        setAnimating(false);
+        setDirection(null);
+    };
+
+    let blurClass = "";
+    if (animating && spinDuration < 100) {
+        if (spinDuration < 40) {
+            blurClass = "blur-lg";
+        } else if (spinDuration < 75) {
+            blurClass = "blur-md";
+        } else {
+            blurClass = "blur-sm";
+        }
+    }
+
+    return (
+        <span className={`time-segment${isActive ? " active" : ""}${isFocused ? " focused" : ""}`}>
+            <span className="segment-scroll-window">
+                {animating && direction ? (
+                    <span
+                        key={animationKeyRef.current}
+                        className={`segment-scroll-inner animate-${direction} ${blurClass}`}
+                        style={{ "--spin-duration": `${spinDuration}ms` }}
+                        onAnimationEnd={handleAnimationEnd}
+                    >
+                        {direction === "up" ? (
+                            <>
+                                <span className="segment-number">{formattedPrev}</span>
+                                <span className="segment-number">{formattedDisplay}</span>
+                            </>
+                        ) : (
+                            <>
+                                <span className="segment-number">{formattedDisplay}</span>
+                                <span className="segment-number">{formattedPrev}</span>
+                            </>
+                        )}
+                    </span>
+                ) : (
+                    <span className="segment-number">{formattedDisplay}</span>
+                )}
+            </span>
+        </span>
+    );
+};
+
 export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange, showIcon = false }) => {
     const [uses12h, setUses12h] = useState(detect12h);
 
@@ -90,6 +182,22 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
 
     const inputRef = useRef(null);
     const suppressSelect = useRef(false);
+
+    const [spinDuration, setSpinDuration] = useState(150);
+    const [spinDirection, setSpinDirection] = useState(null);
+
+    const holdTimerRef = useRef(null);
+    const holdIntervalRef = useRef(null);
+    const currentIntervalTimeRef = useRef(150);
+    const activeKeyRef = useRef(null);
+    const isShiftRef = useRef(false);
+    const lastArrowTimeRef = useRef(0);
+
+    const activeSegRef = useRef(activeSeg);
+    useEffect(() => { activeSegRef.current = activeSeg; }, [activeSeg]);
+
+    const activeSegmentsRef = useRef(ACTIVE_SEGMENTS);
+    useEffect(() => { activeSegmentsRef.current = ACTIVE_SEGMENTS; }, [ACTIVE_SEGMENTS]);
 
     const displayValue = isFocused
         ? formatDisplay(...values)
@@ -151,7 +259,70 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
     const ampmRef = useRef(ampm);
     useEffect(() => { ampmRef.current = ampm; }, [ampm]);
 
+    const performStep = useCallback((key) => {
+        lastArrowTimeRef.current = Date.now();
+        const segIdx = activeSegRef.current;
+        const segments = activeSegmentsRef.current;
+        const seg = segments[segIdx];
+        const currentValues = valuesRef.current;
+
+        const step = isShiftRef.current ? 10 : 1;
+        const current = currentValues[segIdx] ?? seg.min;
+        let next;
+        if (key === "ArrowUp") {
+            next = current + step > seg.max ? seg.min : current + step;
+        } else {
+            next = current - step < seg.min ? seg.max : current - step;
+        }
+        commitSegment(segIdx, next);
+        setPendingDigit(null);
+        selectSegment(segIdx);
+    }, [commitSegment, selectSegment]);
+
+    const runHoldInterval = useCallback(() => {
+        if (!activeKeyRef.current) return;
+        performStep(activeKeyRef.current);
+        const nextInterval = Math.max(25, currentIntervalTimeRef.current * 0.85);
+        currentIntervalTimeRef.current = nextInterval;
+        setSpinDuration(nextInterval);
+        holdIntervalRef.current = setTimeout(runHoldInterval, nextInterval);
+    }, [performStep]);
+
+    const stopHolding = useCallback(() => {
+        if (holdTimerRef.current) {
+            clearTimeout(holdTimerRef.current);
+            holdTimerRef.current = null;
+        }
+        if (holdIntervalRef.current) {
+            clearTimeout(holdIntervalRef.current);
+            holdIntervalRef.current = null;
+        }
+        activeKeyRef.current = null;
+        setSpinDuration(150);
+        setTimeout(() => {
+            if (!activeKeyRef.current) {
+                setSpinDirection(null);
+            }
+        }, 300);
+    }, []);
+
+    const handleKeyUp = useCallback((e) => {
+        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+            if (e.key === activeKeyRef.current) {
+                stopHolding();
+            }
+        }
+    }, [stopHolding]);
+
+    useEffect(() => {
+        return () => {
+            if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+            if (holdIntervalRef.current) clearTimeout(holdIntervalRef.current);
+        };
+    }, []);
+
     const handleBlur = useCallback(() => {
+        stopHolding();
         setIsFocused(false);
         setPendingDigit(null);
         suppressSelect.current = false;
@@ -204,17 +375,26 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
 
             if (e.key === "ArrowUp" || e.key === "ArrowDown") {
                 e.preventDefault();
-                const step = e.shiftKey ? 10 : 1;
-                const current = values[activeSeg] ?? seg.min;
-                let next;
-                if (e.key === "ArrowUp") {
-                    next = current + step > seg.max ? seg.min : current + step;
-                } else {
-                    next = current - step < seg.min ? seg.max : current - step;
-                }
-                commitSegment(activeSeg, next);
-                setPendingDigit(null);
-                selectSegment(activeSeg);
+                if (e.repeat) return;
+                if (activeKeyRef.current === e.key) return;
+
+                activeKeyRef.current = e.key;
+                isShiftRef.current = e.shiftKey;
+                setSpinDirection(e.key === "ArrowUp" ? "up" : "down");
+                lastArrowTimeRef.current = Date.now();
+
+                performStep(e.key);
+
+                currentIntervalTimeRef.current = 150;
+                setSpinDuration(150);
+
+                if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+                if (holdIntervalRef.current) clearTimeout(holdIntervalRef.current);
+
+                holdTimerRef.current = setTimeout(() => {
+                    runHoldInterval();
+                }, 350);
+
                 return;
             }
 
@@ -284,6 +464,9 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
 
     const handleSelect = useCallback(() => {
         if (suppressSelect.current || !isFocused) return;
+        if (activeKeyRef.current) return;
+        if (Date.now() - lastArrowTimeRef.current < 150) return;
+
         const pos = inputRef.current?.selectionStart ?? 0;
         const seg = segmentIndex(pos);
         if (seg !== activeSeg) {
@@ -305,6 +488,7 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
     const shouldFadeOut = isFocused && fadeIconOnFocus;
     const id = `time-${label.replace(/\s+/g, "-").toLowerCase()}`;
     const allEmpty = values.every((v) => v === null);
+    const showOverlay = isFocused || !allEmpty;
 
     return (
         <div className={`time ${showIcon ? "has-icon" : ""} ${shouldFadeOut ? "icon-faded" : ""} ${uses12h ? "has-ampm" : ""}`}>
@@ -326,17 +510,49 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
                     name="time"
                     placeholder={`${PLACEHOLDER}\u2236${PLACEHOLDER}\u2236${PLACEHOLDER}`}
                     autoComplete="off"
-                    className={`time-input${error ? " error" : ""}${!isFocused && allEmpty ? " placeholder" : ""}`}
+                    className={`time-input${error ? " error" : ""}${!isFocused && allEmpty ? " placeholder" : ""} custom-render`}
                     value={isFocused || !allEmpty ? displayValue : ""}
                     id={id}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
                     onClick={handleClick}
                     onKeyDown={handleKeyDown}
+                    onKeyUp={handleKeyUp}
                     onInput={handleInput}
                     onSelect={handleSelect}
                     spellCheck={false}
                 />
+                <div className={`time-visual-overlay ${showIcon ? "has-icon" : ""} ${shouldFadeOut ? "icon-faded" : ""}${!isFocused && allEmpty ? " is-placeholder" : ""}`}>
+                    <ScrollSegment
+                        value={values[0]}
+                        min={ACTIVE_SEGMENTS[0].min}
+                        max={ACTIVE_SEGMENTS[0].max}
+                        isActive={isFocused && activeSeg === 0}
+                        isFocused={isFocused}
+                        spinDuration={spinDuration}
+                        spinDirection={spinDirection}
+                    />
+                    <span className="time-separator">∶</span>
+                    <ScrollSegment
+                        value={values[1]}
+                        min={ACTIVE_SEGMENTS[1].min}
+                        max={ACTIVE_SEGMENTS[1].max}
+                        isActive={isFocused && activeSeg === 1}
+                        isFocused={isFocused}
+                        spinDuration={spinDuration}
+                        spinDirection={spinDirection}
+                    />
+                    <span className="time-separator">∶</span>
+                    <ScrollSegment
+                        value={values[2]}
+                        min={ACTIVE_SEGMENTS[2].min}
+                        max={ACTIVE_SEGMENTS[2].max}
+                        isActive={isFocused && activeSeg === 2}
+                        isFocused={isFocused}
+                        spinDuration={spinDuration}
+                        spinDirection={spinDirection}
+                    />
+                </div>
                 {uses12h && (
                     <button
                         type="button"
