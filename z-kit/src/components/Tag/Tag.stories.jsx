@@ -1,6 +1,5 @@
-import { Tag } from './Tag';
-import { useEffect } from 'react';
-
+import { Tag } from "./Tag";
+import { useEffect } from "react";
 
 // Decorator that responds to a darkMode arg
 const withDarkModeControl = (Story, context) => {
@@ -18,9 +17,7 @@ const withDarkModeControl = (Story, context) => {
         };
     }, [darkmode]);
 
-    return (
-        <Story />
-    );
+    return <Story />;
 };
 
 const meta = {
@@ -33,19 +30,13 @@ const meta = {
             description: {
                 story: "Tag UI Component",
             },
-        }
+        },
     },
     argTypes: {
         darkmode: {
             control: { type: "boolean" },
             name: "Dark Mode",
             description: "Toggle dark mode theme",
-        },
-        color: {
-            control: { type: "select" },
-            name: "color",
-            options: ["gray", "red", "orange", "yellow", "lime", "green", "lightBlue", "blue", "purple", "pink"],
-            description: "Defines the color of the tag",
         },
         label: {
             control: "text",
@@ -75,18 +66,48 @@ const meta = {
             name: "onClick",
             description: "Defines the action to be performed when the button is clicked",
         },
-    }
+    },
 };
 
 export default meta;
 
+const colors = [
+    "gray",
+    "red",
+    "orange",
+    "yellow",
+    "lime",
+    "green",
+    "lightBlue",
+    "blue",
+    "purple",
+    "pink",
+];
+
 export const tag = {
     args: {
-        color: "gray",
         label: "Tag",
         tagType: "label & icon",
         icon: "chart",
         removable: false,
         darkmode: false,
     },
+    render: (args) => (
+        <div
+            style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "12px",
+                alignItems: "center",
+            }}
+        >
+            {colors.map((color) => (
+                <Tag
+                    key={color}
+                    {...args}
+                    color={color}
+                />
+            ))}
+        </div>
+    ),
 };

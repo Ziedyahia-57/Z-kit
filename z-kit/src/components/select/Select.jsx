@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import "./Select.scss";
 import { motion, useAnimation } from "motion/react";
 import { soundManager } from '../../utils/soundUtils';
@@ -45,111 +45,138 @@ const ChevronDownIcon = React.forwardRef(({ duration = 0.2, ...props }, ref) => 
 
 ChevronDownIcon.displayName = "ChevronDownIcon";
 
-class SelectBase extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            active: false,
-            input: '',
-            display: null,
-        };
-        this.toggleSelect = this.toggleSelect.bind(this);
-        this.setValue = this.setValue.bind(this);
-        this.chevronRef = React.createRef();
+export const Select = React.forwardRef(function Select(
+    {
+        label = null,
+        placeholder = 'Placeholder',
+        disabled = false,
+        error = false,
+        enableSound = true,
+        onToggle,
+        soundVolume = 1,
+        children,
+    },
+    buttonRef
+) {
+    const context = useContext(DropdownWrapperContext);
 
-        if (props.enableSound) {
+    const [active, setActive] = useState(false);
+    const [input, setInput] = useState('');
+    const [display, setDisplay] = useState(null);
+
+    const chevronRef = useRef(null);
+    // Tracks the last-seen context.isOpen so we only react to *changes*,
+    // not every render (mirrors the old componentDidUpdate diff check).
+    const prevOpenRef = useRef(context?.isOpen);
+
+    // Equivalent of the old constructor-time audio preload.
+    // Empty deps -> runs once on mount, just like the constructor did once per instance.
+    useEffect(() => {
+        if (enableSound) {
             const preloadAudio = new Audio(clickSoundFile);
             preloadAudio.load();
             window._preloadedAudio = preloadAudio;
         }
-    }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    componentDidMount() {
-        this.context?.registerSetValue?.(this.setValue);
-    }
+    const setValue = (displayNode, rawText) => {
+        setInput(rawText ?? '');
+        setDisplay(displayNode ?? null);
+        setActive(false);
+        chevronRef.current?.stopAnimation();
+    };
 
-    componentWillUnmount() {
-        this.context?.registerSetValue?.(null);
-    }
+    // Equivalent of componentDidMount/componentWillUnmount registerSetValue calls.
+    useEffect(() => {
+        context?.registerSetValue?.(setValue);
+        return () => context?.registerSetValue?.(null);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [context]);
 
-    setValue(displayNode, rawText) {
-        this.setState({
-            input: rawText ?? '',
-            display: displayNode ?? null,
-            active: false,
-        });
-        this.chevronRef.current?.stopAnimation();
-    }
+    // Equivalent of componentDidUpdate: sync chevron + active state whenever
+    // the DropdownWrapper's isOpen changes for ANY reason (button click,
+    // outside click, Escape key) — not just when this component's own
+    // toggleSelect ran. This is the actual bug fix.
+    useEffect(() => {
+        const currentOpen = context?.isOpen;
+        if (currentOpen === undefined) return; // no DropdownWrapper in the tree
 
-    toggleSelect() {
-        const { enableSound, soundVolume = 1, disabled, onToggle } = this.props;
+        if (currentOpen !== prevOpenRef.current) {
+            prevOpenRef.current = currentOpen;
+            if (currentOpen) {
+                chevronRef.current?.startAnimation();
+            } else {
+                chevronRef.current?.stopAnimation();
+            }
+        }
+    }, [context?.isOpen]);
 
+    const toggleSelect = () => {
         if (disabled) return;
 
         if (enableSound) {
             soundManager.play('click', soundVolume);
         }
 
-        if (this.state.active) {
-            this.chevronRef.current?.stopAnimation();
+        if (context?.toggle) {
+            // DropdownWrapper owns open/closed state. Just ask it to toggle;
+            // the effect above will sync the chevron + active state once
+            // context.isOpen actually changes.
+            const willOpen = !context.isOpen;
+            context.toggle();
+            onToggle?.(willOpen);
         } else {
-            this.chevronRef.current?.startAnimation();
+            // No DropdownWrapper present (standalone usage) — manage locally.
+            setActive((prev) => {
+                const next = !prev;
+                if (next) {
+                    chevronRef.current?.startAnimation();
+                } else {
+                    chevronRef.current?.stopAnimation();
+                }
+                onToggle?.(next);
+                return next;
+            });
         }
+    };
 
-        this.setState({ active: !this.state.active }, () => {
-            if (onToggle) onToggle(this.state.active);
-        });
+    const triggerRef = buttonRef ?? context?.triggerRef;
+    const resolvedLabel = children ?? label;
+    const isExpanded = context?.isOpen ?? active;
 
-        this.context?.toggle?.();
-    }
+    return (
+        <div className="select">
+            {resolvedLabel && <label><p>{resolvedLabel}</p></label>}
+            <button
+                ref={triggerRef}
+                className={`select-wrapper ${error ? 'error' : ''}`}
+                onClick={toggleSelect}
+                aria-expanded={isExpanded}
+                disabled={disabled}
+                value={input}
+            >
+                {display
+                    ? <div className="select-value">{display}</div>
+                    : input !== ''
+                        ? <p>{input}</p>
+                        : <p className="placeholder">{placeholder}</p>
+                }
+                <ChevronDownIcon
+                    ref={chevronRef}
+                    duration={0.2}
+                    width={20}
+                    height={20}
+                    strokeWidth={3}
+                />
+            </button>
+        </div>
+    );
+});
 
-    render() {
-        const { error, disabled, label, placeholder, buttonRef, children } = this.props;
-        const { input, display } = this.state;
-        const triggerRef = buttonRef ?? this.context?.triggerRef;
-        const resolvedLabel = children ?? label;
+Select.displayName = 'Select';
 
-        return (
-            <div className="select">
-                {resolvedLabel && <label><p>{resolvedLabel}</p></label>}
-                <button
-                    ref={triggerRef}
-                    className={`select-wrapper ${error ? 'error' : ''}`}
-                    onClick={this.toggleSelect}
-                    aria-expanded={this.state.active}
-                    disabled={disabled}
-                    value={input}
-                >
-                    {display
-                        ? <div className="select-value">{display}</div>
-                        : input !== ''
-                            ? <p>{input}</p>
-                            : <p className="placeholder">{placeholder}</p>
-                    }
-                    <ChevronDownIcon
-                        ref={this.chevronRef}
-                        duration={0.2}
-                        width={20}
-                        height={20}
-                        strokeWidth={3}
-                    />
-                </button>
-            </div>
-        );
-    }
-}
-
-SelectBase.contextType = DropdownWrapperContext;
-
-SelectBase.defaultProps = {
-    label: null,
-    placeholder: 'Placeholder',
-    disabled: false,
-    error: false,
-    enableSound: true
-};
-
-SelectBase.propTypes = {
+Select.propTypes = {
     label: PropTypes.string,
     placeholder: PropTypes.string.isRequired,
     disabled: PropTypes.bool,
@@ -157,12 +184,5 @@ SelectBase.propTypes = {
     enableSound: PropTypes.bool,
     onToggle: PropTypes.func,
     soundVolume: PropTypes.number,
-    buttonRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
-    children: PropTypes.node
+    children: PropTypes.node,
 };
-
-export const Select = React.forwardRef((props, ref) => (
-    <SelectBase {...props} buttonRef={ref} />
-));
-
-Select.displayName = 'Select';

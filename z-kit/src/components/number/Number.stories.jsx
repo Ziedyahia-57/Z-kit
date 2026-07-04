@@ -80,6 +80,6 @@ export const number = {
         disabled: false,
         min: 0,
         max: 100,
-        orientation: "vertical",
+        orientation: "horizontal",
     }
 }

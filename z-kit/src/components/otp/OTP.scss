@@ -1,5 +1,5 @@
 @use '../tokens';
-$width: 10px;
+$width: 12px;
 
 .otp {
     display: inline-flex;
@@ -55,6 +55,8 @@ $width: 10px;
     .otp-input {
         --caret-color: var(--gray-950);
 
+        text-transform: capitalize;
+        place-items: center;
         width: $width;
         padding: 12px 10px;
         border-radius: 8px;
