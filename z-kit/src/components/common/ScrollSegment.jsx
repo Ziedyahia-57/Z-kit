@@ -16,8 +16,11 @@ import './ScrollSegment.scss';
  *      from plain magnitude comparison — no wraparound guessing, since real
  *      wraparounds always arrive here with spinDirection already set by the
  *      caller's spin logic.
- *  - placeholder: text shown when value is null
+ *  - placeholder: text shown when value is null (default "‒‒")
  *  - padLength: zero-pad width (2 for time segments, 2/4 for day-month/year)
+ *  - zeroPad: whether to left-pad the displayed value with zeros up to
+ *      padLength (default true, matches original behavior). Set to false
+ *      to show raw numbers with no leading zeros.
  */
 export const ScrollSegment = ({
   value,
@@ -28,7 +31,8 @@ export const ScrollSegment = ({
   spinDuration,
   spinDirection,
   placeholder = "\u2012\u2012",
-  padLength = 2
+  padLength = 2,
+  zeroPad = true
 }) => {
   const [displayValue, setDisplayValue] = useState(value);
   const [prevValue, setPrevValue] = useState(value);
@@ -38,7 +42,7 @@ export const ScrollSegment = ({
 
   const padVal = (v) => {
     if (v === null || v === undefined || v === '') return placeholder;
-    return String(v).padStart(padLength, "0");
+    return zeroPad ? String(v).padStart(padLength, "0") : String(v);
   };
 
   const formattedDisplay = padVal(displayValue);

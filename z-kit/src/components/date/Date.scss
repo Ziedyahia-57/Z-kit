@@ -54,7 +54,8 @@ $width: 24px;
         }
     }
 
-    &:has(.date-input:disabled) .date-label {
+    &:has(.date-input:disabled) .date-label,
+    &:has(.date-input:disabled) .date-visual-overlay {
         color: var(--gray-600);
 
         body[data-dark="true"] & {
