@@ -165,3 +165,93 @@ input[type="search"]::-webkit-search-results-decoration {
         color: var(--gray-800);
     }
 }
+
+/*========== Animations ==========*/
+/* Used in: Date - Input - Number - OTP - Search - Textarea - Time */
+@keyframes customCaretPulse {
+
+    25%,
+    70% {
+        caret-color: var(--caret-color);
+    }
+
+    0%,
+    50%,
+    100% {
+        caret-color: transparent;
+    }
+}
+
+/* Used in: Input - Search - Textarea */
+@keyframes iconFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Used in: ScrollSegment */
+@keyframes slideUp {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(-50%);
+    }
+}
+
+/* Used in: ScrollSegment */
+@keyframes slideDown {
+    from {
+        transform: translateY(-50%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* Used in: Input - Search */
+@keyframes shine-ray {
+    0% {
+        left: -75%;
+    }
+
+    100% {
+        left: 150%;
+    }
+}
+
+/* Used in: Textarea */
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-2px);
+    }
+
+    75% {
+        transform: translateX(2px);
+    }
+}
+
+/* Used in: Spinner */
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

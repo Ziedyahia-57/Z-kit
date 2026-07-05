@@ -178,39 +178,3 @@
         }
     }
 }
-
-@keyframes customCaretPulse {
-
-    25%,
-    70% {
-        caret-color: var(--caret-color);
-    }
-
-    0%,
-    50%,
-    100% {
-        caret-color: transparent;
-    }
-}
-
-@keyframes iconFadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-@keyframes shine-ray {
-    0% {
-        left: -75%;
-    }
-
-    100% {
-        left: 150%;
-    }
-}

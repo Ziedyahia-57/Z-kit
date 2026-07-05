@@ -230,17 +230,3 @@ $width: 24px;
     }
 
 }
-
-@keyframes customCaretPulse {
-
-    25%,
-    70% {
-        caret-color: var(--caret-color);
-    }
-
-    0%,
-    50%,
-    100% {
-        caret-color: transparent;
-    }
-}

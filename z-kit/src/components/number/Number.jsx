@@ -45,10 +45,22 @@ export const Number = ({
     const pendingDigitsRef = useRef(pendingDigits);
     useEffect(() => { pendingDigitsRef.current = pendingDigits; }, [pendingDigits]);
 
+    const touchActiveRef = useRef(false);
+    const incrementBtnRef = useRef(null);
+    const decrementBtnRef = useRef(null);
+
+    // Track when buttons are being pressed (for mobile visual feedback)
+    const [buttonPressed, setButtonPressed] = useState(false);
+
+    // Ref to the root element for outside-click detection
+    const rootRef = useRef(null);
+
     const allEmpty = value === null;
     const displayValue = format(value);
-    // what the scroll segment renders — never null, so it always shows a digit ("0") rather than a dash placeholder
     const segmentValue = value === null ? 0 : value;
+
+    // Combined active state: input focused OR button pressed
+    const isSegmentActive = isFocused || buttonPressed;
 
     const selectAll = useCallback(() => {
         suppressSelect.current = true;
@@ -108,6 +120,7 @@ export const Number = ({
         }
         activeKeyRef.current = null;
         setSpinDuration(150);
+        // REMOVED: setButtonPressed(false) — selection now persists on release
         setTimeout(() => {
             if (!activeKeyRef.current) {
                 setSpinDirection(null);
@@ -123,6 +136,7 @@ export const Number = ({
         isShiftRef.current = shift;
         setSpinDirection(key === "ArrowUp" ? "up" : "down");
         lastArrowTimeRef.current = Date.now();
+        setButtonPressed(true);
 
         performStep(key);
 
@@ -162,6 +176,7 @@ export const Number = ({
     const handleBlur = useCallback(() => {
         stopHolding();
         setIsFocused(false);
+        setButtonPressed(false); // clear on blur
         setPendingDigits("");
         suppressSelect.current = false;
         const current = valueRef.current;
@@ -244,23 +259,84 @@ export const Number = ({
         selectAll();
     }, [isFocused, selectAll]);
 
-    const handleIncrementDown = useCallback((e) => {
+    const handleTouchStart = useCallback((e, direction) => {
         e.preventDefault();
         if (disabled) return;
-        if (inputRef.current && document.activeElement !== inputRef.current) {
-            inputRef.current.focus();
-        }
-        beginHold("ArrowUp", e.shiftKey);
+        beginHold(direction === "up" ? "ArrowUp" : "ArrowDown", e.shiftKey);
     }, [beginHold, disabled]);
 
-    const handleDecrementDown = useCallback((e) => {
-        e.preventDefault();
+    const handlePointerDown = useCallback((direction, e) => {
+        if (e.pointerType === "touch") {
+            e.preventDefault();
+        }
         if (disabled) return;
-        if (inputRef.current && document.activeElement !== inputRef.current) {
+
+        if (e.pointerType === "mouse" && inputRef.current && document.activeElement !== inputRef.current) {
             inputRef.current.focus();
         }
-        beginHold("ArrowDown", e.shiftKey);
+
+        beginHold(direction === "up" ? "ArrowUp" : "ArrowDown", e.shiftKey);
     }, [beginHold, disabled]);
+
+    const handlePointerUp = useCallback((e) => {
+        stopHolding();
+    }, [stopHolding]);
+
+    // Native touch listeners for buttons
+    useEffect(() => {
+        const setupButton = (btnRef, direction) => {
+            const btn = btnRef.current;
+            if (!btn) return;
+
+            const onTouchStart = (e) => {
+                e.preventDefault();
+                touchActiveRef.current = true;
+                if (disabled) return;
+                beginHold(direction === "up" ? "ArrowUp" : "ArrowDown", false);
+            };
+
+            const onTouchEnd = () => {
+                touchActiveRef.current = false;
+                stopHolding();
+            };
+
+            btn.addEventListener("touchstart", onTouchStart, { passive: false });
+            btn.addEventListener("touchend", onTouchEnd);
+            btn.addEventListener("touchcancel", onTouchEnd);
+
+            return () => {
+                btn.removeEventListener("touchstart", onTouchStart);
+                btn.removeEventListener("touchend", onTouchEnd);
+                btn.removeEventListener("touchcancel", onTouchEnd);
+            };
+        };
+
+        const cleanupInc = setupButton(incrementBtnRef, "up");
+        const cleanupDec = setupButton(decrementBtnRef, "down");
+
+        return () => {
+            cleanupInc?.();
+            cleanupDec?.();
+        };
+    }, [beginHold, stopHolding, disabled]);
+
+    // Outside-click/touch listener to clear buttonPressed on mobile
+    useEffect(() => {
+        const handleOutsideInteraction = (e) => {
+            if (!buttonPressed) return;
+            if (!rootRef.current) return;
+            if (rootRef.current.contains(e.target)) return;
+            setButtonPressed(false);
+        };
+
+        document.addEventListener("mousedown", handleOutsideInteraction);
+        document.addEventListener("touchstart", handleOutsideInteraction);
+
+        return () => {
+            document.removeEventListener("mousedown", handleOutsideInteraction);
+            document.removeEventListener("touchstart", handleOutsideInteraction);
+        };
+    }, [buttonPressed]);
 
     const handleButtonRelease = useCallback(() => {
         stopHolding();
@@ -272,16 +348,15 @@ export const Number = ({
 
         const incrementBtn = (
             <button
+                ref={incrementBtnRef}
                 type="button"
                 className="number-plus"
                 aria-label="increment"
                 name="increment"
                 disabled={disabled}
-                onMouseDown={handleIncrementDown}
-                onMouseUp={handleButtonRelease}
-                onMouseLeave={handleButtonRelease}
-                onTouchStart={handleIncrementDown}
-                onTouchEnd={handleButtonRelease}
+                onPointerDown={(e) => handlePointerDown("up", e)}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={handlePointerUp}
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
             </button>
@@ -289,32 +364,30 @@ export const Number = ({
 
         const decrementBtn = (
             <button
+                ref={decrementBtnRef}
                 type="button"
                 className="number-minus"
                 aria-label="decrement"
                 name="decrement"
                 disabled={disabled}
-                onMouseDown={handleDecrementDown}
-                onMouseUp={handleButtonRelease}
-                onMouseLeave={handleButtonRelease}
-                onTouchStart={handleDecrementDown}
-                onTouchEnd={handleButtonRelease}
+                onPointerDown={(e) => handlePointerDown("down", e)}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={handlePointerUp}
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /></svg>
             </button>
         );
 
-        // Horizontal: minus pinned to the left edge, plus pinned to the right edge
         if (orientation === "horizontal") {
             return <>{decrementBtn}{incrementBtn}</>;
         }
 
-        // Vertical: stacked spinner grouped in one column on the right
         return <div className="button-group">{incrementBtn}{decrementBtn}</div>;
     };
 
     return (
         <div
+            ref={rootRef}  // NEW
             className={`number has-btns has-btns-${orientation}`}
             style={{ "--digit-count": digitCount }}
         >
@@ -354,8 +427,8 @@ export const Number = ({
                         value={segmentValue}
                         min={min}
                         max={max}
-                        isActive={isFocused}
-                        isFocused={isFocused}
+                        isActive={isSegmentActive}
+                        isFocused={isSegmentActive}
                         spinDuration={spinDuration}
                         spinDirection={spinDirection}
                     />
