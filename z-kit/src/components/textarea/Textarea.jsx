@@ -99,10 +99,10 @@ export class Textarea extends React.Component {
         // 1. Reset height to auto to measure true scrollHeight
         textarea.style.height = 'auto';
 
-        // 2. Calculate the height the content NEEDS
+        // 2. Calculate the height the content NEEDS (Removed window.innerHeight * 0.5 limit)
         const neededHeight = Math.max(
             this.state.initialHeight,
-            Math.min(textarea.scrollHeight, window.innerHeight * 0.5)
+            textarea.scrollHeight
         );
 
         // 3. Determine final target: use the larger of "needed" or "user-set"
@@ -200,10 +200,10 @@ export class Textarea extends React.Component {
         el.style.width = `${newW}px`;
         el.style.height = 'auto';
 
-        // The absolute minimum the textarea is allowed to be right now
+        // The absolute minimum the textarea is allowed to be right now (Removed limit)
         const minAllowedHeight = Math.max(
             this.state.initialHeight,
-            Math.min(el.scrollHeight, window.innerHeight * 0.5)
+            el.scrollHeight
         );
 
         // The height the mouse is trying to drag to
@@ -221,7 +221,7 @@ export class Textarea extends React.Component {
             const finalHeight = el.offsetHeight;
             const contentNeeds = Math.max(
                 this.state.initialHeight,
-                Math.min(el.scrollHeight, window.innerHeight * 0.5)
+                el.scrollHeight // Removed limit
             );
 
             // If the user dragged it taller than the text needs, save that height!
