@@ -44,7 +44,7 @@ const meta = {
     variant: {
       control: { type: "select" },
       name: "Variant",
-      options: ["primary", "secondary", "ghost"],
+      options: ["primary", 'secondary', "outline", "ghost"],
       description: "Defines the variant of the button",
     },
     size: {
@@ -96,7 +96,7 @@ export default meta;
 
 export const button = {
   args: {
-    darkmode: true,
+    darkmode: false,
     variant: "primary",
     colorScheme: "primaryColor",
     label: "Button",

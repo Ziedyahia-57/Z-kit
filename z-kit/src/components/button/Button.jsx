@@ -10,12 +10,12 @@ soundManager.loadSound('click', clickSoundFile, 1);
 export const Button = ({
     variant = "primary",
     size = "medium",
-    colorScheme = "primaryColor", // New prop for color scheme
+    colorScheme = "primaryColor",
     disabled = false,
     label = "Button",
     icon = null,
     iconPosition = "left",
-    buttonType = "label", // "label", "label & icon", "icon"
+    buttonType = "label",
     onClick,
     enableSound = true,
     className = "", // Allow custom className
@@ -37,7 +37,7 @@ export const Button = ({
         'button',
         size,
         variant,
-        colorScheme, // Add color scheme class
+        colorScheme,
         contentTypeClass,
         className
     ].filter(Boolean).join(' ');
@@ -97,7 +97,7 @@ export const Button = ({
 };
 
 Button.propTypes = {
-    variant: PropTypes.oneOf(['primary', 'secondary', 'ghost']),
+    variant: PropTypes.oneOf(['primary', 'secondary', 'outline', 'ghost']),
     size: PropTypes.oneOf(['small', 'medium', 'large', 'xlarge']),
     colorScheme: PropTypes.oneOf(['primaryColor', 'warningColor', 'errorColor', 'successColor', 'infoColor', 'neutralColor']),
     disabled: PropTypes.bool,

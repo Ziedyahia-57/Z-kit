@@ -9,19 +9,32 @@ export class Textarea extends React.Component {
             value: '',
             showIcon: props.showIcon || false,
             isFocused: false,
-            maxLength: props.maxLength || 0,
             charLimitFlash: false,
+            initialHeight: 0,
         };
         this.textareaRef = React.createRef();
         this._resizeState = null;
+        this.isInternalChange = false;
+        this.heightAnimationTimeout = null;
+        this._userSetHeight = null; // Tracks manual drag height overrides
     }
 
-    // Vibration utility method
     vibrate = (duration = 150) => {
-        // Check if browser supports vibration and is likely a mobile device
         if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
             window.navigator.vibrate(duration);
         }
+    }
+
+    triggerHeightAnimation = () => {
+        const textarea = this.textareaRef.current;
+        if (!textarea) return;
+
+        textarea.classList.add('animate-height');
+
+        if (this.heightAnimationTimeout) clearTimeout(this.heightAnimationTimeout);
+        this.heightAnimationTimeout = setTimeout(() => {
+            textarea.classList.remove('animate-height');
+        }, 350);
     }
 
     handleChange = (e) => {
@@ -29,10 +42,7 @@ export class Textarea extends React.Component {
         const newValue = e.target.value;
 
         if (maxLength > 0 && newValue.length > maxLength) {
-            // Trigger vibration when trying to exceed limit
             this.vibrate(150);
-
-            // Re-trigger flash on every keystroke at the limit
             this.setState({ charLimitFlash: false }, () => {
                 this.setState({ charLimitFlash: true });
                 setTimeout(() => this.setState({ charLimitFlash: false }), 500);
@@ -40,55 +50,145 @@ export class Textarea extends React.Component {
             return;
         }
 
-        this.setState({ value: newValue });
+        this.isInternalChange = true;
+        this.triggerHeightAnimation();
+        this.setState({ value: newValue }, () => {
+            this.isInternalChange = false;
+        });
+        this.autoResize();
+
         if (this.props.onChange) this.props.onChange(newValue);
     }
 
-    handleFocus = () => {
-        this.setState({ isFocused: true });
-        if (this.props.onFocus) this.props.onFocus();
+    handleKeyDown = (e) => {
+        if (this.props.onKeyDown) this.props.onKeyDown(e);
     }
 
-    handleBlur = () => {
+    handleFocus = (e) => {
+        this.setState({ isFocused: true });
+
+        if (this.props.showIcon) {
+            this.triggerHeightAnimation();
+            requestAnimationFrame(() => {
+                this.autoResize();
+            });
+        }
+
+        if (this.props.onFocus) this.props.onFocus(e);
+    }
+
+    handleBlur = (e) => {
         this.setState({ isFocused: false });
-        if (this.props.onBlur) this.props.onBlur();
+
+        if (this.props.showIcon) {
+            this.triggerHeightAnimation();
+            requestAnimationFrame(() => {
+                this.autoResize();
+            });
+        }
+
+        if (this.props.onBlur) this.props.onBlur(e);
+    }
+
+    autoResize = () => {
+        const textarea = this.textareaRef.current;
+        if (!textarea) return;
+
+        const currentHeight = textarea.offsetHeight;
+
+        // 1. Reset height to auto to measure true scrollHeight
+        textarea.style.height = 'auto';
+
+        // 2. Calculate the height the content NEEDS
+        const neededHeight = Math.max(
+            this.state.initialHeight,
+            Math.min(textarea.scrollHeight, window.innerHeight * 0.5)
+        );
+
+        // 3. Determine final target: use the larger of "needed" or "user-set"
+        const targetHeight = (this._userSetHeight !== null && this._userSetHeight > neededHeight)
+            ? this._userSetHeight
+            : neededHeight;
+
+        if (currentHeight === targetHeight) {
+            textarea.style.height = `${targetHeight}px`;
+            return;
+        }
+
+        // 4. Snap back to current height visually
+        textarea.style.height = `${currentHeight}px`;
+
+        // 5. Force reflow
+        textarea.offsetHeight;
+
+        // 6. Set to target height
+        textarea.style.height = `${targetHeight}px`;
+    }
+
+    handleWindowResize = () => {
+        this.autoResize();
+    }
+
+    componentDidMount() {
+        const textarea = this.textareaRef.current;
+        if (textarea) {
+            textarea.style.transition = 'none';
+            textarea.style.height = 'auto';
+
+            const intrinsicHeight = textarea.scrollHeight;
+
+            this.setState({ initialHeight: intrinsicHeight });
+            textarea.style.minHeight = `${intrinsicHeight}px`;
+            textarea.style.height = `${intrinsicHeight}px`;
+
+            window.addEventListener('resize', this.handleWindowResize);
+        }
     }
 
     componentDidUpdate(prevProps) {
         if (prevProps.showIcon !== this.props.showIcon) {
             this.setState({ showIcon: this.props.showIcon });
         }
+
+        // If an external script clears the textarea, reset the manual override
+        if (prevProps.value !== this.props.value && this.props.value !== undefined && !this.isInternalChange) {
+            if (this.props.value === '') {
+                this._userSetHeight = null;
+            }
+            this.setState({ value: this.props.value }, () => {
+                this.autoResize();
+            });
+        }
     }
 
     componentWillUnmount() {
         window.removeEventListener('pointermove', this._onPointerMove);
         window.removeEventListener('pointerup', this._onPointerUp);
+        window.removeEventListener('resize', this.handleWindowResize);
+        if (this.heightAnimationTimeout) clearTimeout(this.heightAnimationTimeout);
     }
 
     // ── Custom resize handle logic ──────────────────────────────────────
     _onResizePointerDown = (e) => {
         e.preventDefault();
-
-        // Critical for mobile - prevents page scroll while dragging
         e.currentTarget.setPointerCapture(e.pointerId);
 
         const el = this.textareaRef.current;
         if (!el) return;
 
-        const startX = e.clientX;
-        const startY = e.clientY;
-        const startW = el.offsetWidth;
-        const startH = el.offsetHeight;
+        this._resizeState = {
+            startX: e.clientX,
+            startY: e.clientY,
+            startW: el.offsetWidth,
+            startH: el.offsetHeight
+        };
 
-        this._resizeState = { startX, startY, startW, startH };
         window.addEventListener('pointermove', this._onPointerMove);
         window.addEventListener('pointerup', this._onPointerUp);
     }
 
     _onPointerMove = (e) => {
         if (!this._resizeState) return;
-
-        // Prevent default to stop any browser behavior while dragging
         e.preventDefault();
 
         const el = this.textareaRef.current;
@@ -96,13 +196,43 @@ export class Textarea extends React.Component {
 
         const { startX, startY, startW, startH } = this._resizeState;
         const newW = Math.max(144, startW + (e.clientX - startX));
-        const newH = Math.max(47, startH + (e.clientY - startY));
 
         el.style.width = `${newW}px`;
-        el.style.height = `${newH}px`;
+        el.style.height = 'auto';
+
+        // The absolute minimum the textarea is allowed to be right now
+        const minAllowedHeight = Math.max(
+            this.state.initialHeight,
+            Math.min(el.scrollHeight, window.innerHeight * 0.5)
+        );
+
+        // The height the mouse is trying to drag to
+        const rawDragHeight = startH + (e.clientY - startY);
+
+        // Follow the mouse, but don't let it go below the minimum allowed height
+        const finalHeight = Math.max(minAllowedHeight, rawDragHeight);
+
+        el.style.height = `${finalHeight}px`;
     }
 
     _onPointerUp = (e) => {
+        const el = this.textareaRef.current;
+        if (el) {
+            const finalHeight = el.offsetHeight;
+            const contentNeeds = Math.max(
+                this.state.initialHeight,
+                Math.min(el.scrollHeight, window.innerHeight * 0.5)
+            );
+
+            // If the user dragged it taller than the text needs, save that height!
+            if (finalHeight > contentNeeds) {
+                this._userSetHeight = finalHeight;
+            } else {
+                // If they dragged it back down to fit the text, clear the override
+                this._userSetHeight = null;
+            }
+        }
+
         if (this._resizeState && e.currentTarget) {
             e.currentTarget.releasePointerCapture?.(e.pointerId);
         }
@@ -163,6 +293,7 @@ export class Textarea extends React.Component {
                         id={id}
                         value={this.state.value}
                         onChange={this.handleChange}
+                        onKeyDown={this.handleKeyDown}
                         onFocus={this.handleFocus}
                         onBlur={this.handleBlur}
                         placeholder={this.props.placeholder}
@@ -195,6 +326,6 @@ Textarea.propTypes = {
     errorText: PropTypes.string,
     placeholder: PropTypes.string.isRequired,
     disabled: PropTypes.bool
-}
+};
 
 export default Textarea;
