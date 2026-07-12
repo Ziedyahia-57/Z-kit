@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useId, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Spinner } from '../spinner/spinner';
+import { Tooltip } from '../tooltip/tooltip';
 import './Video.scss';
 import defaultCaptions from './test.srt?url';
 
@@ -328,7 +329,7 @@ export const SkipForwardIcon = React.memo(() => (
     <BaseIcon>
         <path d="M21 12C21 13.78 20.47 15.52 19.48 17C18.49 18.48 17.09 19.63 15.44 20.31C13.8 20.99 11.99 21.17 10.24 20.83C8.5 20.48 6.89 19.62 5.64 18.36C4.38 17.11 3.52 15.5 3.17 13.76C2.83 12.01 3 10.2 3.69 8.56C4.37 6.91 5.52 5.51 7 4.52C8.48 3.53 10.22 3 12 3C14.52 3.01 16.93 3.99 18.74 5.74" stroke={ICON_COLOR} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         <path d="M9 10H10V14" stroke={ICON_COLOR} strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M15 11.33C15 10.6 14.33 10 13.5 10C12.67 10 12 10.6 12 11.33V12.67C12 13.4 12.67 14 13.5 14C14.33 14 15 13.4 15 12.67V11.33Z" stroke={ICON_COLOR} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M15 11.33C15 10.6 14.33 10 13.5 10C12.67 10 12 10.6 12 11.33V12.67C12 13.4 12.67 14 13.5 14C14.33 14 15 13.4 15 12.67V11.33Z" stroke={ICON_COLOR} strokeLinecap="round" strokeLinejoin="round" />
         <path d="M20 2V7H15" stroke={ICON_COLOR} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </BaseIcon>
 ));
@@ -1509,7 +1510,7 @@ export const Video = ({
 
         const handleClickOutside = (e) => {
             // Check if click is on the settings button itself
-            const settingsButton = e.target.closest('.video-button[title="Settings"]');
+            const settingsButton = e.target.closest('.video-button[name="Settings"]');
             if (settingsButton) return; // Let the button handle it
 
             // Check if click is inside settings menu
@@ -1924,33 +1925,39 @@ export const Video = ({
                         </div>
 
                         <div className="right-side" style={{ position: "relative" }}>
-                            <button
-                                onClick={handleToggleCaptions}
-                                className="video-button captions-control"
-                                title="Captions"
-                                aria-label="Toggle captions"
-                                aria-pressed={showCaptions}
-                            >
-                                {showCaptions ? <CaptionsOnIcon /> : <CaptionsOffIcon />}
-                            </button>
+                            <Tooltip title="Captions" shortcut={["C"]} direction="bottom">
+                                <button
+                                    onClick={handleToggleCaptions}
+                                    className="video-button captions-control"
+                                    name="Captions"
+                                    aria-label="Toggle captions"
+                                    aria-pressed={showCaptions}
+                                >
+                                    {showCaptions ? <CaptionsOnIcon /> : <CaptionsOffIcon />}
+                                </button>
+                            </Tooltip>
 
-                            <button
-                                onClick={handleTogglePip}
-                                className="video-button"
-                                title="Picture-in-picture"
-                                aria-label="Picture-in-picture"
-                            >
-                                <PipIcon />
-                            </button>
+                            <Tooltip title="Picture-in-picture" direction="bottom">
+                                <button
+                                    onClick={handleTogglePip}
+                                    className="video-button"
+                                    name="Picture-in-picture"
+                                    aria-label="Picture-in-picture"
+                                >
+                                    <PipIcon />
+                                </button>
+                            </Tooltip>
 
-                            <button
-                                onClick={handleToggleFullscreen}
-                                className="video-button"
-                                title={isFullscreen ? "Exit full screen" : "Full screen"}
-                                aria-label={isFullscreen ? "Exit full screen" : "Full screen"}
-                            >
-                                <FullscreenIcon />
-                            </button>
+                            <Tooltip title={isFullscreen ? "Exit full screen" : "Full screen"} shortcut={["F"]} direction="bottom">
+                                <button
+                                    onClick={handleToggleFullscreen}
+                                    className="video-button"
+                                    title={isFullscreen ? "Exit full screen" : "Full screen"}
+                                    aria-label={isFullscreen ? "Exit full screen" : "Full screen"}
+                                >
+                                    <FullscreenIcon />
+                                </button>
+                            </Tooltip>
                         </div></>
                     )}
                 </div>
@@ -2042,30 +2049,36 @@ export const Video = ({
                             <div className="left-controls">
                                 {!centered && (
                                     <>
-                                        <button
-                                            onClick={(e) => handleSkip(e, -10)}
-                                            className="video-button"
-                                            title="Rewind 10 seconds"
-                                            aria-label="Rewind 10 seconds"
-                                        >
-                                            <SkipBackIcon />
-                                        </button>
-                                        <button
-                                            onClick={handlePlayPauseClick}
-                                            className="video-button"
-                                            title={isPlaying ? "Pause" : "Play"}
-                                            aria-label={isPlaying ? "Pause" : "Play"}
-                                        >
-                                            <PlayPauseIcon isPlaying={isPlaying} />
-                                        </button>
-                                        <button
-                                            onClick={(e) => handleSkip(e, 10)}
-                                            className="video-button"
-                                            title="Forward 10 seconds"
-                                            aria-label="Forward 10 seconds"
-                                        >
-                                            <SkipForwardIcon />
-                                        </button>
+                                        <Tooltip title="-10s" shortcut={["J"]} direction="top">
+                                            <button
+                                                onClick={(e) => handleSkip(e, -10)}
+                                                className="video-button"
+                                                name="Rewind 10 seconds"
+                                                aria-label="Rewind 10 seconds"
+                                            >
+                                                <SkipBackIcon />
+                                            </button>
+                                        </Tooltip>
+                                        <Tooltip title={isPlaying ? "Pause" : "Play"} shortcut={["Space"]} direction="top">
+                                            <button
+                                                onClick={handlePlayPauseClick}
+                                                className="video-button"
+                                                title={isPlaying ? "Pause" : "Play"}
+                                                aria-label={isPlaying ? "Pause" : "Play"}
+                                            >
+                                                <PlayPauseIcon isPlaying={isPlaying} />
+                                            </button>
+                                        </Tooltip>
+                                        <Tooltip title="+10s" shortcut={["L"]} direction="top">
+                                            <button
+                                                onClick={(e) => handleSkip(e, 10)}
+                                                className="video-button"
+                                                name="Forward 10 seconds"
+                                                aria-label="Forward 10 seconds"
+                                            >
+                                                <SkipForwardIcon />
+                                            </button>
+                                        </Tooltip>
                                     </>
                                 )}
 
@@ -2074,14 +2087,16 @@ export const Video = ({
                                     onMouseEnter={() => setShowVolumeSlider(true)}
                                     onMouseLeave={() => setShowVolumeSlider(false)}
                                 >
-                                    <button
-                                        onClick={toggleMute}
-                                        className="video-button volume-control__button"
-                                        title={isMuted ? "Unmute" : "Mute"}
-                                        aria-label={isMuted ? "Unmute" : "Mute"}
-                                    >
-                                        <VolumeIcon volume={volume} isMuted={isMuted} />
-                                    </button>
+                                    <Tooltip title={isMuted ? "Unmute" : "Mute"} shortcut={["M"]} direction="top">
+                                        <button
+                                            onClick={toggleMute}
+                                            className="video-button volume-control__button"
+                                            title={isMuted ? "Unmute" : "Mute"}
+                                            aria-label={isMuted ? "Unmute" : "Mute"}
+                                        >
+                                            <VolumeIcon volume={volume} isMuted={isMuted} />
+                                        </button>
+                                    </Tooltip>
                                     <input
                                         type="range"
                                         className={`volume-slider ${showVolumeSlider ? "is-visible" : ""}`}
@@ -2116,76 +2131,90 @@ export const Video = ({
                             <div className="center-controls">
                                 {centered && (
                                     <>
-                                        <button
-                                            onClick={(e) => handleSkip(e, -10)}
-                                            className="video-button"
-                                            title="Rewind 10 seconds"
-                                            aria-label="Rewind 10 seconds"
-                                        >
-                                            <SkipBackIcon />
-                                        </button>
-                                        <button
-                                            onClick={handlePlayPauseClick}
-                                            className="video-button"
-                                            title={isPlaying ? "Pause" : "Play"}
-                                            aria-label={isPlaying ? "Pause" : "Play"}
-                                        >
-                                            <PlayPauseIcon isPlaying={isPlaying} />
-                                        </button>
-                                        <button
-                                            onClick={(e) => handleSkip(e, 10)}
-                                            className="video-button"
-                                            title="Forward 10 seconds"
-                                            aria-label="Forward 10 seconds"
-                                        >
-                                            <SkipForwardIcon />
-                                        </button>
+                                        <Tooltip title="-10s" shortcut={["J"]} direction="top">
+                                            <button
+                                                onClick={(e) => handleSkip(e, -10)}
+                                                className="video-button"
+                                                name="Rewind 10 seconds"
+                                                aria-label="Rewind 10 seconds"
+                                            >
+                                                <SkipBackIcon />
+                                            </button>
+                                        </Tooltip>
+                                        <Tooltip title={isPlaying ? "Pause" : "Play"} shortcut={["Space"]} direction="top">
+                                            <button
+                                                onClick={handlePlayPauseClick}
+                                                className="video-button"
+                                                title={isPlaying ? "Pause" : "Play"}
+                                                aria-label={isPlaying ? "Pause" : "Play"}
+                                            >
+                                                <PlayPauseIcon isPlaying={isPlaying} />
+                                            </button>
+                                        </Tooltip>
+                                        <Tooltip title="+10s" shortcut={["L"]} direction="top">
+                                            <button
+                                                onClick={(e) => handleSkip(e, 10)}
+                                                className="video-button"
+                                                name="Forward 10 seconds"
+                                                aria-label="Forward 10 seconds"
+                                            >
+                                                <SkipForwardIcon />
+                                            </button>
+                                        </Tooltip>
                                     </>
                                 )}
                             </div>
 
                             <div className="right-controls" style={{ position: "relative" }}>
-                                <button
-                                    onClick={handleToggleCaptions}
-                                    className="video-button captions-control"
-                                    title="Captions"
-                                    aria-label="Toggle captions"
-                                    aria-pressed={showCaptions}
-                                >
-                                    {showCaptions ? <CaptionsOnIcon /> : <CaptionsOffIcon />}
-                                </button>
+                                <Tooltip title="Captions" shortcut={["C"]} direction="top">
+                                    <button
+                                        onClick={handleToggleCaptions}
+                                        className="video-button captions-control"
+                                        name="Captions"
+                                        aria-label="Toggle captions"
+                                        aria-pressed={showCaptions}
+                                    >
+                                        {showCaptions ? <CaptionsOnIcon /> : <CaptionsOffIcon />}
+                                    </button>
+                                </Tooltip>
 
-                                <button
-                                    onPointerDown={(e) => e.stopPropagation()}
-                                    onClick={openSettings}
-                                    className="video-button"
-                                    title="Settings"
-                                    aria-label="Settings"
-                                    aria-expanded={activeMenu === "settings"}
-                                    aria-haspopup="menu"
-                                >
-                                    <SettingsIcon />
-                                </button>
+                                <Tooltip title="Settings" direction="top">
+                                    <button
+                                        onPointerDown={(e) => e.stopPropagation()}
+                                        onClick={openSettings}
+                                        className="video-button"
+                                        name="Settings"
+                                        aria-label="Settings"
+                                        aria-expanded={activeMenu === "settings"}
+                                        aria-haspopup="menu"
+                                    >
+                                        <SettingsIcon />
+                                    </button>
+                                </Tooltip>
 
                                 {SettingsMenu}
 
-                                <button
-                                    onClick={handleTogglePip}
-                                    className="video-button"
-                                    title="Picture-in-picture"
-                                    aria-label="Picture-in-picture"
-                                >
-                                    <PipIcon />
-                                </button>
+                                <Tooltip title="Picture-in-picture" direction="top">
+                                    <button
+                                        onClick={handleTogglePip}
+                                        className="video-button"
+                                        name="Picture-in-picture"
+                                        aria-label="Picture-in-picture"
+                                    >
+                                        <PipIcon />
+                                    </button>
+                                </Tooltip>
 
-                                <button
-                                    onClick={handleToggleFullscreen}
-                                    className="video-button"
-                                    title={isFullscreen ? "Exit full screen" : "Full screen"}
-                                    aria-label={isFullscreen ? "Exit full screen" : "Full screen"}
-                                >
-                                    <FullscreenIcon />
-                                </button>
+                                <Tooltip title={isFullscreen ? "Exit full screen" : "Full screen"} shortcut={["F"]} direction="top">
+                                    <button
+                                        onClick={handleToggleFullscreen}
+                                        className="video-button"
+                                        title={isFullscreen ? "Exit full screen" : "Full screen"}
+                                        aria-label={isFullscreen ? "Exit full screen" : "Full screen"}
+                                    >
+                                        <FullscreenIcon />
+                                    </button>
+                                </Tooltip>
                             </div>
                         </div>
                     )}
@@ -2202,32 +2231,38 @@ export const Video = ({
                     onMouseMove={(e) => e.stopPropagation()}
                     aria-hidden="true"
                 >
-                    <button
-                        onClick={(e) => handleSkip(e, -10)}
-                        className="video-button"
-                        title="Rewind 10 seconds"
-                        aria-label="Rewind 10 seconds"
-                    >
-                        <SkipBackIconLarge />
-                    </button>
+                    <Tooltip title="-10s" shortcut={["J"]} direction="top">
+                        <button
+                            onClick={(e) => handleSkip(e, -10)}
+                            className="video-button"
+                            name="Rewind 10 seconds"
+                            aria-label="Rewind 10 seconds"
+                        >
+                            <SkipBackIconLarge />
+                        </button>
+                    </Tooltip>
 
-                    <button
-                        onClick={handlePlayPauseClick}
-                        className="video-button video-button-playpause"
-                        title={isPlaying ? "Pause" : "Play"}
-                        aria-label={isPlaying ? "Pause" : "Play"}
-                    >
-                        <PlayPauseIcon isPlaying={isPlaying} />
-                    </button>
+                    <Tooltip title={isPlaying ? "Pause" : "Play"} shortcut={["Space"]} direction="top">
+                        <button
+                            onClick={handlePlayPauseClick}
+                            className="video-button video-button-playpause"
+                            title={isPlaying ? "Pause" : "Play"}
+                            aria-label={isPlaying ? "Pause" : "Play"}
+                        >
+                            <PlayPauseIcon isPlaying={isPlaying} />
+                        </button>
+                    </Tooltip>
 
-                    <button
-                        onClick={(e) => handleSkip(e, 10)}
-                        className="video-button"
-                        title="Forward 10 seconds"
-                        aria-label="Forward 10 seconds"
-                    >
-                        <SkipForwardIconLarge />
-                    </button>
+                    <Tooltip title="+10s" shortcut={["L"]} direction="top">
+                        <button
+                            onClick={(e) => handleSkip(e, 10)}
+                            className="video-button"
+                            name="Forward 10 seconds"
+                            aria-label="Forward 10 seconds"
+                        >
+                            <SkipForwardIconLarge />
+                        </button>
+                    </Tooltip>
                 </div>
             </div>
         </div >
