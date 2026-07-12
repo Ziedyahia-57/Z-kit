@@ -9,7 +9,7 @@
         z-index: 1000;
         width: fit-content;
         height: fit-content;
-        padding: 8px;
+        padding: 10px;
         max-width: min(580px, calc(100vw - 16px));
         display: flex;
         flex-direction: column;
@@ -144,7 +144,7 @@
 
             &::after {
                 bottom: -6px;
-                left: 50%;
+                left: var(--arrow-pos, 50%);
                 margin-left: -5px;
                 border-top: none;
                 border-left: none;
@@ -163,7 +163,7 @@
 
             &::after {
                 top: -6px;
-                left: 50%;
+                left: var(--arrow-pos, 50%);
                 margin-left: -5px;
                 border-bottom: none;
                 border-right: none;
@@ -182,7 +182,7 @@
 
             &::after {
                 right: -6px;
-                top: 50%;
+                top: var(--arrow-pos, 50%);
                 margin-top: -5px;
                 border-bottom: none;
                 border-left: none;
@@ -201,7 +201,7 @@
 
             &::after {
                 left: -6px;
-                top: 50%;
+                top: var(--arrow-pos, 50%);
                 margin-top: -5px;
                 border-top: none;
                 border-right: none;

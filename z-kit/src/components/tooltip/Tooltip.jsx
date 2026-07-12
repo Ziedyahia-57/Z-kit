@@ -1,4 +1,4 @@
-import React, { useState, useRef, useLayoutEffect } from 'react';
+import React, { useState, useRef, useLayoutEffect, useCallback } from 'react';
 import './Tooltip.scss';
 import { Kbd, KbdGroup } from "../kbd/Kbd";
 
@@ -53,11 +53,32 @@ export const Tooltip = ({
         return null;
     };
 
+    const handleMouseMove = useCallback((e) => {
+        const tooltip = tooltipRef.current;
+        if (!tooltip || !isVisible) return;
+
+        const tooltipRect = tooltip.getBoundingClientRect();
+        let pos;
+
+        if (computedDirection === 'top' || computedDirection === 'bottom') {
+            pos = e.clientX - tooltipRect.left;
+            pos = Math.max(10, Math.min(tooltipRect.width - 10, pos));
+        } else {
+            pos = e.clientY - tooltipRect.top;
+            pos = Math.max(10, Math.min(tooltipRect.height - 10, pos));
+        }
+
+        tooltip.style.setProperty('--arrow-pos', `${pos}px`);
+    }, [isVisible, computedDirection]);
+
     useLayoutEffect(() => {
         if (!isVisible) return;
         const wrapper = wrapperRef.current;
         const tooltip = tooltipRef.current;
         if (!wrapper || !tooltip) return;
+
+        // Reset arrow to center when tooltip appears
+        tooltip.style.setProperty('--arrow-pos', '50%');
 
         const margin = 8;
         const triggerRect = wrapper.getBoundingClientRect();
@@ -69,11 +90,11 @@ export const Tooltip = ({
         let nextDirection = direction;
         if (direction === 'top' && triggerRect.top - tooltipRect.height - margin < 0) {
             nextDirection = 'bottom';
-        } else if (direction === 'bottom' && triggerRect.bottom + tooltipRect.height + margin > vh) {
+        } else if (direction === 'bottom' && triggerRect.bottom + tooltipRect.height - margin > vh) {
             nextDirection = 'top';
         } else if (direction === 'left' && triggerRect.left - tooltipRect.width - margin < 0) {
             nextDirection = 'right';
-        } else if (direction === 'right' && triggerRect.right + tooltipRect.width + margin > vw) {
+        } else if (direction === 'right' && triggerRect.right + tooltipRect.width - margin > vw) {
             nextDirection = 'left';
         }
 
@@ -107,6 +128,7 @@ export const Tooltip = ({
             ref={wrapperRef}
             onMouseEnter={() => setIsVisible(true)}
             onMouseLeave={() => setIsVisible(false)}
+            onMouseMove={handleMouseMove}
             onFocus={() => setIsVisible(true)}
             onBlur={() => setIsVisible(false)}
         >
