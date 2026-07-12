@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, useId, useCallback, useMemo } from 
 import { motion, AnimatePresence } from 'motion/react';
 import { Spinner } from '../spinner/spinner';
 import './Video.scss';
-import placeholderVideo from "../../assets/videos/placeholder.webm";
 
 // ============================================================
 // CONSTANTS & DEFAULTS
