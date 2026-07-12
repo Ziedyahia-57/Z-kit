@@ -12,7 +12,7 @@ export const Button = ({
     size = "medium",
     colorScheme = "primaryColor",
     disabled = false,
-    label = "Button",
+    children = "Button", // Changed from label to children
     icon = null,
     iconPosition = "left",
     buttonType = "label",
@@ -86,11 +86,11 @@ export const Button = ({
             className={buttonClasses}
             disabled={disabled}
             onClick={handleClick}
-            aria-label={isIconOnly ? label : undefined}
+            aria-label={isIconOnly ? (typeof children === 'string' ? children : undefined) : undefined}
             {...props}
         >
             {showIcon && iconPosition === "left" && renderIcon()}
-            {showLabel && <span className="button-label">{label}</span>}
+            {showLabel && <span className="button-label">{children}</span>}
             {showIcon && iconPosition === "right" && renderIcon()}
         </button>
     );
@@ -101,7 +101,7 @@ Button.propTypes = {
     size: PropTypes.oneOf(['small', 'medium', 'large', 'xlarge']),
     colorScheme: PropTypes.oneOf(['primaryColor', 'warningColor', 'errorColor', 'successColor', 'infoColor', 'neutralColor']),
     disabled: PropTypes.bool,
-    label: PropTypes.string,
+    children: PropTypes.node, // Changed from label to children
     icon: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.element,
@@ -119,7 +119,7 @@ Button.defaultProps = {
     size: 'medium',
     colorScheme: 'primaryColor',
     disabled: false,
-    label: 'Button',
+    children: 'Button', // Changed from label to children
     icon: null,
     iconPosition: 'left',
     buttonType: 'label',

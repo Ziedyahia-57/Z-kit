@@ -1,0 +1,225 @@
+@use '../tokens';
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+
+    .tooltip-wrapper {
+        position: absolute;
+        z-index: 1000;
+        width: fit-content;
+        height: fit-content;
+        padding: 8px;
+        max-width: min(580px, calc(100vw - 16px));
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        --tooltip-bg: var(--gray-25);
+        --tooltip-border: var(--gray-100);
+
+        border: 1px solid var(--tooltip-border);
+        background: var(--tooltip-bg);
+        border-radius: 8px;
+        box-shadow: 0px 1px 4px 0px rgba(12, 12, 13, 0.1), 0px 1px 4px 0px rgba(12, 12, 13, 0.05);
+
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+
+        .tooltip-header,
+        .tooltip-content {
+            // Default: center alignment
+            text-align: center;
+        }
+
+        // Left/right positions: align content to the left
+        &.left,
+        &.right {
+
+            .tooltip-header,
+            .tooltip-content {
+                text-align: left;
+            }
+        }
+
+        .tooltip-header {
+            &.inline {
+                .kbd-group {
+                    .kbd {
+                        .kbd-icon {
+                            width: 0.875rem;
+                            height: 0.875rem;
+                        }
+
+                        .kbd-text {
+                            font-size: 0.75rem;
+                            height: fit-content !important;
+                            line-height: 0.75rem;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        .tooltip-content {
+            &.inline {
+                .kbd-group {
+                    .kbd {
+                        .kbd-icon {
+                            width: 0.75rem;
+                            height: 0.75rem;
+                        }
+
+                        .kbd-text {
+                            font-size: 0.75rem;
+                            height: fit-content !important;
+                            line-height: 0.75rem;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        .inline {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        // Left/right positions: override inline flex alignment
+        &.left,
+        &.right {
+            .inline {
+                justify-content: flex-start;
+            }
+        }
+
+        .tooltip-title p {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-950);
+            text-align: center;
+            white-space: nowrap;
+
+        }
+
+        .tooltip-text p {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+            white-space: nowrap;
+
+        }
+
+        &.visible {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        // arrow
+        &::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--tooltip-bg);
+            border: 1px solid var(--tooltip-border);
+            transform: rotate(45deg);
+        }
+
+        &.top {
+            bottom: 100%;
+            left: 50%;
+            margin-bottom: 10px;
+            transform: translate(calc(-50% + var(--shift-x, 0px)), 8px);
+
+            &.visible {
+                transform: translate(calc(-50% + var(--shift-x, 0px)), 0);
+            }
+
+            &::after {
+                bottom: -6px;
+                left: 50%;
+                margin-left: -5px;
+                border-top: none;
+                border-left: none;
+            }
+        }
+
+        &.bottom {
+            top: 100%;
+            left: 50%;
+            margin-top: 10px;
+            transform: translate(calc(-50% + var(--shift-x, 0px)), -8px);
+
+            &.visible {
+                transform: translate(calc(-50% + var(--shift-x, 0px)), 0);
+            }
+
+            &::after {
+                top: -6px;
+                left: 50%;
+                margin-left: -5px;
+                border-bottom: none;
+                border-right: none;
+            }
+        }
+
+        &.left {
+            right: 100%;
+            top: 50%;
+            margin-right: 10px;
+            transform: translate(8px, calc(-50% + var(--shift-y, 0px)));
+
+            &.visible {
+                transform: translate(0, calc(-50% + var(--shift-y, 0px)));
+            }
+
+            &::after {
+                right: -6px;
+                top: 50%;
+                margin-top: -5px;
+                border-bottom: none;
+                border-left: none;
+            }
+        }
+
+        &.right {
+            left: 100%;
+            top: 50%;
+            margin-left: 10px;
+            transform: translate(-8px, calc(-50% + var(--shift-y, 0px)));
+
+            &.visible {
+                transform: translate(0, calc(-50% + var(--shift-y, 0px)));
+            }
+
+            &::after {
+                left: -6px;
+                top: 50%;
+                margin-top: -5px;
+                border-top: none;
+                border-right: none;
+            }
+        }
+
+        body[data-dark="true"] & {
+            --tooltip-bg: var(--gray-950);
+            --tooltip-border: var(--gray-900);
+
+            .tooltip-title p {
+                color: var(--gray-50);
+            }
+
+            .tooltip-text p {
+                font-size: 0.875rem;
+                color: var(--gray-400);
+            }
+        }
+    }
+}

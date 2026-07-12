@@ -22,7 +22,6 @@ const withDarkModeControl = (Story, context) => {
   );
 };
 
-
 const meta = {
   title: "Z-kit/Button",
   component: Button,
@@ -64,11 +63,10 @@ const meta = {
       name: "Disabled",
       description: "Defines if the button is disabled",
     },
-    label: {
+    children: {
       control: "text",
       name: "Label",
-      description: "Label of the button",
-      if: { arg: "buttonType", neq: "icon" },
+      description: "Content of the button",
     },
     icon: {
       control: { type: "select" },
@@ -99,7 +97,7 @@ export const button = {
     darkmode: false,
     variant: "primary",
     colorScheme: "primaryColor",
-    label: "Button",
+    children: "Button",
     size: "large",
     disabled: false,
     buttonType: "label",
