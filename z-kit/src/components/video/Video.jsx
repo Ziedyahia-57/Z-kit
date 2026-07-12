@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useId, useCallback, useMemo } from 
 import { motion, AnimatePresence } from 'motion/react';
 import { Spinner } from '../spinner/spinner';
 import './Video.scss';
+import defaultCaptions from './test.srt?url';
 
 // ============================================================
 // CONSTANTS & DEFAULTS
@@ -72,6 +73,80 @@ const cacheVideoSource = (src) => {
         });
 
     videoBlobCache.set(src, { promise });
+};
+
+// ============================================================
+// CAPTION PARSING FUNCTIONS
+// ============================================================
+
+const parseCaptionFile = (content, fileType = 'srt') => {
+    const captions = [];
+    const normalizedContent = content.replace(/\r\n/g, '\n');
+
+    let blocks;
+    if (fileType === 'vtt') {
+        const lines = normalizedContent.split('\n');
+        let startIndex = 0;
+        let foundHeader = false;
+
+        for (let i = 0; i < lines.length; i++) {
+            const trimmed = lines[i].trim();
+            if (trimmed === '' || trimmed.startsWith('WEBVTT')) {
+                foundHeader = true;
+                continue;
+            }
+            if (foundHeader && trimmed && !trimmed.startsWith('NOTE')) {
+                startIndex = i;
+                break;
+            }
+        }
+
+        const contentWithoutHeader = lines.slice(startIndex).join('\n');
+        blocks = contentWithoutHeader.trim().split(/\n\s*\n/);
+    } else {
+        blocks = normalizedContent.trim().split(/\n\s*\n/);
+    }
+
+    blocks.forEach(block => {
+        const lines = block.split('\n').filter(line => line.trim());
+        if (lines.length < 2) return;
+
+        let timestampIndex = 0;
+        if (fileType === 'srt' && /^\d+$/.test(lines[0].trim())) {
+            timestampIndex = 1;
+        }
+
+        const timeMatch = lines[timestampIndex].match(
+            /(\d{2}:\d{2}:\d{2}[,.]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[,.]\d{3})/
+        );
+
+        if (!timeMatch) return;
+
+        const start = parseCaptionTime(timeMatch[1]);
+        const end = parseCaptionTime(timeMatch[2]);
+        const textLines = lines.slice(timestampIndex + 1);
+        const text = textLines.join(' ');
+
+        const cleanText = text
+            .replace(/<[^>]+>/g, '')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&nbsp;/g, ' ')
+            .trim();
+
+        if (cleanText) {
+            captions.push({ start, end, text: cleanText });
+        }
+    });
+
+    return captions;
+};
+
+const parseCaptionTime = (timestamp) => {
+    const normalized = timestamp.replace(',', '.');
+    const [hours, minutes, seconds] = normalized.split(':');
+    return parseFloat(hours) * 3600 + parseFloat(minutes) * 60 + parseFloat(seconds);
 };
 
 // ============================================================
@@ -415,6 +490,7 @@ export const Video = ({
     variant = "immersive",
     qualities: qualitiesProp,
     autoplay = false,
+    captionSrc = defaultCaptions
 }) => {
     const qualities = useMemo(() => normalizeQualities(src, qualitiesProp), [src, qualitiesProp]);
     const hasMultipleQualities = qualities.length > 1;
@@ -434,13 +510,15 @@ export const Video = ({
 
     const [duration, setDuration] = useState(0);
     const [showCaptions, setShowCaptions] = useState(false);
-    const [captionsText] = useState("The Food Influencers might be lying to us all");
+    const [captionsText, setCaptionsText] = useState("");
+    const [captionsData, setCaptionsData] = useState([]);
 
     const [volume, setVolume] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
     const [showVolumeSlider, setShowVolumeSlider] = useState(false);
 
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isCursorVisible, setIsCursorVisible] = useState(true);
     const [selectedQualityIndex, setSelectedQualityIndex] = useState(
         hasMultipleQualities ? qualities.length - 1 : 0
     );
@@ -467,6 +545,7 @@ export const Video = ({
     const sliderElRef = useRef(null);
 
     const controlsTimeoutRef = useRef(null);
+    const cursorTimeoutRef = useRef(null);
     const autoQualityIntervalRef = useRef(null);
 
     const wasPlayingRef = useRef(false);
@@ -477,6 +556,8 @@ export const Video = ({
     const lastAutoSwitchTimeRef = useRef(0);
 
     const maskId = useId();
+
+    const isVisibleRef = useRef(false);
 
     // --------------------------------------------------------
     // Intersection Observer for lazy play/pause
@@ -491,6 +572,7 @@ export const Video = ({
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
+                    isVisibleRef.current = entry.isIntersecting;
                     if (!entry.isIntersecting && isPlaying && !initialState) {
                         video.pause();
                     }
@@ -501,7 +583,10 @@ export const Video = ({
         observer.observe(wrapper);
         intersectionObserverRef.current = observer;
 
-        return () => observer.disconnect();
+        return () => {
+            observer.disconnect();
+            isVisibleRef.current = false;
+        };
     }, [isPlaying, initialState]);
 
     // --------------------------------------------------------
@@ -543,6 +628,25 @@ export const Video = ({
     }, [clearControlsTimeout]);
 
     // --------------------------------------------------------
+    // CURSOR VISIBILITY
+    // --------------------------------------------------------
+    const handleCursorHide = useCallback(() => {
+        if (!isFullscreen) return;
+        setIsCursorVisible(false);
+    }, [isFullscreen]);
+
+    const handleCursorShow = useCallback(() => {
+        setIsCursorVisible(true);
+        if (cursorTimeoutRef.current) {
+            clearTimeout(cursorTimeoutRef.current);
+        }
+        // Hide cursor after 2 seconds of inactivity in fullscreen
+        if (isFullscreen && isPlaying) {
+            cursorTimeoutRef.current = setTimeout(handleCursorHide, 2000);
+        }
+    }, [isFullscreen, isPlaying, handleCursorHide]);
+
+    // --------------------------------------------------------
     // PLAYBACK CONTROLS
     // --------------------------------------------------------
     const togglePlayPause = useCallback(() => {
@@ -570,6 +674,71 @@ export const Video = ({
     }, [togglePlayPause]);
 
     // --------------------------------------------------------
+    // FULLSCREEN & PIP
+    // --------------------------------------------------------
+    const handleToggleFullscreen = useCallback(() => {
+        if (!wrapperRef.current) return;
+        if (!document.fullscreenElement) {
+            wrapperRef.current.requestFullscreen?.().catch((err) => {
+                console.error("Fullscreen error:", err);
+            });
+        } else {
+            document.exitFullscreen?.();
+        }
+    }, []);
+
+    const handleTogglePip = useCallback(async () => {
+        const video = videoRef.current;
+        if (!video || !document.pictureInPictureEnabled) return;
+        try {
+            if (document.pictureInPictureElement) {
+                await document.exitPictureInPicture();
+            } else {
+                if (video.paused) await video.play();
+                await video.requestPictureInPicture();
+            }
+        } catch (err) {
+            console.error("PiP Error:", err);
+        }
+    }, []);
+
+    // --------------------------------------------------------
+    // VOLUME CONTROLS
+    // --------------------------------------------------------
+    const handleVolumeChange = useCallback((e) => {
+        const val = parseFloat(e.target.value);
+        setVolume(val);
+        if (videoRef.current) {
+            videoRef.current.volume = val;
+            videoRef.current.muted = val === 0;
+        }
+        if (val > 0 && isMuted) {
+            setIsMuted(false);
+            if (videoRef.current) videoRef.current.muted = false;
+        } else if (val === 0 && !isMuted) {
+            setIsMuted(true);
+        }
+    }, [isMuted]);
+
+    const toggleMute = useCallback(() => {
+        const video = videoRef.current;
+        if (!video) return;
+        const nextMuted = !video.muted;
+        video.muted = nextMuted;
+        setIsMuted(nextMuted);
+    }, []);
+
+    const adjustVolume = useCallback((delta) => {
+        const video = videoRef.current;
+        if (!video) return;
+        let newVol = Math.max(0, Math.min(1, video.volume + delta));
+        video.volume = newVol;
+        video.muted = newVol === 0;
+        setVolume(newVol);
+        setIsMuted(newVol === 0);
+    }, []);
+
+    // --------------------------------------------------------
     // KEYBOARD SHORTCUTS
     // --------------------------------------------------------
 
@@ -595,6 +764,7 @@ export const Video = ({
 
     const handleKeyDown = useCallback((e) => {
         if (initialState) return;
+        if (!isVisibleRef.current) return;
 
         const tag = e.target.tagName;
         if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
@@ -635,6 +805,37 @@ export const Video = ({
             return;
         }
 
+        // F key - toggle fullscreen
+        if (keyLower === "f") {
+            e.preventDefault();
+            handleToggleFullscreen();
+            return;
+        }
+
+        // M key - toggle mute
+        if (keyLower === "m") {
+            e.preventDefault();
+            toggleMute();
+            return;
+        }
+
+        // Arrow Up / Down - volume control (works regardless of play state)
+        if (key === "ArrowUp") {
+            e.preventDefault();
+            adjustVolume(0.1);
+            setShowControls(true);
+            if (isPlaying) scheduleHideControls();
+            return;
+        }
+
+        if (key === "ArrowDown") {
+            e.preventDefault();
+            adjustVolume(-0.1);
+            setShowControls(true);
+            if (isPlaying) scheduleHideControls();
+            return;
+        }
+
         // All other shortcuts only work when video is playing
         if (video.paused) return;
 
@@ -665,7 +866,7 @@ export const Video = ({
                 break;
             case "c":
                 e.preventDefault();
-                setShowCaptions(prev => !prev);
+                handleToggleCaptions();
                 break;
             case "escape":
                 if (document.fullscreenElement) {
@@ -679,10 +880,11 @@ export const Video = ({
                 }
                 break;
         }
-    }, [initialState, togglePlayback, handleSkip, scheduleHideControls]);
+    }, [initialState, togglePlayback, handleToggleFullscreen, toggleMute, handleSkip, scheduleHideControls, adjustVolume, isPlaying]);
 
     const handleKeyUp = useCallback((e) => {
         if (e.key !== " ") return;
+        if (!isVisibleRef.current) return;
 
         e.preventDefault();
 
@@ -723,72 +925,6 @@ export const Video = ({
         };
     }, [handleKeyDown, handleKeyUp]);
 
-
-    // --------------------------------------------------------
-    // VOLUME CONTROLS
-    // --------------------------------------------------------
-    const handleVolumeChange = useCallback((e) => {
-        const val = parseFloat(e.target.value);
-        setVolume(val);
-        if (videoRef.current) {
-            videoRef.current.volume = val;
-            videoRef.current.muted = val === 0;
-        }
-        if (val > 0 && isMuted) {
-            setIsMuted(false);
-            if (videoRef.current) videoRef.current.muted = false;
-        } else if (val === 0 && !isMuted) {
-            setIsMuted(true);
-        }
-    }, [isMuted]);
-
-    const toggleMute = useCallback(() => {
-        const video = videoRef.current;
-        if (!video) return;
-        const nextMuted = !video.muted;
-        video.muted = nextMuted;
-        setIsMuted(nextMuted);
-    }, []);
-
-    const adjustVolume = useCallback((delta) => {
-        const video = videoRef.current;
-        if (!video) return;
-        let newVol = Math.max(0, Math.min(1, video.volume + delta));
-        video.volume = newVol;
-        video.muted = newVol === 0;
-        setVolume(newVol);
-        setIsMuted(newVol === 0);
-    }, []);
-
-    // --------------------------------------------------------
-    // FULLSCREEN & PIP
-    // --------------------------------------------------------
-    const handleToggleFullscreen = useCallback(() => {
-        if (!wrapperRef.current) return;
-        if (!document.fullscreenElement) {
-            wrapperRef.current.requestFullscreen?.().catch((err) => {
-                console.error("Fullscreen error:", err);
-            });
-        } else {
-            document.exitFullscreen?.();
-        }
-    }, []);
-
-    const handleTogglePip = useCallback(async () => {
-        const video = videoRef.current;
-        if (!video || !document.pictureInPictureEnabled) return;
-        try {
-            if (document.pictureInPictureElement) {
-                await document.exitPictureInPicture();
-            } else {
-                if (video.paused) await video.play();
-                await video.requestPictureInPicture();
-            }
-        } catch (err) {
-            console.error("PiP Error:", err);
-        }
-    }, []);
-
     // --------------------------------------------------------
     // CAPTIONS
     // --------------------------------------------------------
@@ -796,10 +932,80 @@ export const Video = ({
         const video = videoRef.current;
         if (!video || !video.textTracks.length) return;
         const track = video.textTracks[0];
-        const nextMode = track.mode === "showing" ? "hidden" : "showing";
-        track.mode = nextMode;
-        setShowCaptions(nextMode === "showing");
+        setShowCaptions(prev => {
+            const next = !prev;
+            track.mode = next ? "showing" : "hidden";
+            return next;
+        });
     }, []);
+
+
+    // ============================================================
+    // CAPTIONS: Fetch and parse caption file
+    // ============================================================
+    useEffect(() => {
+        if (!captionSrc) {
+            setCaptionsData([]);
+            return;
+        }
+
+        let cancelled = false;
+
+        const loadCaptions = async () => {
+            try {
+                const response = await fetch(captionSrc);
+                if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+                const content = await response.text();
+
+                if (cancelled) return;
+
+                const fileType = captionSrc.toLowerCase().endsWith('.vtt') ? 'vtt' : 'srt';
+                const parsed = parseCaptionFile(content, fileType);
+                setCaptionsData(parsed);
+            } catch (err) {
+                console.error('Failed to load captions:', err);
+                if (!cancelled) setCaptionsData([]);
+            }
+        };
+
+        loadCaptions();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [captionSrc]);
+
+    // ============================================================
+    // CAPTIONS: Update current caption text based on video time
+    // ============================================================
+    const updateCurrentCaption = useCallback((currentTime) => {
+        if (!showCaptions || captionsData.length === 0) {
+            setCaptionsText('');
+            return;
+        }
+
+        // Binary search for efficiency with large caption files
+        let low = 0;
+        let high = captionsData.length - 1;
+        let result = null;
+
+        while (low <= high) {
+            const mid = (low + high) >>> 1;
+            const caption = captionsData[mid];
+
+            if (currentTime >= caption.start && currentTime <= caption.end) {
+                result = caption;
+                break;
+            } else if (currentTime < caption.start) {
+                high = mid - 1;
+            } else {
+                low = mid + 1;
+            }
+        }
+
+        setCaptionsText(result?.text || '');
+    }, [showCaptions, captionsData]);
+
 
     // --------------------------------------------------------
     // QUALITY SWITCHING
@@ -915,7 +1121,8 @@ export const Video = ({
     // --------------------------------------------------------
     const openSettings = useCallback((e) => {
         e.stopPropagation();
-        setActiveMenu((prev) => (prev === "settings" ? null : "settings"));
+        // Toggle between null and "settings"
+        setActiveMenu(prev => prev === "settings" ? null : "settings");
     }, []);
 
     const openSubMenu = useCallback((panel) => {
@@ -945,7 +1152,9 @@ export const Video = ({
         } else {
             togglePlayPause();
         }
-    }, [isDragging, initialState, togglePlayPause, scheduleHideControls]);
+        // Show cursor on click
+        handleCursorShow();
+    }, [isDragging, initialState, togglePlayPause, scheduleHideControls, handleCursorShow]);
 
     const handleWrapperMouseEnter = useCallback(() => {
         if (initialState) {
@@ -954,14 +1163,18 @@ export const Video = ({
             setShowControls(true);
             if (isPlaying) scheduleHideControls();
         }
-    }, [initialState, isPlaying, scheduleHideControls]);
+        // Show cursor when mouse enters
+        handleCursorShow();
+    }, [initialState, isPlaying, scheduleHideControls, handleCursorShow]);
 
     const handleWrapperMouseMove = useCallback(() => {
         if (!initialState) {
             setShowControls(true);
             if (isPlaying) scheduleHideControls();
         }
-    }, [initialState, isPlaying, scheduleHideControls]);
+        // Show cursor when mouse moves
+        handleCursorShow();
+    }, [initialState, isPlaying, scheduleHideControls, handleCursorShow]);
 
     const handleWrapperMouseLeave = useCallback(() => {
         if (isDragging) return;
@@ -978,7 +1191,9 @@ export const Video = ({
         } else if (isPlaying) {
             scheduleHideControls();
         }
-    }, [isDragging, initialState, isPlaying, scheduleHideControls, clearControlsTimeout]);
+        // Show cursor when mouse leaves (prevents stuck hidden state)
+        handleCursorShow();
+    }, [isDragging, initialState, isPlaying, scheduleHideControls, clearControlsTimeout, handleCursorShow]);
 
     // --------------------------------------------------------
     // VIDEO EVENT HANDLERS
@@ -995,7 +1210,9 @@ export const Video = ({
             clearControlsTimeout();
             setShowControls(true);
         }
-    }, [initialState, clearControlsTimeout]);
+        // Show cursor when paused
+        handleCursorShow();
+    }, [initialState, clearControlsTimeout, handleCursorShow]);
 
     const handleVideoEnd = useCallback(() => {
         clearControlsTimeout();
@@ -1009,7 +1226,9 @@ export const Video = ({
         if (currentTimeElRef.current) currentTimeElRef.current.textContent = "0:00";
         if (currentTimeElRef2.current) currentTimeElRef2.current.textContent = "0:00";
         if (videoRef.current) videoRef.current.currentTime = 0;
-    }, [clearControlsTimeout]);
+        // Show cursor when video ends
+        handleCursorShow();
+    }, [clearControlsTimeout, handleCursorShow]);
 
     const handleLoadStart = useCallback(() => setIsLoading(true), []);
     const handleWaiting = useCallback(() => {
@@ -1202,97 +1421,85 @@ export const Video = ({
         return () => stopFrameLoop();
     }, [isPlaying, initialState, startFrameLoop, stopFrameLoop]);
 
-    // --------------------------------------------------------
-    // KEYBOARD SHORTCUTS
-    // --------------------------------------------------------
+
+    // ============================================================
+    // CAPTIONS UPDATE BASED ON VIDEO TIME
+    // ============================================================
+
+    // Add this useEffect after the captions loading effect
     useEffect(() => {
-        const wrapper = wrapperRef.current;
-        if (!wrapper) return;
+        const video = videoRef.current;
+        if (!video || !showCaptions || captionsData.length === 0) {
+            if (!showCaptions) setCaptionsText('');
+            return;
+        }
 
-        const handleKeyDown = (e) => {
-            const tag = e.target.tagName;
-            if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        let rafId = null;
 
-            switch (e.key) {
-                case " ":
-                case "k":
-                case "K":
-                    e.preventDefault();
-                    if (initialState) {
-                        setInitialState(false);
-                        setShowControls(true);
-                        videoRef.current?.play().catch(() => { });
-                    } else {
-                        togglePlayPause();
-                    }
-                    break;
-                case "ArrowLeft":
-                    e.preventDefault();
-                    handleSkip(null, -10);
-                    setShowControls(true);
-                    scheduleHideControls();
-                    break;
-                case "ArrowRight":
-                    e.preventDefault();
-                    handleSkip(null, 10);
-                    setShowControls(true);
-                    scheduleHideControls();
-                    break;
-                case "ArrowUp":
-                    e.preventDefault();
-                    adjustVolume(0.05);
-                    setShowControls(true);
-                    scheduleHideControls();
-                    break;
-                case "ArrowDown":
-                    e.preventDefault();
-                    adjustVolume(-0.05);
-                    setShowControls(true);
-                    scheduleHideControls();
-                    break;
-                case "f":
-                case "F":
-                    e.preventDefault();
-                    handleToggleFullscreen();
-                    break;
-                case "m":
-                case "M":
-                    e.preventDefault();
-                    toggleMute();
-                    break;
-                case "c":
-                case "C":
-                    e.preventDefault();
-                    handleToggleCaptions();
-                    break;
-                default:
-                    break;
-            }
+        const updateCaptions = () => {
+            const currentTime = video.currentTime;
+            const activeCaption = captionsData.find(
+                caption => currentTime >= caption.start && currentTime < caption.end
+            );
+
+            setCaptionsText(activeCaption ? activeCaption.text : '');
         };
 
-        wrapper.addEventListener("keydown", handleKeyDown);
-        return () => wrapper.removeEventListener("keydown", handleKeyDown);
-    }, [
-        initialState,
-        togglePlayPause,
-        handleSkip,
-        adjustVolume,
-        handleToggleFullscreen,
-        toggleMute,
-        handleToggleCaptions,
-        scheduleHideControls,
-    ]);
+        // Use requestAnimationFrame for smooth updates
+        const updateLoop = () => {
+            updateCaptions();
+            rafId = requestAnimationFrame(updateLoop);
+        };
+
+        updateLoop();
+
+        // Also update on timeupdate events (more reliable)
+        video.addEventListener('timeupdate', updateCaptions);
+
+        return () => {
+            if (rafId) cancelAnimationFrame(rafId);
+            video.removeEventListener('timeupdate', updateCaptions);
+        };
+    }, [showCaptions, captionsData]); // Re-run when showCaptions or captionsData changes
+
 
     // --------------------------------------------------------
     // FULLSCREEN CHANGE LISTENER
     // --------------------------------------------------------
     useEffect(() => {
         const onFullscreenChange = () => {
-            setIsFullscreen(!!document.fullscreenElement);
+            const isFullscreenNow = !!document.fullscreenElement;
+            setIsFullscreen(isFullscreenNow);
+
+            // Reset cursor visibility when exiting fullscreen
+            if (!isFullscreenNow) {
+                setIsCursorVisible(true);
+                if (cursorTimeoutRef.current) {
+                    clearTimeout(cursorTimeoutRef.current);
+                }
+            } else {
+                // When entering fullscreen, show cursor initially
+                handleCursorShow();
+            }
         };
         document.addEventListener("fullscreenchange", onFullscreenChange);
-        return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
-    }, []);
+        return () => {
+            document.removeEventListener("fullscreenchange", onFullscreenChange);
+            if (cursorTimeoutRef.current) {
+                clearTimeout(cursorTimeoutRef.current);
+            }
+        };
+    }, [handleCursorShow]);
+
+    // --------------------------------------------------------
+    // SYNC INITIAL CAPTIONS STATE TO NATIVE TRACK
+    // --------------------------------------------------------
+    useEffect(() => {
+        const video = videoRef.current;
+        if (video && video.textTracks.length) {
+            video.textTracks[0].mode = showCaptions ? "showing" : "hidden";
+        }
+    }, []); // run once on mount
 
     // --------------------------------------------------------
     // SETTINGS MENU CLICK-OUTSIDE
@@ -1301,6 +1508,11 @@ export const Video = ({
         if (!activeMenu) return;
 
         const handleClickOutside = (e) => {
+            // Check if click is on the settings button itself
+            const settingsButton = e.target.closest('.video-button[title="Settings"]');
+            if (settingsButton) return; // Let the button handle it
+
+            // Check if click is inside settings menu
             if (
                 settingsContainerRef.current &&
                 !settingsContainerRef.current.contains(e.target)
@@ -1309,8 +1521,9 @@ export const Video = ({
             }
         };
 
-        document.addEventListener("pointerdown", handleClickOutside);
-        return () => document.removeEventListener("pointerdown", handleClickOutside);
+        // Use mousedown instead of pointerdown for better click detection
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [activeMenu]);
 
     // --------------------------------------------------------
@@ -1339,9 +1552,16 @@ export const Video = ({
     }, [isAutoQuality, hasMultipleQualities, runAutoQualityCheck]);
 
     // --------------------------------------------------------
-    // CLEANUP & SYNC INITIAL VOLUME
+    // CLEANUP
     // --------------------------------------------------------
-    useEffect(() => () => clearTimeout(controlsTimeoutRef.current), []);
+    useEffect(() => {
+        return () => {
+            clearTimeout(controlsTimeoutRef.current);
+            if (cursorTimeoutRef.current) {
+                clearTimeout(cursorTimeoutRef.current);
+            }
+        };
+    }, []);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -1350,6 +1570,46 @@ export const Video = ({
             video.muted = isMuted;
         }
     }, [volume, isMuted]);
+
+    // ============================================================
+    // CAPTIONS UPDATE BASED ON VIDEO TIME
+    // ============================================================
+
+    // Add this useEffect after the captions loading effect
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video || !showCaptions || captionsData.length === 0) {
+            if (!showCaptions) setCaptionsText('');
+            return;
+        }
+
+        let rafId = null;
+
+        const updateCaptions = () => {
+            const currentTime = video.currentTime;
+            const activeCaption = captionsData.find(
+                caption => currentTime >= caption.start && currentTime < caption.end
+            );
+
+            setCaptionsText(activeCaption ? activeCaption.text : '');
+        };
+
+        // Use requestAnimationFrame for smooth updates
+        const updateLoop = () => {
+            updateCaptions();
+            rafId = requestAnimationFrame(updateLoop);
+        };
+
+        updateLoop();
+
+        // Also update on timeupdate events (more reliable)
+        video.addEventListener('timeupdate', updateCaptions);
+
+        return () => {
+            if (rafId) cancelAnimationFrame(rafId);
+            video.removeEventListener('timeupdate', updateCaptions);
+        };
+    }, [showCaptions, captionsData]); // Re-run when showCaptions or captionsData changes
 
     // --------------------------------------------------------
     // Memoized Settings Menu
@@ -1524,7 +1784,7 @@ export const Video = ({
             </label>
 
             <div
-                className="video-wrapper"
+                className={`video-wrapper ${!isCursorVisible && isFullscreen ? 'cursor-hidden' : ''}`}
                 ref={wrapperRef}
                 tabIndex={0}
                 role="application"
@@ -1563,20 +1823,8 @@ export const Video = ({
                         label="English captions"
                         kind="captions"
                         srclang="en"
-                        src="captions_en.vtt"
+                        src={captionSrc}
                         default
-                    />
-                    <track
-                        label="Spanish subtitles"
-                        kind="subtitles"
-                        srclang="es"
-                        src="subtitles_es.vtt"
-                    />
-                    <track
-                        label="English Descriptions"
-                        kind="descriptions"
-                        srclang="en"
-                        src="description_en.vtt"
                     />
                     Your browser does not support HTML5 video.
                 </video>
@@ -1908,11 +2156,12 @@ export const Video = ({
                                 </button>
 
                                 <button
+                                    onPointerDown={(e) => e.stopPropagation()}
                                     onClick={openSettings}
                                     className="video-button"
                                     title="Settings"
                                     aria-label="Settings"
-                                    aria-expanded={!!activeMenu}
+                                    aria-expanded={activeMenu === "settings"}
                                     aria-haspopup="menu"
                                 >
                                     <SettingsIcon />
@@ -1981,6 +2230,6 @@ export const Video = ({
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };

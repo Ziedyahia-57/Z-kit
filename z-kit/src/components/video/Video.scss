@@ -15,6 +15,11 @@ $borderRadius: 8px;
     overflow: hidden;
     margin: 8px;
 
+    * {
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
     .video-label {
         display: block;
         padding: 8px;
@@ -83,6 +88,14 @@ $borderRadius: 8px;
                 height: 100%;
                 object-fit: contain;
             }
+
+            .captions {
+                bottom: 6px;
+
+                p {
+                    font-size: 1.25rem;
+                }
+            }
         }
 
         // --- NEW: Keyboard focus ring on the wrapper ---
@@ -90,17 +103,14 @@ $borderRadius: 8px;
             outline: none;
         }
 
-        // &:focus-visible {
-        //     outline: 2px solid var(--primary-500);
-        //     outline-offset: -2px;
-        //     border-radius: inherit;
+        &.cursor-hidden {
+            cursor: none;
 
-        //     // Remove focus rings from child buttons when wrapper owns focus
-        //     // (keyboard navigation is handled at the wrapper level)
-        //     .video-button:focus-visible {
-        //         outline: none;
-        //     }
-        // }
+            // Ensure child elements also hide cursor
+            * {
+                cursor: none !important;
+            }
+        }
     }
 
     .content {
@@ -114,7 +124,6 @@ $borderRadius: 8px;
         position: absolute;
         bottom: 4px;
         justify-self: center;
-        font-size: 0.875rem;
         color: var(--gray-25);
         align-items: center;
         justify-content: center;
@@ -123,8 +132,13 @@ $borderRadius: 8px;
         box-shadow: 0 0 4px 0 color-mix(in srgb, var(--gray-600) 20%, transparent);
         padding: 2px 8px;
         border-radius: 8px;
-        max-width: 224px;
-        height: 44px;
+        max-width: 284px;
+        max-height: 44px;
+        height: fit-content;
+
+        p {
+            font-size: 0.875rem;
+        }
 
         &.cinematic {
             position: relative;
