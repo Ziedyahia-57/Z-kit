@@ -1,0 +1,791 @@
+@use '../tokens';
+
+$width: 640px;
+
+$borderRadius: 8px;
+
+.video {
+    user-select: none;
+    -webkit-user-select: none;
+    position: relative;
+    aspect-ratio: 16 / 9;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 8px;
+
+    .video-label {
+        display: block;
+        padding: 8px;
+        box-sizing: border-box;
+        position: absolute;
+        z-index: 2;
+        bottom: 8px;
+        left: 8px;
+        opacity: 0;
+        transform: translateY(4px);
+        pointer-events: none;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        text-shadow: 0 0 2px rgb(0 0 0 / 25%);
+
+
+        &.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        h4 {
+            margin: 0;
+            color: var(--gray-25);
+            font-weight: 300;
+            text-transform: capitalize;
+        }
+    }
+
+    .video-wrapper {
+        position: relative;
+        flex: 1;
+        width: 100%;
+        overflow: hidden;
+        cursor: pointer;
+
+        // --- NEW: Controls overlay background ---
+        &::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(5, 5, 5, 0.3);
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        &:has(.top-controls.is-visible),
+        &:has(.bottom-controls.is-visible),
+        &:has(.custom-controls.is-visible) {
+            &::after {
+                opacity: 1;
+            }
+        }
+
+        &:fullscreen,
+        &:-webkit-full-screen {
+            background-color: var(--gray-950);
+            width: 100vw;
+            height: 100vh;
+
+            /* Change from cover to contain so the video isn't cropped on wide monitors */
+            .content,
+            .video-thumbnail {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+        }
+
+        // --- NEW: Keyboard focus ring on the wrapper ---
+        &:focus {
+            outline: none;
+        }
+
+        // &:focus-visible {
+        //     outline: 2px solid var(--primary-500);
+        //     outline-offset: -2px;
+        //     border-radius: inherit;
+
+        //     // Remove focus rings from child buttons when wrapper owns focus
+        //     // (keyboard navigation is handled at the wrapper level)
+        //     .video-button:focus-visible {
+        //         outline: none;
+        //     }
+        // }
+    }
+
+    .content {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .captions {
+        position: absolute;
+        bottom: 4px;
+        justify-self: center;
+        font-size: 0.875rem;
+        color: var(--gray-25);
+        align-items: center;
+        justify-content: center;
+        background: rgba(13, 13, 13, 0.35);
+        backdrop-filter: blur(2px);
+        box-shadow: 0 0 4px 0 color-mix(in srgb, var(--gray-600) 20%, transparent);
+        padding: 2px 8px;
+        border-radius: 8px;
+        max-width: 224px;
+        height: 44px;
+
+        &.cinematic {
+            position: relative;
+            display: block;
+        }
+    }
+
+    .preview-video {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        left: -9999px;
+        top: -9999px;
+        pointer-events: none;
+    }
+
+    .video-thumbnail {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+
+        &.is-visible {
+            opacity: 1;
+        }
+    }
+
+    .play-button-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        opacity: 0;
+        transform: scale(0.85);
+        pointer-events: none;
+        place-self: center;
+        margin-bottom: calc(50px - 3vw);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+
+
+        &.is-visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+    }
+
+    .play-button {
+        background: transparent;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        display: flex;
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35));
+        transition: transform 0.2s ease;
+
+        &:hover {
+            transform: scale(1.08);
+        }
+    }
+
+    .spinner-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+        margin-bottom: calc(50px - 3vw);
+
+        .spinner {
+
+            &.xlarge {
+                color: var(--gray-25);
+                width: 7.5rem;
+                height: 7.5rem;
+            }
+
+            svg {
+                z-index: 2
+            }
+        }
+
+        &.is-visible {
+            opacity: 1;
+        }
+    }
+
+    .top-controls {
+        display: flex;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        justify-content: space-between;
+        padding: 16px 12px 10px;
+        box-sizing: border-box;
+        z-index: 3;
+        opacity: 0;
+        transform: translateY(4px);
+        pointer-events: none;
+        transition: opacity 0.25s ease, transform 0.25s ease;
+
+        .left-side {
+            display: flex;
+            gap: 12px;
+
+            .avatar {
+                aspect-ratio: 1/1;
+                width: 36px;
+                height: 36px;
+
+                img {
+                    border-radius: 50%;
+                    width: 100%;
+                }
+            }
+
+            .title {
+                font-size: 0.875rem;
+                text-shadow: 0 0 2px rgb(0 0 0 / 25%);
+                font-weight: 800;
+                color: var(--gray-50);
+            }
+
+            .user-details {
+                display: flex;
+                font-size: 0.75rem;
+                text-shadow: 0 0 2px rgb(0 0 0 / 25%);
+                color: var(--gray-100);
+                gap: 8px;
+
+                svg {
+                    aspect-ratio: 1/1;
+                    align-self: center;
+                    width: 0.75rem;
+                }
+            }
+        }
+
+        .right-side {
+            display: flex;
+            gap: 12px;
+            right: 0;
+
+
+        }
+
+        .video-button {
+            padding: 0.375rem;
+            border-radius: 50px;
+        }
+
+        svg {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+
+        &.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+    }
+
+    .bottom-controls {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 16px 12px 10px;
+        box-sizing: border-box;
+        z-index: 3;
+        opacity: 0;
+        transform: translateY(4px);
+        pointer-events: none;
+        transition: opacity 0.25s ease, transform 0.25s ease;
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .left-controls {
+            position: relative;
+            left: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .center-controls {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 10px; // Matches the 10px bottom padding of .bottom-controls
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .right-controls {
+            position: relative;
+            right: 0;
+            display: flex;
+            gap: 12px;
+        }
+
+        .video-button {
+            padding: 0.375rem;
+            border-radius: 50px;
+        }
+
+        svg {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+
+        // --- NEW: Volume control — the pill itself carries the button's
+        // background/shadow, and expands to make room for the slider,
+        // instead of the slider floating on its own with no background ---
+        .volume-control {
+            display: flex;
+            align-items: center;
+            position: relative;
+            background: rgba(13, 13, 13, 0.35);
+            box-shadow: 0 0 4px 0 color-mix(in srgb, var(--gray-600) 60%, transparent);
+            backdrop-filter: blur(2px);
+
+            border-radius: 50px;
+            transition: padding-right 0.2s ease, width 0.2s ease;
+
+            &.is-expanded {
+                padding-right: 8px;
+
+            }
+        }
+
+        .volume-control__button {
+            // The pill wrapper now owns the background/shadow, so the
+            // button itself sits flush and transparent inside it.
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            display: none;
+            opacity: 0;
+            width: 0;
+            max-width: 150px;
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+
+            &.is-visible {
+                display: block;
+                width: 70px;
+                opacity: 1;
+            }
+
+            &::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background: var(--gray-25);
+                cursor: pointer;
+                border: none;
+            }
+
+            &::-moz-range-thumb {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background: var(--gray-25);
+                cursor: pointer;
+                border: none;
+            }
+        }
+
+        // --- NEW: Settings menu ---
+        .settings-menu {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            right: 0;
+            z-index: 100;
+            min-width: 200px;
+            background: rgba(13, 13, 13, 0.568);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(2px);
+            border-radius: 12px;
+            padding: 8px 0;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+            animation: settingsMenuIn 0.15s ease-out;
+        }
+
+        .settings-menu__panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .settings-menu__item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            color: #f2f2f2;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.1s ease;
+            white-space: nowrap;
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            &:focus-visible {
+                outline: 2px solid var(--primary-500);
+                outline-offset: -2px;
+                border-radius: 4px;
+            }
+
+            &--header {
+                gap: 8px;
+                padding-top: 6px;
+                padding-bottom: 6px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                margin-bottom: 4px;
+                font-weight: 500;
+
+                &:hover {
+                    background: rgba(255, 255, 255, 0.05);
+                }
+            }
+
+            &--active {
+                color: var(--primary-500);
+            }
+        }
+
+        .settings-menu__item-value {
+            color: rgba(242, 242, 242, 0.6);
+            font-size: 13px;
+            margin-left: 24px;
+
+            .settings-menu__item--active & {
+                color: rgba(62, 166, 255, 0.7);
+            }
+        }
+
+        &.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+    }
+
+    .video-progress {
+        display: flex;
+        gap: 12px;
+        color: var(--gray-25);
+        font-size: 1rem;
+        align-items: center;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .progress-bar-hit-area {
+        position: relative;
+        padding: 0 0 8px 0; // bigger invisible hover/drag zone around the thin bar
+        cursor: pointer;
+        touch-action: none;
+
+        &:hover .progress-bar-dot,
+        &:active .progress-bar-dot {
+            transform: translate(-50%, -50%) scale(1.15);
+        }
+    }
+
+    .progress-bar-track {
+        position: relative;
+        width: 100%;
+        height: 6px;
+        background: rgba(13, 13, 13, 0.5);
+        border-radius: $borderRadius;
+    }
+
+    // --- NEW: Buffered portion (rendered behind the fill) ---
+    .progress-bar-buffered {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background: rgba(242, 242, 242, 0.40);
+        border-radius: inherit;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .progress-bar-fill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background: var(--gray-25);
+        border-radius: $borderRadius;
+        z-index: 1; // Sits above the buffered bar
+    }
+
+    .progress-bar-dot {
+        position: absolute;
+        top: 50%;
+        width: 11px;
+        height: 11px;
+        background: var(--gray-25);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        pointer-events: none;
+        transition: transform 0.15s ease;
+        z-index: 2; // Sits above the fill
+    }
+
+    .progress-preview {
+        position: absolute;
+        bottom: 100%;
+        margin-bottom: 6px;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        pointer-events: none;
+        z-index: 4;
+
+    }
+
+    .progress-preview-canvas {
+        width: 160px;
+        aspect-ratio: 16/9;
+        border-radius: 6px;
+        background: var(--gray-950);
+        border: 1px solid var(--gray-600);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+        display: block;
+        z-index: 3;
+    }
+
+    .progress-preview-time {
+        font-size: 0.75rem;
+        color: var(--gray-25);
+        background: rgba(13, 13, 13, 0.35);
+        backdrop-filter: blur(2px);
+
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    .custom-controls {
+        position: absolute;
+        inset: 0;
+        height: fit-content;
+        width: fit-content;
+        align-self: center;
+        justify-self: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        z-index: 2;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        margin-bottom: calc(50px - 3vw);
+
+        .video-button {
+            svg {
+                width: 2.5rem;
+                height: 2.5rem;
+            }
+        }
+
+        &.is-visible {
+            opacity: 1;
+
+            .video-button {
+                pointer-events: auto;
+            }
+        }
+    }
+
+    .video-duration {
+        background: rgba(13, 13, 13, 0.35);
+        backdrop-filter: blur(2px);
+
+        border-radius: 50px;
+        font-size: 1rem;
+        display: inline-flex;
+        padding: 6px 8px;
+        margin: 0;
+
+        .current-timestamp {
+            color: var(--gray-25);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .duration-timestamp {
+            color: var(--gray-200);
+            font-variant-numeric: tabular-nums;
+        }
+    }
+
+    .video-button {
+        border: none;
+        cursor: pointer;
+        height: fit-content;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        outline: none;
+        transition: transform 0.15s ease;
+        background: rgba(13, 13, 13, 0.35);
+        backdrop-filter: blur(2px);
+
+        border-radius: 50%;
+        padding: 16px;
+        box-shadow: 0 0 4px 0 color-mix(in srgb, var(--gray-600) 60%, transparent);
+        z-index: 1;
+
+        svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+
+        &:hover {
+            cursor: pointer;
+        }
+    }
+
+    .video-button-playpause {
+        padding: 20px;
+    }
+
+}
+
+// --- NEW: Settings menu entrance animation keyframes ---
+@keyframes settingsMenuIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+::cue {
+    background: rgba(var(--gray-950), 0.8);
+    opacity: 0.8;
+    color: var(--gray-25);
+    font-size: 1rem;
+}
+
+// --- NEW: Accessibility — disable animations for users who prefer reduced motion ---
+@media (prefers-reduced-motion: reduce) {
+    .video {
+        .video-wrapper::after {
+            transition: none;
+        }
+
+        .bottom-controls {
+            .settings-menu {
+                animation: none;
+            }
+
+            .volume-slider-wrapper {
+                transition: none;
+            }
+
+            .volume-control {
+                transition: none;
+            }
+        }
+
+        .play-button-overlay,
+        .video-thumbnail,
+        .bottom-controls,
+        .spinner-overlay,
+        .custom-controls {
+            transition: none;
+        }
+    }
+}
+
+@media(max-width:800px) {
+    .video {
+        .video-button {
+            padding: 0.75rem;
+
+            svg {
+                width: 1rem;
+                height: 1rem;
+            }
+        }
+
+        .spinner {
+            width: 6rem !important;
+            height: 6rem !important;
+        }
+
+        .custom-controls {
+            padding: 0.75rem;
+        }
+
+        .volume-control,
+        .captions-control {
+            display: none !important;
+        }
+
+        .progress-preview {
+            margin-bottom: 4px;
+        }
+
+        .progress-preview-canvas,
+        .progress-preview {
+            width: 120px;
+        }
+
+        .progress-preview-time {
+            padding: 2px 4px;
+        }
+    }
+}
+
+@media(max-width:500px) {
+
+    .progress-preview-canvas,
+    .progress-preview {
+        width: 7rem !important;
+    }
+}
