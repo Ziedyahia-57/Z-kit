@@ -160,6 +160,8 @@
                     background: transparent;
                     color: var(--gray-300);
                     transition: color 0.2s ease;
+                    box-shadow: none;
+                    border: none;
 
                     body[data-dark="true"] & {
                         color: var(--gray-700);
