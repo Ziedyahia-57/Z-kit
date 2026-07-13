@@ -3,8 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Spinner } from '../spinner/spinner';
 import { Tooltip } from '../tooltip/tooltip';
 import './Video.scss';
-import defaultCaptions from './test.srt?url';
-
 // ============================================================
 // CONSTANTS & DEFAULTS
 // ============================================================
@@ -180,6 +178,17 @@ const getBufferedProgress = (video) => {
     const end = buffered.end(len - 1);
     const progress = (end / duration) * 100;
     return progress > 100 ? 100 : progress;
+};
+
+// NEW: Chapters — find the index of the chapter active at a given time.
+// Assumes `chapters` is sorted ascending by `time` (in seconds).
+const getActiveChapterIndex = (chapters, time) => {
+    let idx = 0;
+    for (let i = 0; i < chapters.length; i++) {
+        if (time >= chapters[i].time) idx = i;
+        else break;
+    }
+    return idx;
 };
 
 const normalizeQualities = (src, qualities) => {
@@ -491,7 +500,8 @@ export const Video = ({
     variant = "immersive",
     qualities: qualitiesProp,
     autoplay = false,
-    captionSrc = defaultCaptions
+    captionSrc,
+    chapters = [], // NEW: [{ time: 0, title: "Intro" }, { time: 42, title: "Chapter 2" }, ...]
 }) => {
     const qualities = useMemo(() => normalizeQualities(src, qualitiesProp), [src, qualitiesProp]);
     const hasMultipleQualities = qualities.length > 1;
@@ -527,6 +537,9 @@ export const Video = ({
     const [playbackSpeed, setPlaybackSpeed] = useState(1);
     const [activeMenu, setActiveMenu] = useState(null);
 
+    // NEW: Chapters — which chapter is active based on current playback time
+    const [activeChapterIndex, setActiveChapterIndex] = useState(0);
+
     // --------------------------------------------------------
     // REFS
     // --------------------------------------------------------
@@ -555,6 +568,9 @@ export const Video = ({
 
     const bufferEventTimestampsRef = useRef([]);
     const lastAutoSwitchTimeRef = useRef(0);
+
+    // NEW: Chapters — map of chapter index -> DOM node, for scrollIntoView
+    const chapterRefs = useRef(new Map());
 
     const maskId = useId();
 
@@ -1139,6 +1155,25 @@ export const Video = ({
     }, []);
 
     // --------------------------------------------------------
+    // CHAPTERS
+    // --------------------------------------------------------
+    const handleChapterSeek = useCallback((e, time) => {
+        e.stopPropagation();
+        const video = videoRef.current;
+        if (!video) return;
+        video.currentTime = time;
+        if (video.paused) video.play().catch(() => { });
+    }, []);
+
+    // Keep the active chapter's list item scrolled into view
+    useEffect(() => {
+        const el = chapterRefs.current.get(activeChapterIndex);
+        if (el) {
+            el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+    }, [activeChapterIndex]);
+
+    // --------------------------------------------------------
     // WRAPPER INTERACTION
     // --------------------------------------------------------
     const handleWrapperClick = useCallback(() => {
@@ -1405,9 +1440,15 @@ export const Video = ({
                 bufferedElRef.current.style.width = `${newBuffered}%`;
             }
 
+            // NEW: Chapters — figure out which chapter is currently playing
+            if (chapters.length > 0) {
+                const newChapterIndex = getActiveChapterIndex(chapters, newCurrentTime);
+                setActiveChapterIndex((prev) => (prev === newChapterIndex ? prev : newChapterIndex));
+            }
+
             setDuration((prev) => (Math.abs(prev - newDuration) > 0.001 ? newDuration : prev));
         }
-    }, [isDragging]);
+    }, [isDragging, chapters]);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -1774,6 +1815,52 @@ export const Video = ({
     }, [activeMenu, hasMultipleQualities, isAutoQuality, selectedQualityIndex, qualities, playbackSpeed, showCaptions, handleAutoQualityToggle, handleQualitySelect, handleSpeedSelect, handleToggleCaptions, closeMenu, goBackToSettings, openSubMenu]);
 
     // --------------------------------------------------------
+    // Memoized Chapters Panel
+    // --------------------------------------------------------
+    const ChaptersPanel = useMemo(() => {
+        if (!chapters.length) return null;
+
+        return (
+            <div
+                className={`chapters-panel ${controlsVisible ? "is-visible" : ""}`}
+                onClick={(e) => e.stopPropagation()}
+                onMouseEnter={() => clearControlsTimeout()}
+                onMouseLeave={() => {
+                    if (isPlaying && !initialState) scheduleHideControls();
+                }}
+                onMouseMove={(e) => e.stopPropagation()}
+            >
+                <div className="wrapper-mask">
+                    <div className="scroller-mask scroller">
+                        {chapters.map((chapter, idx) => {
+                            const isActive = idx === activeChapterIndex;
+                            return (
+                                <div
+                                    className={`scroll-child ${isActive ? " is-active" : ""}`}
+                                    key={chapter.time}
+                                    ref={(el) => {
+                                        if (el) chapterRefs.current.set(idx, el);
+                                        else chapterRefs.current.delete(idx);
+                                    }}
+                                    onClick={(e) => handleChapterSeek(e, chapter.time)}
+                                >
+                                    <div className="item">
+                                        <span className="item-index">{idx + 1}</span>
+                                        <p className="item-title">{chapter.title}</p>
+                                    </div>
+                                    <span className="top-marker" />
+                                    <span className="bottom-marker" />
+                                    <div className="primary-marker" />
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        );
+    }, [chapters, controlsVisible, activeChapterIndex, isPlaying, initialState, clearControlsTimeout, scheduleHideControls, handleChapterSeek]);
+
+    // --------------------------------------------------------
     // RENDER
     // --------------------------------------------------------
     return (
@@ -1896,6 +1983,9 @@ export const Video = ({
                         <p>{captionsText}</p>
                     </div>
                 )}
+
+                {/* --- Chapters panel (left side, shown alongside controls) --- */}
+                {ChaptersPanel}
 
                 {/* --- Top controls --- */}
                 <div

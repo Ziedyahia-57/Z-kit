@@ -1,5 +1,6 @@
 import { Video } from './Video';
 import { useEffect } from 'react';
+import defaultCaptions from './test.srt?url';
 
 
 // Decorator that responds to a darkMode arg
@@ -72,6 +73,11 @@ const meta = {
             name: "Title",
             description: "Title for the Video component",
         },
+        chapters: {
+            control: { type: "array" },
+            name: "Chapters",
+            description: "Chapters for the Video component",
+        },
         onClick: {
             action: "clicked",
             name: "onClick",
@@ -85,11 +91,29 @@ export default meta;
 export const video = {
     args: {
         darkmode: false,
+        title: "Tears of Steel",
+        username: "Ton Roosendaal",
         src: "",
+        captionSrc: defaultCaptions,
         thumbnail: "",
         variant: "immersive",
         centered: false,
-        title: "Video Title",
         verified: true,
+        chapters: [
+            { time: 0, title: "Launch Sequence" },
+            { time: 23, title: "Thom and Celia's Breakup" },
+            { time: 50, title: "Robot Memory Sync" },
+            { time: 111, title: "Backstage Preparations" },
+            { time: 233, title: "Thom's Final Rehearsal" },
+            { time: 292, title: "Memory Overwrite Begins" },
+            { time: 343, title: "A Different Approach" },
+            { time: 374, title: "Celia Confronts Thom" },
+            { time: 407, title: "The Apology" },
+            { time: 428, title: "Final Attempt" },
+            { time: 493, title: "Critical Moment" },
+            { time: 518, title: "Changing the Past" },
+            { time: 538, title: "Memory Restored" },
+            { time: 559, title: "Epilogue" },
+        ],
     }
 }
