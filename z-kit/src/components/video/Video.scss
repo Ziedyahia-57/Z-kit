@@ -846,52 +846,55 @@ $borderRadius: 8px;
         }
     }
 
-    @property --top-mask-height {
-        syntax: "<length>";
-        inherits: true;
-        initial-value: 0px;
+
+
+}
+
+@property --top-mask-height {
+    syntax: "<length>";
+    inherits: true;
+    initial-value: 0px;
+}
+
+@property --bottom-mask-height {
+    syntax: "<length>";
+    inherits: true;
+    initial-value: 48px;
+}
+
+
+@keyframes show-chapter-top-mask {
+    from {
+        --top-mask-height: 0px;
     }
 
-    @property --bottom-mask-height {
-        syntax: "<length>";
-        inherits: true;
-        initial-value: 48px;
+    to {
+        --top-mask-height: var(--mask-height);
+    }
+}
+
+@keyframes hide-chapter-bottom-mask {
+    from {
+        --bottom-mask-height: var(--mask-height);
     }
 
-    @keyframes show-chapter-top-mask {
-        from {
-            --top-mask-height: 0px;
-        }
+    to {
+        --bottom-mask-height: 0px;
+    }
+}
 
-        to {
-            --top-mask-height: var(--mask-height);
-        }
+@keyframes translateChapterChild {
+    0% {
+        transform: translateX(-6px);
     }
 
-    @keyframes hide-chapter-bottom-mask {
-        from {
-            --bottom-mask-height: var(--mask-height);
-        }
-
-        to {
-            --bottom-mask-height: 0px;
-        }
+    50% {
+        transform: translateX(18px);
     }
 
-    @keyframes translateChapterChild {
-        0% {
-            transform: translateX(-6px);
-        }
-
-        50% {
-            transform: translateX(18px);
-        }
-
-        100% {
-            transform: translateX(-6px);
-        }
+    100% {
+        transform: translateX(-6px);
     }
-
 }
 
 // --- NEW: Settings menu entrance animation keyframes ---
