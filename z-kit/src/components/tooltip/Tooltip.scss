@@ -37,6 +37,7 @@
         // Left/right positions: align content to the left
         &.left,
         &.right {
+            align-items: start;
 
             .tooltip-header,
             .tooltip-content {
