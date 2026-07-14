@@ -89,6 +89,14 @@ $borderRadius: 8px;
                 object-fit: contain;
             }
 
+            // NEW: Letterbox the YouTube iframe in fullscreen instead of stretching it
+            .youtube-embed {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--gray-950);
+            }
+
             .captions {
                 bottom: 6px;
 
@@ -120,6 +128,26 @@ $borderRadius: 8px;
         object-fit: cover;
     }
 
+    // NEW: YouTube — the IFrame API mounts its <iframe> inside this div.
+    // pointer-events is disabled so clicks fall through to our own
+    // wrapper click handler (play/pause) and control overlay instead of
+    // being swallowed by the cross-origin iframe.
+    .youtube-embed {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--gray-950);
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border: 0;
+            pointer-events: none;
+        }
+    }
+
     .captions {
         position: absolute;
         bottom: 4px;
@@ -135,6 +163,7 @@ $borderRadius: 8px;
         max-width: 284px;
         max-height: 44px;
         height: fit-content;
+        transition: width 0.3s ease, height 0.3s ease, margin-bottom 0.3s ease;
 
         p {
             font-size: 0.875rem;
@@ -181,7 +210,7 @@ $borderRadius: 8px;
         transform: scale(0.85);
         pointer-events: none;
         place-self: center;
-        margin-bottom: calc(50px - 3vw);
+        margin-bottom: calc(25px - 3vw);
         transition: opacity 0.3s ease, transform 0.3s ease;
 
 
@@ -216,7 +245,7 @@ $borderRadius: 8px;
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.25s ease;
-        margin-bottom: calc(50px - 3vw);
+        margin-bottom: calc(25px - 3vw);
 
         .spinner {
 
@@ -378,7 +407,7 @@ $borderRadius: 8px;
             align-items: center;
             position: relative;
             background: rgba(13, 13, 13, 0.35);
-            box-shadow: 0 0 4px 0 color-mix(in srgb, var(--gray-600) 60%, transparent);
+            box-shadow: 0 0 4px 0 color-mix(in srgb, var(--gray-600) 25%, transparent);
             backdrop-filter: blur(2px);
 
             border-radius: 50px;
@@ -632,7 +661,7 @@ $borderRadius: 8px;
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.3s ease;
-        margin-bottom: calc(50px - 3vw);
+        margin-bottom: calc(25px - 3vw);
 
         .video-button {
             svg {
@@ -685,7 +714,7 @@ $borderRadius: 8px;
 
         border-radius: 50%;
         padding: 16px;
-        box-shadow: 0 0 4px 0 color-mix(in srgb, var(--gray-600) 60%, transparent);
+        box-shadow: 0 0 4px 0 color-mix(in srgb, var(--gray-600) 25%, transparent);
         z-index: 1;
 
         svg {
@@ -731,7 +760,7 @@ $borderRadius: 8px;
             width: fit-content;
             overflow-x: hidden;
             overflow-y: auto;
-            padding: 3rem 1.5rem 3rem 0; // <-- add right padding here
+            padding: 0 1.5rem 0 0; // <-- add right padding here
             color: var(--gray-100);
             scrollbar-width: none;
 
@@ -808,6 +837,7 @@ $borderRadius: 8px;
             animation-fill-mode: both;
             cursor: pointer;
             padding: 4px 0;
+            white-space: nowrap;
 
             &::before {
                 content: "";
@@ -968,10 +998,7 @@ $borderRadius: 8px;
             padding: 0.75rem;
         }
 
-        .volume-control,
-        .captions-control {
-            display: none !important;
-        }
+
 
         .progress-preview {
             margin-bottom: 4px;
@@ -988,6 +1015,7 @@ $borderRadius: 8px;
     }
 }
 
+
 @media(max-width:500px) {
 
     .progress-preview-canvas,
@@ -995,8 +1023,190 @@ $borderRadius: 8px;
         width: 7rem !important;
     }
 
-    .chapters-panel {
+    .custom-controls,
+    .volume-control,
+    .captions-control {
         display: none !important;
     }
 
+}
+
+// Show chapters panel & button in portrait fullscreen
+@media (orientation: portrait) {
+    .video .chapters-panel {
+        display: block !important;
+        top: 75% !important;
+    }
+
+    .video .chapters-hover-zone {
+        display: flex !important;
+    }
+}
+
+.ytPlayerControlsContainerRendered,
+#player .html5-video-player {
+    display: none !important;
+}
+
+#player-controls,
+.ytPlayerControlsContainerHost .ytPlayerControlsContainerRendered {
+    display: none !important;
+}
+
+
+
+
+
+
+// --- Chapters hover zone (controls panel sliding) ---
+.chapters-hover-zone {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 25%;
+    z-index: 4;
+    pointer-events: none; // Allows clicks to pass through to the video
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    // The chevron button that acts as the handle
+    .chapters-chevron {
+        position: relative;
+        left: 0;
+        width: 25%;
+        height: 60px;
+        background: transparent;
+        border: none;
+        border-radius: 0 8px 8px 0;
+        cursor: pointer;
+        pointer-events: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+        svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--gray-25);
+            opacity: 1;
+        }
+
+        &.is-open {
+            border-radius: 0;
+
+            svg {
+                opacity: 0;
+            }
+        }
+
+        &:hover {
+            transform: scale(1.05);
+
+            svg {
+                opacity: 0;
+            }
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--primary-500);
+            outline-offset: 2px;
+        }
+
+        // Touch target size for mobile
+        &::after {
+            content: '';
+            position: absolute;
+            inset: -12px;
+            background: transparent;
+        }
+    }
+
+    // Wrap the existing chapters-panel to control its slide
+    .chapters-panel {
+        position: absolute;
+        top: 50%;
+        left: 32px; // Start from the chevron edge
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(-20px) translateY(-50%);
+        transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+            transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+        // The panel's existing styles are preserved - we only control positioning
+        &.is-open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0) translateY(-50%);
+        }
+    }
+}
+
+// When in fullscreen, adjust positioning
+.video-wrapper:fullscreen,
+.video-wrapper:-webkit-full-screen {
+    .chapters-hover-zone {
+        .chapters-chevron {
+            height: 80px;
+
+            svg {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
+        .chapters-panel {
+            left: 36px;
+        }
+    }
+}
+
+// Mobile responsiveness
+@media (max-width: 768px) {
+    .chapters-hover-zone {
+
+        .chapters-chevron {
+            width: 28px;
+            height: 48px;
+
+            svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+
+        .chapters-panel {
+            left: 28px;
+        }
+    }
+}
+
+// Touch devices - larger touch targets
+@media (hover: none) and (pointer: coarse) {
+    .chapters-hover-zone {
+        width: 25%;
+        pointer-events: auto;
+        touch-action: none;
+
+        .chapters-chevron {
+            width: 44px;
+            height: 56px;
+
+            &::after {
+                inset: -16px;
+            }
+
+            svg {
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        .chapters-panel {
+            left: 40px;
+        }
+    }
 }

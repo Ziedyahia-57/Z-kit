@@ -75,6 +75,119 @@ const cacheVideoSource = (src) => {
 };
 
 // ============================================================
+// YOUTUBE SUPPORT
+// ============================================================
+
+// Matches youtube.com/watch?v=, youtube.com/embed/, youtube.com/shorts/,
+// youtube.com/live/, youtube-nocookie.com/embed/, and youtu.be/ links.
+const YOUTUBE_URL_RE = /(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/;
+
+/** Extracts an 11-char YouTube video ID from a URL, or returns an explicit override. */
+const getYouTubeId = (source, explicitId) => {
+    if (explicitId) return explicitId;
+    if (!source || typeof source !== "string") return null;
+    const match = source.match(YOUTUBE_URL_RE);
+    return match ? match[1] : null;
+};
+
+// Singleton loader — the IFrame API script + global callback can only be
+// registered once per page, even if multiple <Video> players mount.
+let youtubeApiPromise = null;
+const loadYouTubeIframeApi = () => {
+    if (typeof window === "undefined") return Promise.resolve(null);
+    if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
+    if (youtubeApiPromise) return youtubeApiPromise;
+
+    youtubeApiPromise = new Promise((resolve) => {
+        const prevReady = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = () => {
+            if (typeof prevReady === "function") prevReady();
+            resolve(window.YT);
+        };
+        if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+            const tag = document.createElement("script");
+            tag.src = "https://www.youtube.com/iframe_api";
+            document.head.appendChild(tag);
+        }
+    });
+
+    return youtubeApiPromise;
+};
+
+const YT_QUALITY_LABELS = {
+    highres: "Highest",
+    hd2160: "2160p",
+    hd1440: "1440p",
+    hd1080: "1080p",
+    hd720: "720p",
+    large: "480p",
+    medium: "360p",
+    small: "240p",
+    tiny: "144p",
+    auto: "Auto",
+};
+
+/**
+ * Builds a lightweight object that mimics the small slice of the
+ * HTMLVideoElement interface this component relies on (play/pause,
+ * currentTime, duration, volume, muted, playbackRate, buffered), backed
+ * by a YT.Player instance. This lets almost all of the existing playback,
+ * keyboard-shortcut, and progress-bar logic work unmodified for YouTube.
+ */
+const createYouTubeShim = (player) => ({
+    __isYouTubeShim: true,
+    play: () => {
+        try { player.playVideo(); } catch (e) { /* noop */ }
+        return Promise.resolve();
+    },
+    pause: () => {
+        try { player.pauseVideo(); } catch (e) { /* noop */ }
+    },
+    load: () => { },
+    get currentTime() {
+        try { return player.getCurrentTime() || 0; } catch (e) { return 0; }
+    },
+    set currentTime(t) {
+        try { player.seekTo(t, true); } catch (e) { /* noop */ }
+    },
+    get duration() {
+        try { return player.getDuration() || 0; } catch (e) { return 0; }
+    },
+    get paused() {
+        try { return player.getPlayerState() !== 1; } catch (e) { return true; }
+    },
+    get volume() {
+        try { return (player.getVolume() ?? 100) / 100; } catch (e) { return 1; }
+    },
+    set volume(v) {
+        try { player.setVolume(Math.round(v * 100)); } catch (e) { /* noop */ }
+    },
+    get muted() {
+        try { return player.isMuted(); } catch (e) { return false; }
+    },
+    set muted(m) {
+        try { m ? player.mute() : player.unMute(); } catch (e) { /* noop */ }
+    },
+    get playbackRate() {
+        try { return player.getPlaybackRate() || 1; } catch (e) { return 1; }
+    },
+    set playbackRate(r) {
+        try { player.setPlaybackRate(r); } catch (e) { /* noop */ }
+    },
+    get buffered() {
+        let frac = 0, dur = 0;
+        try {
+            frac = player.getVideoLoadedFraction() || 0;
+            dur = player.getDuration() || 0;
+        } catch (e) { /* noop */ }
+        return { length: dur ? 1 : 0, end: () => frac * dur };
+    },
+    requestPictureInPicture: () =>
+        Promise.reject(new Error("Picture-in-picture isn't supported for YouTube videos")),
+    textTracks: [],
+});
+
+// ============================================================
 // CAPTION PARSING FUNCTIONS
 // ============================================================
 
@@ -373,6 +486,57 @@ export const VolumeIcon = React.memo(({ volume, isMuted }) => (
     </BaseIcon>
 ));
 
+// Replace the ChaptersIcon with this animated version
+export const ChaptersIcon = React.memo(({ isOpen, size = 24 }) => (
+    <AnimatePresence mode="wait" initial={false}>
+        {isOpen ? (
+            <motion.svg
+                key="chapters-close"
+                xmlns="http://www.w3.org/2000/svg"
+                width={size}
+                height={size}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={ICON_COLOR}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                transition={{ duration: 0.075, ease: "easeOut" }}
+            >
+                <path d="M21 5H11" />
+                <path d="M21 12H11" />
+                <path d="M21 19H11" />
+                <path d="m7 8-4 4 4 4" />
+            </motion.svg>
+        ) : (
+            <motion.svg
+                key="chapters-open"
+                xmlns="http://www.w3.org/2000/svg"
+                width={size}
+                height={size}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={ICON_COLOR}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                transition={{ duration: 0.075, ease: "easeOut" }}
+            >
+                <path d="M21 5H11" />
+                <path d="M21 12H11" />
+                <path d="M21 19H11" />
+                <path d="m3 8 4 4-4 4" />
+            </motion.svg>
+        )}
+    </AnimatePresence>
+));
+
 export const CaptionsOffIcon = React.memo(() => (
     <BaseIcon>
         <path d="M19 5H5C3.9 5 3 5.9 3 7V17C3 18.1 3.9 19 5 19H19C20.1 19 21 18.1 21 17V7C21 5.9 20.1 5 19 5Z" stroke={ICON_COLOR} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -423,6 +587,13 @@ export const BackArrowIcon = React.memo(() => (
     </BaseIcon>
 ));
 
+// NEW: Small chevron used as the hover/drag handle that reveals the chapters panel
+export const ChevronLeftIcon = React.memo(({ size = 16 }) => (
+    <BaseIcon size={size}>
+        <path d="M15 6L9 12L15 18" stroke={ICON_COLOR} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </BaseIcon>
+));
+
 // ============================================================
 // PERFORMANCE: Custom hook for throttled video frame updates
 // ============================================================
@@ -447,7 +618,7 @@ const useThrottledVideoFrame = (callback, deps = []) => {
             callbackRef.current();
         }
 
-        if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {
+        if (typeof video.requestVideoFrameCallback === 'function') {
             rafHandleRef.current = video.requestVideoFrameCallback(() => {
                 schedule();
             });
@@ -464,7 +635,7 @@ const useThrottledVideoFrame = (callback, deps = []) => {
 
     const stop = useCallback(() => {
         const video = videoRef.current;
-        if (video && 'cancelVideoFrameCallback' in HTMLVideoElement.prototype && rafHandleRef.current) {
+        if (video && typeof video.cancelVideoFrameCallback === 'function' && rafHandleRef.current) {
             video.cancelVideoFrameCallback(rafHandleRef.current);
         }
         if (timeoutRef.current) {
@@ -502,7 +673,17 @@ export const Video = ({
     autoplay = false,
     captionSrc,
     chapters = [], // NEW: [{ time: 0, title: "Intro" }, { time: 42, title: "Chapter 2" }, ...]
+    youtubeId: youtubeIdProp, // NEW: explicit YouTube video ID override (or pass a YouTube URL as `src`)
 }) => {
+    // --------------------------------------------------------
+    // YOUTUBE DETECTION
+    // --------------------------------------------------------
+    const resolvedYoutubeId = useMemo(
+        () => getYouTubeId(src, youtubeIdProp),
+        [src, youtubeIdProp]
+    );
+    const isYouTube = !!resolvedYoutubeId;
+
     const qualities = useMemo(() => normalizeQualities(src, qualitiesProp), [src, qualitiesProp]);
     const hasMultipleQualities = qualities.length > 1;
 
@@ -537,8 +718,15 @@ export const Video = ({
     const [playbackSpeed, setPlaybackSpeed] = useState(1);
     const [activeMenu, setActiveMenu] = useState(null);
 
+    const [showChaptersPanel, setShowChaptersPanel] = useState(false);
+
     // NEW: Chapters — which chapter is active based on current playback time
     const [activeChapterIndex, setActiveChapterIndex] = useState(0);
+
+    // NEW: YouTube — available quality levels reported by the IFrame API,
+    // and the currently selected one ("default" == Auto).
+    const [youtubeQualities, setYoutubeQualities] = useState([]);
+    const [youtubeQuality, setYoutubeQuality] = useState("default");
 
     // --------------------------------------------------------
     // REFS
@@ -572,9 +760,46 @@ export const Video = ({
     // NEW: Chapters — map of chapter index -> DOM node, for scrollIntoView
     const chapterRefs = useRef(new Map());
 
+    // NEW: Chapters hover/drag trigger — refs and drag coordinates for the
+    // chevron handle + sliding panel.
+    const chaptersZoneRef = useRef(null);
+    const chaptersChevronRef = useRef(null);
+    const chaptersPanelElRef = useRef(null);
+    const chaptersDragActiveRef = useRef(false);
+    const chaptersDragStartXRef = useRef(0);
+    const chaptersDragLastXRef = useRef(0);
+
+    // NEW: Mobile tap-to-reveal — whether the current pointing device
+    // supports real hover (desktop mouse/trackpad). On devices without
+    // hover, the first tap on the video only reveals controls; a second
+    // tap (once controls are already visible) toggles playback.
+    const hasHoverRef = useRef(true);
+
+    // NEW: YouTube — mount point for the IFrame player + a ref to the raw
+    // YT.Player instance (videoRef holds the HTMLVideoElement-like shim).
+    const youtubeContainerRef = useRef(null);
+    const ytPlayerRef = useRef(null);
+    const pendingPlayRef = useRef(false);
+
     const maskId = useId();
 
     const isVisibleRef = useRef(false);
+
+    // --------------------------------------------------------
+    // Detect hover-capable pointing devices (desktop mouse/trackpad)
+    // --------------------------------------------------------
+    useEffect(() => {
+        if (typeof window === "undefined" || !window.matchMedia) return;
+        const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+        hasHoverRef.current = mq.matches;
+        const handleChange = (e) => { hasHoverRef.current = e.matches; };
+        if (mq.addEventListener) mq.addEventListener("change", handleChange);
+        else if (mq.addListener) mq.addListener(handleChange);
+        return () => {
+            if (mq.removeEventListener) mq.removeEventListener("change", handleChange);
+            else if (mq.removeListener) mq.removeListener(handleChange);
+        };
+    }, []);
 
     // --------------------------------------------------------
     // Intersection Observer for lazy play/pause
@@ -582,16 +807,15 @@ export const Video = ({
     const intersectionObserverRef = useRef(null);
 
     useEffect(() => {
-        const video = videoRef.current;
         const wrapper = wrapperRef.current;
-        if (!wrapper || !video) return;
+        if (!wrapper) return;
 
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
                     isVisibleRef.current = entry.isIntersecting;
                     if (!entry.isIntersecting && isPlaying && !initialState) {
-                        video.pause();
+                        videoRef.current?.pause();
                     }
                 });
             },
@@ -622,11 +846,12 @@ export const Video = ({
         ? qualities[qualities.length - 1].src
         : qualities[selectedQualityIndex]?.src || qualities[0].src;
 
-    const previewNeeded = (showPreview || isDragging) && !initialState;
+    const previewNeeded = (showPreview || isDragging) && !initialState && !isYouTube;
 
     useEffect(() => {
+        if (isYouTube) return;
         cacheVideoSource(currentSrc);
-    }, [currentSrc]);
+    }, [currentSrc, isYouTube]);
 
     // --------------------------------------------------------
     // CONTROLS VISIBILITY
@@ -705,6 +930,7 @@ export const Video = ({
     }, []);
 
     const handleTogglePip = useCallback(async () => {
+        if (isYouTube) return; // Picture-in-picture isn't supported for embedded YouTube players
         const video = videoRef.current;
         if (!video || !document.pictureInPictureEnabled) return;
         try {
@@ -717,7 +943,7 @@ export const Video = ({
         } catch (err) {
             console.error("PiP Error:", err);
         }
-    }, []);
+    }, [isYouTube]);
 
     // --------------------------------------------------------
     // VOLUME CONTROLS
@@ -946,6 +1172,25 @@ export const Video = ({
     // CAPTIONS
     // --------------------------------------------------------
     const handleToggleCaptions = useCallback(() => {
+        if (isYouTube) {
+            const player = ytPlayerRef.current;
+            setShowCaptions((prev) => {
+                const next = !prev;
+                if (player) {
+                    try {
+                        if (next) {
+                            player.loadModule?.("captions");
+                            player.setOption?.("captions", "track", {});
+                        } else {
+                            player.unloadModule?.("captions");
+                        }
+                    } catch (e) { /* noop — video may not have captions available */ }
+                }
+                return next;
+            });
+            return;
+        }
+
         const video = videoRef.current;
         if (!video || !video.textTracks.length) return;
         const track = video.textTracks[0];
@@ -954,14 +1199,14 @@ export const Video = ({
             track.mode = next ? "showing" : "hidden";
             return next;
         });
-    }, []);
+    }, [isYouTube]);
 
 
     // ============================================================
     // CAPTIONS: Fetch and parse caption file
     // ============================================================
     useEffect(() => {
-        if (!captionSrc) {
+        if (!captionSrc || isYouTube) {
             setCaptionsData([]);
             return;
         }
@@ -990,7 +1235,7 @@ export const Video = ({
         return () => {
             cancelled = true;
         };
-    }, [captionSrc]);
+    }, [captionSrc, isYouTube]);
 
     // ============================================================
     // CAPTIONS: Update current caption text based on video time
@@ -1025,7 +1270,8 @@ export const Video = ({
 
 
     // --------------------------------------------------------
-    // QUALITY SWITCHING
+    // QUALITY SWITCHING (direct-file sources only — YouTube quality is
+    // handled separately below via the IFrame API)
     // --------------------------------------------------------
     const switchQuality = useCallback(
         (newIndex, auto = false) => {
@@ -1103,8 +1349,19 @@ export const Video = ({
         setActiveMenu(null);
     }, [qualities.length, switchQuality]);
 
+    // NEW: YouTube quality selection — delegates to the IFrame API instead
+    // of swapping <source> elements.
+    const handleYoutubeQualitySelect = useCallback((level) => {
+        const player = ytPlayerRef.current;
+        if (player) {
+            try { player.setPlaybackQuality(level); } catch (e) { /* noop */ }
+        }
+        setYoutubeQuality(level);
+        setActiveMenu(null);
+    }, []);
+
     // --------------------------------------------------------
-    // AUTO-QUALITY ENGINE
+    // AUTO-QUALITY ENGINE (direct-file sources only)
     // --------------------------------------------------------
     const runAutoQualityCheck = useCallback(() => {
         if (!isAutoQuality || !hasMultipleQualities || isSwitchingQualityRef.current) return;
@@ -1173,6 +1430,61 @@ export const Video = ({
         }
     }, [activeChapterIndex]);
 
+    // NEW: Chapters hover/drag trigger — mouse hover opens/closes the panel.
+    const handleChaptersMouseEnter = useCallback(() => {
+        if (!hasHoverRef.current) return;
+        setShowChaptersPanel(true);
+    }, []);
+
+    const handleChaptersMouseLeave = useCallback(() => {
+        if (!hasHoverRef.current) return;
+        // Ignore stray mouseleave events fired mid touch-drag
+        if (chaptersDragActiveRef.current) return;
+        setShowChaptersPanel(false);
+    }, []);
+
+    // NEW: Chapters hover/drag trigger — touch drag follows horizontal intent:
+    // drag right to reveal, drag left to hide.
+    const handleChaptersPointerDown = useCallback((e) => {
+        if (e.pointerType !== "touch") return;
+        e.stopPropagation();
+        chaptersDragActiveRef.current = true;
+        chaptersDragStartXRef.current = e.clientX;
+        chaptersDragLastXRef.current = e.clientX;
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+    }, []);
+
+    const handleChaptersPointerMove = useCallback((e) => {
+        if (e.pointerType !== "touch" || !chaptersDragActiveRef.current) return;
+        e.stopPropagation();
+
+        const dragDelta = e.clientX - chaptersDragStartXRef.current;
+        const movementDelta = e.clientX - chaptersDragLastXRef.current;
+        const threshold = 24;
+
+        if (dragDelta > threshold || movementDelta > threshold) {
+            setShowChaptersPanel(true);
+        } else if (dragDelta < -threshold || movementDelta < -threshold) {
+            setShowChaptersPanel(false);
+        }
+
+        chaptersDragLastXRef.current = e.clientX;
+    }, []);
+
+    const handleChaptersPointerUp = useCallback((e) => {
+        if (e.pointerType !== "touch") return;
+        e.stopPropagation();
+        chaptersDragActiveRef.current = false;
+        e.currentTarget.releasePointerCapture?.(e.pointerId);
+    }, []);
+
+    // Fallback for click/keyboard access (e.g. focus + Enter, or a plain tap
+    // that a touch device reports as pointerType "mouse")
+    const handleChaptersChevronClick = useCallback((e) => {
+        e.stopPropagation();
+        setShowChaptersPanel((prev) => !prev);
+    }, []);
+
     // --------------------------------------------------------
     // WRAPPER INTERACTION
     // --------------------------------------------------------
@@ -1183,25 +1495,34 @@ export const Video = ({
             setShowControls(true);
             if (videoRef.current && videoRef.current.paused) {
                 videoRef.current.play().catch(() => { });
+            } else if (!videoRef.current && isYouTube) {
+                // Player hasn't finished initializing yet — play as soon as it's ready.
+                pendingPlayRef.current = true;
             }
+            scheduleHideControls();
+        } else if (!hasHoverRef.current && !showControls) {
+            // NEW: on devices without real hover (touch), the first tap just
+            // reveals the controls instead of immediately toggling playback.
+            setShowControls(true);
             scheduleHideControls();
         } else {
             togglePlayPause();
         }
         // Show cursor on click
         handleCursorShow();
-    }, [isDragging, initialState, togglePlayPause, scheduleHideControls, handleCursorShow]);
+    }, [isDragging, initialState, togglePlayPause, scheduleHideControls, handleCursorShow, isYouTube, showControls]);
 
     const handleWrapperMouseEnter = useCallback(() => {
         if (initialState) {
-            videoRef.current?.play().catch(() => { });
+            // Skip hover-to-preview autoplay for YouTube; only start on click.
+            if (!isYouTube) videoRef.current?.play().catch(() => { });
         } else {
             setShowControls(true);
             if (isPlaying) scheduleHideControls();
         }
         // Show cursor when mouse enters
         handleCursorShow();
-    }, [initialState, isPlaying, scheduleHideControls, handleCursorShow]);
+    }, [initialState, isPlaying, scheduleHideControls, handleCursorShow, isYouTube]);
 
     const handleWrapperMouseMove = useCallback(() => {
         if (!initialState) {
@@ -1216,7 +1537,7 @@ export const Video = ({
         if (isDragging) return;
         if (initialState) {
             clearControlsTimeout();
-            if (videoRef.current) {
+            if (!isYouTube && videoRef.current) {
                 videoRef.current.pause();
                 videoRef.current.currentTime = 0;
             }
@@ -1229,7 +1550,7 @@ export const Video = ({
         }
         // Show cursor when mouse leaves (prevents stuck hidden state)
         handleCursorShow();
-    }, [isDragging, initialState, isPlaying, scheduleHideControls, clearControlsTimeout, handleCursorShow]);
+    }, [isDragging, initialState, isPlaying, scheduleHideControls, clearControlsTimeout, handleCursorShow, isYouTube]);
 
     // --------------------------------------------------------
     // VIDEO EVENT HANDLERS
@@ -1285,6 +1606,97 @@ export const Video = ({
     const handleLoadedMetadata = useCallback(() => { }, []);
 
     // --------------------------------------------------------
+    // YOUTUBE PLAYER INITIALIZATION
+    // --------------------------------------------------------
+    useEffect(() => {
+        if (!isYouTube) return;
+        let cancelled = false;
+        let player = null;
+
+        loadYouTubeIframeApi().then((YT) => {
+            if (cancelled || !YT || !youtubeContainerRef.current) return;
+
+            player = new YT.Player(youtubeContainerRef.current, {
+                videoId: resolvedYoutubeId,
+                playerVars: {
+                    autoplay: 0,
+                    controls: 0,
+                    disablekb: 1,
+                    modestbranding: 1,
+                    playsinline: 1,
+                    rel: 0,
+                    fs: 0,
+                    iv_load_policy: 3,
+                    origin: typeof window !== "undefined" ? window.location.origin : undefined,
+                },
+                events: {
+                    onReady: (e) => {
+                        if (cancelled) return;
+                        ytPlayerRef.current = e.target;
+                        videoRef.current = createYouTubeShim(e.target);
+                        setDuration(e.target.getDuration() || 0);
+                        try {
+                            const levels = e.target.getAvailableQualityLevels();
+                            if (levels && levels.length) {
+                                setYoutubeQualities(
+                                    levels.map((level) => ({
+                                        level,
+                                        label: YT_QUALITY_LABELS[level] || level,
+                                    }))
+                                );
+                            }
+                        } catch (err) { /* noop */ }
+                        if (autoplay || pendingPlayRef.current) {
+                            pendingPlayRef.current = false;
+                            e.target.playVideo();
+                        }
+                    },
+                    onStateChange: (e) => {
+                        if (cancelled || !window.YT) return;
+                        const state = e.data;
+                        if (state === window.YT.PlayerState.PLAYING) {
+                            handleOnPlay();
+                            setDuration(e.target.getDuration() || 0);
+                        } else if (state === window.YT.PlayerState.PAUSED) {
+                            handleOnPause();
+                        } else if (state === window.YT.PlayerState.ENDED) {
+                            handleVideoEnd();
+                        } else if (state === window.YT.PlayerState.BUFFERING) {
+                            handleWaiting();
+                        } else if (state === window.YT.PlayerState.CUED) {
+                            handleCanPlay();
+                        }
+                    },
+                    onPlaybackQualityChange: (e) => {
+                        if (cancelled) return;
+                        setYoutubeQuality(e.data);
+                    },
+                    onError: () => {
+                        if (cancelled) return;
+                        setIsLoading(false);
+                    },
+                },
+            });
+        });
+
+        return () => {
+            cancelled = true;
+            if (player && typeof player.destroy === "function") {
+                try { player.destroy(); } catch (e) { /* noop */ }
+            }
+            ytPlayerRef.current = null;
+            if (videoRef.current && videoRef.current.__isYouTubeShim) {
+                videoRef.current = null;
+            }
+            setYoutubeQualities([]);
+            setYoutubeQuality("default");
+        };
+        // handleOnPlay/handleOnPause/etc. are stable-enough useCallbacks; we
+        // intentionally key this effect only off identity of the video itself.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isYouTube, resolvedYoutubeId]);
+
+    // --------------------------------------------------------
     // PROGRESS BAR
     // --------------------------------------------------------
     const getRatioFromEvent = useCallback((e) => {
@@ -1313,6 +1725,8 @@ export const Video = ({
             setPreviewTime(time);
             setShowPreview(true);
 
+            if (isYouTube) return; // No cross-origin frame access for scrub thumbnails
+
             const now = Date.now();
             if (
                 previewVideo &&
@@ -1324,7 +1738,7 @@ export const Video = ({
                 previewVideo.currentTime = time;
             }
         },
-        [getRatioFromEvent]
+        [getRatioFromEvent, isYouTube]
     );
 
     const handlePreviewSeeked = useCallback(() => {
@@ -1471,7 +1885,7 @@ export const Video = ({
     // Add this useEffect after the captions loading effect
     useEffect(() => {
         const video = videoRef.current;
-        if (!video || !showCaptions || captionsData.length === 0) {
+        if (!video || !showCaptions || captionsData.length === 0 || isYouTube) {
             if (!showCaptions) setCaptionsText('');
             return;
         }
@@ -1502,7 +1916,7 @@ export const Video = ({
             if (rafId) cancelAnimationFrame(rafId);
             video.removeEventListener('timeupdate', updateCaptions);
         };
-    }, [showCaptions, captionsData]); // Re-run when showCaptions or captionsData changes
+    }, [showCaptions, captionsData, isYouTube]); // Re-run when showCaptions or captionsData changes
 
 
     // --------------------------------------------------------
@@ -1537,6 +1951,7 @@ export const Video = ({
     // SYNC INITIAL CAPTIONS STATE TO NATIVE TRACK
     // --------------------------------------------------------
     useEffect(() => {
+        if (isYouTube) return;
         const video = videoRef.current;
         if (video && video.textTracks.length) {
             video.textTracks[0].mode = showCaptions ? "showing" : "hidden";
@@ -1569,10 +1984,10 @@ export const Video = ({
     }, [activeMenu]);
 
     // --------------------------------------------------------
-    // AUTO-QUALITY PERIODIC CHECK
+    // AUTO-QUALITY PERIODIC CHECK (direct-file sources only)
     // --------------------------------------------------------
     useEffect(() => {
-        if (!isAutoQuality || !hasMultipleQualities) {
+        if (!isAutoQuality || !hasMultipleQualities || isYouTube) {
             if (autoQualityIntervalRef.current) {
                 clearInterval(autoQualityIntervalRef.current);
                 autoQualityIntervalRef.current = null;
@@ -1591,7 +2006,7 @@ export const Video = ({
                 autoQualityIntervalRef.current = null;
             }
         };
-    }, [isAutoQuality, hasMultipleQualities, runAutoQualityCheck]);
+    }, [isAutoQuality, hasMultipleQualities, isYouTube, runAutoQualityCheck]);
 
     // --------------------------------------------------------
     // CLEANUP
@@ -1606,58 +2021,26 @@ export const Video = ({
     }, []);
 
     useEffect(() => {
+        if (isYouTube) return;
         const video = videoRef.current;
         if (video) {
             video.volume = volume;
             video.muted = isMuted;
         }
-    }, [volume, isMuted]);
-
-    // ============================================================
-    // CAPTIONS UPDATE BASED ON VIDEO TIME
-    // ============================================================
-
-    // Add this useEffect after the captions loading effect
-    useEffect(() => {
-        const video = videoRef.current;
-        if (!video || !showCaptions || captionsData.length === 0) {
-            if (!showCaptions) setCaptionsText('');
-            return;
-        }
-
-        let rafId = null;
-
-        const updateCaptions = () => {
-            const currentTime = video.currentTime;
-            const activeCaption = captionsData.find(
-                caption => currentTime >= caption.start && currentTime < caption.end
-            );
-
-            setCaptionsText(activeCaption ? activeCaption.text : '');
-        };
-
-        // Use requestAnimationFrame for smooth updates
-        const updateLoop = () => {
-            updateCaptions();
-            rafId = requestAnimationFrame(updateLoop);
-        };
-
-        updateLoop();
-
-        // Also update on timeupdate events (more reliable)
-        video.addEventListener('timeupdate', updateCaptions);
-
-        return () => {
-            if (rafId) cancelAnimationFrame(rafId);
-            video.removeEventListener('timeupdate', updateCaptions);
-        };
-    }, [showCaptions, captionsData]); // Re-run when showCaptions or captionsData changes
+    }, [volume, isMuted, isYouTube]);
 
     // --------------------------------------------------------
     // Memoized Settings Menu
     // --------------------------------------------------------
+    const hasMultipleYoutubeQualities = youtubeQualities.length > 1;
+
     const SettingsMenu = useMemo(() => {
         if (!activeMenu) return null;
+
+        const showQualityRow = isYouTube ? hasMultipleYoutubeQualities : hasMultipleQualities;
+        const qualityValueLabel = isYouTube
+            ? (youtubeQuality === "default" ? "Auto" : (YT_QUALITY_LABELS[youtubeQuality] || youtubeQuality))
+            : (isAutoQuality ? "Auto" : qualities[selectedQualityIndex]?.label);
 
         return (
             <div
@@ -1670,7 +2053,7 @@ export const Video = ({
             >
                 {activeMenu === "settings" && (
                     <div className="settings-menu__panel" role="menu">
-                        {hasMultipleQualities && (
+                        {showQualityRow && (
                             <button
                                 className="settings-menu__item"
                                 role="menuitem"
@@ -1678,20 +2061,22 @@ export const Video = ({
                             >
                                 <span>Quality</span>
                                 <span className="settings-menu__item-value">
-                                    {isAutoQuality ? "Auto" : qualities[selectedQualityIndex]?.label}
+                                    {qualityValueLabel}
                                 </span>
                             </button>
                         )}
-                        <button
-                            className="settings-menu__item"
-                            role="menuitem"
-                            onClick={() => openSubMenu("speed")}
-                        >
-                            <span>Playback speed</span>
-                            <span className="settings-menu__item-value">
-                                {playbackSpeed === 1 ? "Normal" : `${playbackSpeed}x`}
-                            </span>
-                        </button>
+                        {!isYouTube && (
+                            <button
+                                className="settings-menu__item"
+                                role="menuitem"
+                                onClick={() => openSubMenu("speed")}
+                            >
+                                <span>Playback speed</span>
+                                <span className="settings-menu__item-value">
+                                    {playbackSpeed === 1 ? "Normal" : `${playbackSpeed}x`}
+                                </span>
+                            </button>
+                        )}
                         <button
                             className="settings-menu__item"
                             role="menuitem"
@@ -1715,37 +2100,68 @@ export const Video = ({
                             <BackArrowIcon />
                             <span>Quality</span>
                         </button>
-                        {hasMultipleQualities && (
-                            <button
-                                className={`settings-menu__item${isAutoQuality ? " settings-menu__item--active" : ""}`}
-                                role="menuitemradio"
-                                aria-checked={isAutoQuality}
-                                onClick={handleAutoQualityToggle}
-                            >
-                                <span>Auto</span>
-                                {isAutoQuality && <CheckIcon />}
-                            </button>
-                        )}
-                        {[...qualities].reverse().map((q) => {
-                            const idx = qualities.indexOf(q);
-                            const isActive = !isAutoQuality && idx === selectedQualityIndex;
-                            return (
+                        {isYouTube ? (
+                            <>
                                 <button
-                                    key={q.height}
-                                    className={`settings-menu__item${isActive ? " settings-menu__item--active" : ""}`}
+                                    className={`settings-menu__item${youtubeQuality === "default" ? " settings-menu__item--active" : ""}`}
                                     role="menuitemradio"
-                                    aria-checked={isActive}
-                                    onClick={() => handleQualitySelect(idx)}
+                                    aria-checked={youtubeQuality === "default"}
+                                    onClick={() => handleYoutubeQualitySelect("default")}
                                 >
-                                    <span>{q.label}</span>
-                                    {isActive && <CheckIcon />}
+                                    <span>Auto</span>
+                                    {youtubeQuality === "default" && <CheckIcon />}
                                 </button>
-                            );
-                        })}
+                                {[...youtubeQualities].reverse().map((q) => {
+                                    const isActive = youtubeQuality === q.level;
+                                    return (
+                                        <button
+                                            key={q.level}
+                                            className={`settings-menu__item${isActive ? " settings-menu__item--active" : ""}`}
+                                            role="menuitemradio"
+                                            aria-checked={isActive}
+                                            onClick={() => handleYoutubeQualitySelect(q.level)}
+                                        >
+                                            <span>{q.label}</span>
+                                            {isActive && <CheckIcon />}
+                                        </button>
+                                    );
+                                })}
+                            </>
+                        ) : (
+                            <>
+                                {hasMultipleQualities && (
+                                    <button
+                                        className={`settings-menu__item${isAutoQuality ? " settings-menu__item--active" : ""}`}
+                                        role="menuitemradio"
+                                        aria-checked={isAutoQuality}
+                                        onClick={handleAutoQualityToggle}
+                                    >
+                                        <span>Auto</span>
+                                        {isAutoQuality && <CheckIcon />}
+                                    </button>
+                                )}
+                                {[...qualities].reverse().map((q) => {
+                                    const idx = qualities.indexOf(q);
+                                    const isActive = !isAutoQuality && idx === selectedQualityIndex;
+                                    return (
+                                        <button
+                                            key={q.height}
+                                            className={`settings-menu__item${isActive ? " settings-menu__item--active" : ""}`}
+                                            role="menuitemradio"
+                                            aria-checked={isActive}
+                                            onClick={() => handleQualitySelect(idx)}
+                                        >
+                                            <span>{q.label}</span>
+                                            {isActive && <CheckIcon />}
+                                        </button>
+                                    );
+                                })}
+                            </>
+                        )}
                     </div>
                 )}
 
-                {activeMenu === "speed" && (
+                {activeMenu === "speed" && !isYouTube && (
                     <div className="settings-menu__panel" role="menu">
                         <button
                             className="settings-menu__item settings-menu__item--header"
@@ -1812,23 +2228,39 @@ export const Video = ({
                 )}
             </div>
         );
-    }, [activeMenu, hasMultipleQualities, isAutoQuality, selectedQualityIndex, qualities, playbackSpeed, showCaptions, handleAutoQualityToggle, handleQualitySelect, handleSpeedSelect, handleToggleCaptions, closeMenu, goBackToSettings, openSubMenu]);
+    }, [activeMenu, isYouTube, hasMultipleYoutubeQualities, hasMultipleQualities, isAutoQuality, selectedQualityIndex, qualities, youtubeQualities, youtubeQuality, playbackSpeed, showCaptions, handleAutoQualityToggle, handleQualitySelect, handleYoutubeQualitySelect, handleSpeedSelect, handleToggleCaptions, closeMenu, goBackToSettings, openSubMenu]);
 
     // --------------------------------------------------------
     // Memoized Chapters Panel
     // --------------------------------------------------------
+    // NEW: Panel now stays mounted whenever there are chapters, and slides
+    // open/closed via the "is-open" class (driven by hover/drag on the
+    // chevron handle) instead of mounting/unmounting on a button toggle.
     const ChaptersPanel = useMemo(() => {
         if (!chapters.length) return null;
 
         return (
             <div
-                className={`chapters-panel ${controlsVisible ? "is-visible" : ""}`}
+                className={`chapters-panel ${showChaptersPanel ? "is-open" : ""}`}
+                ref={chaptersPanelElRef}
                 onClick={(e) => e.stopPropagation()}
-                onMouseEnter={() => clearControlsTimeout()}
+                onMouseEnter={() => {
+                    if (!hasHoverRef.current) return;
+                    clearControlsTimeout();
+                    setShowChaptersPanel(true);
+                }}
                 onMouseLeave={() => {
+                    if (!hasHoverRef.current) return;
+                    setShowChaptersPanel(false);
                     if (isPlaying && !initialState) scheduleHideControls();
                 }}
                 onMouseMove={(e) => e.stopPropagation()}
+                onMouseEnter={handleChaptersMouseEnter}
+                onMouseLeave={handleChaptersMouseLeave}
+                onPointerDown={handleChaptersPointerDown}
+                onPointerMove={handleChaptersPointerMove}
+                onPointerUp={handleChaptersPointerUp}
+                onPointerCancel={handleChaptersPointerUp}
             >
                 <div className="wrapper-mask">
                     <div className="scroller-mask scroller">
@@ -1858,8 +2290,7 @@ export const Video = ({
                 </div>
             </div>
         );
-    }, [chapters, controlsVisible, activeChapterIndex, isPlaying, initialState, clearControlsTimeout, scheduleHideControls, handleChapterSeek]);
-
+    }, [chapters, activeChapterIndex, isPlaying, initialState, clearControlsTimeout, scheduleHideControls, handleChapterSeek, showChaptersPanel]);
     // --------------------------------------------------------
     // RENDER
     // --------------------------------------------------------
@@ -1882,52 +2313,65 @@ export const Video = ({
                 onMouseLeave={handleWrapperMouseLeave}
                 onClick={handleWrapperClick}
             >
-                {/* --- Main video element --- */}
-                <video
-                    ref={videoRef}
-                    playsInline
-                    preload="auto"
-                    className="content"
-                    poster={thumbnail || DEFAULT_THUMBNAIL}
-                    onEnded={handleVideoEnd}
-                    onPlay={handleOnPlay}
-                    onPause={handleOnPause}
-                    onLoadStart={handleLoadStart}
-                    onWaiting={handleWaiting}
-                    onCanPlay={handleCanPlay}
-                    onCanPlayThrough={handleCanPlayThrough}
-                    onPlaying={handlePlaying}
-                    onStalled={handleStalled}
-                    onSuspend={handleSuspend}
-                    onProgress={handleProgress}
-                    onLoadedMetadata={handleLoadedMetadata}
-                >
-                    {!hasMultipleQualities && (
-                        <>
-                            <source src={src || DEFAULT_SRC} type="video/mp4" />
-                        </>
-                    )}
-                    <track
-                        label="English captions"
-                        kind="captions"
-                        srclang="en"
-                        src={captionSrc}
-                        default
-                    />
-                    Your browser does not support HTML5 video.
-                </video>
+                {/* --- Main video element (direct file) or YouTube IFrame mount point --- */}
+                {isYouTube ? (
+                    // NOTE: the YT IFrame API replaces the element you hand it
+                    // with its own <iframe> — it does not insert the iframe
+                    // *into* that element. So we mount onto an inner
+                    // throwaway div, keeping this outer div (and its
+                    // pointer-events: none styling) as the iframe's parent.
+                    <div className="content youtube-embed" aria-hidden="true">
+                        <div ref={youtubeContainerRef} />
+                    </div>
+                ) : (
+                    <video
+                        ref={videoRef}
+                        playsInline
+                        preload="auto"
+                        className="content"
+                        poster={thumbnail || DEFAULT_THUMBNAIL}
+                        onEnded={handleVideoEnd}
+                        onPlay={handleOnPlay}
+                        onPause={handleOnPause}
+                        onLoadStart={handleLoadStart}
+                        onWaiting={handleWaiting}
+                        onCanPlay={handleCanPlay}
+                        onCanPlayThrough={handleCanPlayThrough}
+                        onPlaying={handlePlaying}
+                        onStalled={handleStalled}
+                        onSuspend={handleSuspend}
+                        onProgress={handleProgress}
+                        onLoadedMetadata={handleLoadedMetadata}
+                    >
+                        {!hasMultipleQualities && (
+                            <>
+                                <source src={src || DEFAULT_SRC} type="video/mp4" />
+                            </>
+                        )}
+                        <track
+                            label="English captions"
+                            kind="captions"
+                            srclang="en"
+                            src={captionSrc}
+                            default
+                        />
+                        Your browser does not support HTML5 video.
+                    </video>
+                )}
 
-                {/* --- Hidden preview video for scrub thumbnails --- */}
-                <video
-                    ref={previewVideoRef}
-                    className="preview-video"
-                    src={previewNeeded ? (getCachedVideoUrl(currentSrc) || currentSrc) : undefined}
-                    muted
-                    preload="none"
-                    onSeeked={handlePreviewSeeked}
-                    tabIndex={-1}
-                    aria-hidden="true"
-                />
+                {/* --- Hidden preview video for scrub thumbnails (direct file only) --- */}
+                {!isYouTube && (
+                    <video
+                        ref={previewVideoRef}
+                        className="preview-video"
+                        src={previewNeeded ? (getCachedVideoUrl(currentSrc) || currentSrc) : undefined}
+                        muted
+                        preload="none"
+                        onSeeked={handlePreviewSeeked}
+                        tabIndex={-1}
+                        aria-hidden="true"
+                    />
+                )}
 
                 {/* --- Thumbnail overlay --- */}
                 <img
@@ -1977,15 +2421,44 @@ export const Video = ({
                     <Spinner size="xlarge" />
                 </div>
 
-                {/* --- Captions display --- */}
-                {showCaptions && !centered && variant === "immersive" && (
-                    <div className="captions" aria-live="polite" aria-atomic="true">
+                {/* --- Captions display (direct file only — YouTube renders its own burned-in captions) --- */}
+                {!isYouTube && showCaptions && variant === "immersive" && (
+                    <div className="captions" aria-live="polite" style={{ marginBottom: showControls || centered ? "65px" : "0" }} aria-atomic="true">
+                        <p>{captionsText}</p>
+                    </div>
+                )}
+                {!isYouTube && showCaptions && variant === "cinematic" && (
+                    <div className="captions" aria-live="polite" style={{ marginBottom: showControls ? "65px" : "0" }} aria-atomic="true">
                         <p>{captionsText}</p>
                     </div>
                 )}
 
-                {/* --- Chapters panel (left side, shown alongside controls) --- */}
-                {ChaptersPanel}
+                {/* --- Chapters chevron handle + sliding panel (hover on desktop, drag on touch) --- */}
+                {chapters.length > 0 && showControls && (
+                    <div
+                        className="chapters-hover-zone"
+                        ref={chaptersZoneRef}
+                        onClick={(e) => e.stopPropagation()}
+                        onMouseEnter={handleChaptersMouseEnter}
+                        onMouseLeave={handleChaptersMouseLeave}
+                        onPointerDown={handleChaptersPointerDown}
+                        onPointerMove={handleChaptersPointerMove}
+                        onPointerUp={handleChaptersPointerUp}
+                        onPointerCancel={handleChaptersPointerUp}
+                    >
+                        <button
+                            type="button"
+                            ref={chaptersChevronRef}
+                            className={`chapters-chevron ${showChaptersPanel ? "is-open" : ""}`}
+                            aria-label={showChaptersPanel ? "Hide chapters" : "Show chapters"}
+                            aria-expanded={showChaptersPanel}
+                            onClick={handleChaptersChevronClick}
+                        >
+                            <ChevronLeftIcon />
+                        </button>
+                        {ChaptersPanel}
+                    </div>
+                )}
 
                 {/* --- Top controls --- */}
                 <div
@@ -2027,16 +2500,18 @@ export const Video = ({
                                 </button>
                             </Tooltip>
 
-                            <Tooltip title="Picture-in-picture" direction="bottom">
-                                <button
-                                    onClick={handleTogglePip}
-                                    className="video-button"
-                                    name="Picture-in-picture"
-                                    aria-label="Picture-in-picture"
-                                >
-                                    <PipIcon />
-                                </button>
-                            </Tooltip>
+                            {!isYouTube && (
+                                <Tooltip title="Picture-in-picture" direction="bottom">
+                                    <button
+                                        onClick={handleTogglePip}
+                                        className="video-button"
+                                        name="Picture-in-picture"
+                                        aria-label="Picture-in-picture"
+                                    >
+                                        <PipIcon />
+                                    </button>
+                                </Tooltip>
+                            )}
 
                             <Tooltip title={isFullscreen ? "Exit full screen" : "Full screen"} shortcut={["F"]} direction="bottom">
                                 <button
@@ -2062,11 +2537,7 @@ export const Video = ({
                     }}
                     onMouseMove={(e) => e.stopPropagation()}
                 >
-                    {!centered && showCaptions && variant === "cinematic" && (
-                        <div className="captions cinematic" aria-live="polite" aria-atomic="true">
-                            <p>{captionsText}</p>
-                        </div>
-                    )}
+
                     {/* --- Progress bar --- */}
                     <div
                         ref={trackRef}
@@ -2120,12 +2591,14 @@ export const Video = ({
                                 style={{ left: `${previewX}px` }}
                                 aria-hidden="true"
                             >
-                                <canvas
-                                    ref={previewCanvasRef}
-                                    width={PREVIEW_WIDTH}
-                                    height={PREVIEW_HEIGHT}
-                                    className="progress-preview-canvas"
-                                />
+                                {!isYouTube && (
+                                    <canvas
+                                        ref={previewCanvasRef}
+                                        width={PREVIEW_WIDTH}
+                                        height={PREVIEW_HEIGHT}
+                                        className="progress-preview-canvas"
+                                    />
+                                )}
                                 <span className="progress-preview-time">
                                     {formatTime(previewTime)}
                                 </span>
@@ -2256,7 +2729,7 @@ export const Video = ({
                             </div>
 
                             <div className="right-controls" style={{ position: "relative" }}>
-                                <Tooltip title="Captions" shortcut={["C"]} direction="top">
+                                {captionSrc && <Tooltip title="Captions" shortcut={["C"]} direction="top">
                                     <button
                                         onClick={handleToggleCaptions}
                                         className="video-button captions-control"
@@ -2266,7 +2739,7 @@ export const Video = ({
                                     >
                                         {showCaptions ? <CaptionsOnIcon /> : <CaptionsOffIcon />}
                                     </button>
-                                </Tooltip>
+                                </Tooltip>}
 
                                 <Tooltip title="Settings" direction="top">
                                     <button
@@ -2284,16 +2757,18 @@ export const Video = ({
 
                                 {SettingsMenu}
 
-                                <Tooltip title="Picture-in-picture" direction="top">
-                                    <button
-                                        onClick={handleTogglePip}
-                                        className="video-button"
-                                        name="Picture-in-picture"
-                                        aria-label="Picture-in-picture"
-                                    >
-                                        <PipIcon />
-                                    </button>
-                                </Tooltip>
+                                {!isYouTube && (
+                                    <Tooltip title="Picture-in-picture" direction="top">
+                                        <button
+                                            onClick={handleTogglePip}
+                                            className="video-button"
+                                            name="Picture-in-picture"
+                                            aria-label="Picture-in-picture"
+                                        >
+                                            <PipIcon />
+                                        </button>
+                                    </Tooltip>
+                                )}
 
                                 <Tooltip title={isFullscreen ? "Exit full screen" : "Full screen"} shortcut={["F"]} direction="top">
                                     <button
