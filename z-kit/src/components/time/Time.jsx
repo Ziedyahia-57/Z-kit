@@ -76,19 +76,22 @@ function detect12h() {
     return tryDetect(undefined) ?? tryDetect(navigator.language) ?? false;
 }
 
-export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange, showIcon = false, showSeconds = false }) => {
-    const [uses12h, setUses12h] = useState(detect12h);
+export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange, showIcon = false, showSeconds = false, format = "auto" }) => {
+    const [detectedUses12h, setDetectedUses12h] = useState(detect12h);
 
     // Re-detect when user returns to the tab (catches settings changes)
     useEffect(() => {
+        if (format !== "auto") return;
         const handleVisibility = () => {
             if (document.visibilityState === "visible") {
-                setUses12h(detect12h());
+                setDetectedUses12h(detect12h());
             }
         };
         document.addEventListener("visibilitychange", handleVisibility);
         return () => document.removeEventListener("visibilitychange", handleVisibility);
-    }, []);
+    }, [format]);
+
+    const uses12h = format === "12h" ? true : format === "24h" ? false : detectedUses12h;
 
     const ACTIVE_SEGMENTS = uses12h
         ? (showSeconds ? SEGMENTS_12H_HMS : SEGMENTS_12H_HM)
@@ -444,7 +447,7 @@ export const Time = ({ label, disabled = false, fadeIconOnFocus = true, onChange
                     name="time"
                     placeholder={placeholderText}
                     autoComplete="off"
-                    className={`time-input${error ? " error" : ""}${!isFocused && allEmpty ? " placeholder" : ""} custom-render`}
+                    className={`time-input ${error ? " error" : ""} ${!isFocused && allEmpty ? " placeholder" : ""} custom-render`}
                     value={isFocused || !allEmpty ? displayValue : ""}
                     id={id}
                     onFocus={handleFocus}

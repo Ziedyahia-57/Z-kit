@@ -77,6 +77,12 @@ const meta = {
             name: "Show Icon",
             description: "Toggle icon visibility inside the time input",
         },
+        format: {
+            control: { type: "select" },
+            options: ["auto", "12h", "24h"],
+            name: "Time Format",
+            description: "Defines the time format for the input",
+        },
         onClick: {
             action: "clicked",
             name: "onClick",
@@ -94,6 +100,7 @@ export const time = {
         disabled: false,
         placeholder: "Placeholder",
         showIcon: true,
-        showSeconds: false
+        showSeconds: false,
+        format: "auto",
     }
 }
