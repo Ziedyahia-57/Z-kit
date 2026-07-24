@@ -30,12 +30,6 @@
         }
     }
 
-    // Leave room at the bottom for the progress bar while uploading so the
-    // rest of the card doesn't shift when the bar appears/disappears.
-    &.attachment--uploading {
-        padding-bottom: 10px;
-    }
-
     &.attachment--error {
         border-color: var(--red-600);
 
