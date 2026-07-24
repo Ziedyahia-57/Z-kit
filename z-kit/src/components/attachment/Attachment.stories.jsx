@@ -110,7 +110,7 @@ export const attachment = {
         name: "quarterly-report.pdf",
         size: 2_500_000,
         status: "uploading",
-        indeterminate: false,
+        indeterminate: true,
         progress: 42,
     }
 };
