@@ -255,3 +255,30 @@ input[type="search"]::-webkit-search-results-decoration {
         transform: rotate(360deg);
     }
 }
+
+.shimmer {
+    background: linear-gradient(90deg,
+            var(--gray-100) 30%,
+            var(--gray-200) 50%,
+            var(--gray-100) 70%);
+    background-size: 400%;
+    animation: shimmer 1.5s infinite linear;
+
+    body[data-dark="true"] & {
+        background: linear-gradient(90deg,
+                var(--gray-900) 30%,
+                var(--gray-800) 50%,
+                var(--gray-900) 70%);
+    }
+
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 100% 100%;
+    }
+
+    100% {
+        background-position: 0 0;
+    }
+}

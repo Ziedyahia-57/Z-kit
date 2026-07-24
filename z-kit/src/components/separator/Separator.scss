@@ -6,7 +6,7 @@
 
 
     body[data-dark="true"] & {
-        background: var(--gray-900);
+        background: var(--gray-800);
     }
 
     &:where([data-orientation=vertical]) {

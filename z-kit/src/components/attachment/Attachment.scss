@@ -1,0 +1,310 @@
+@use '../tokens';
+
+.attachment {
+    position: relative;
+    padding: 8px;
+    display: flex;
+    gap: 8px;
+    min-width: 175px;
+    width: 100%;
+    max-width: 250px;
+    background: var(--gray-25);
+    border: 1px solid var(--gray-100);
+    border-radius: 8px;
+    align-items: center;
+    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--gray-50);
+        border-color: var(--gray-200);
+    }
+
+    body[data-dark="true"] & {
+        background: var(--gray-900);
+        border-color: var(--gray-800);
+
+        &:hover {
+            background: var(--gray-800);
+            border-color: var(--gray-700);
+        }
+    }
+
+    // Leave room at the bottom for the progress bar while uploading so the
+    // rest of the card doesn't shift when the bar appears/disappears.
+    &.attachment--uploading {
+        padding-bottom: 10px;
+    }
+
+    &.attachment--error {
+        border-color: var(--red-600);
+
+        &:hover {
+            border-color: var(--red-600);
+        }
+
+        body[data-dark="true"] & {
+            border-color: var(--red-400);
+
+            &:hover {
+                border-color: var(--red-400);
+            }
+        }
+    }
+
+    .file-icon {
+        aspect-ratio: 1;
+        width: 2.5rem;
+        height: 2.5rem;
+        align-self: center;
+        position: relative;
+        flex-shrink: 0;
+
+        --file-color: var(--gray-400);
+        --badge-bg: var(--gray-500);
+        transition: stroke 0.3s ease;
+
+        body[data-dark="true"] & {
+            --file-color: var(--gray-600);
+        }
+
+        &::after {
+            content: attr(data-ext);
+            position: absolute;
+            bottom: 2px;
+            left: 5px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-size: 0.4375rem;
+            font-weight: 600;
+            line-height: 1;
+            padding: 1px;
+            border-radius: 3px;
+            color: var(--gray-50);
+            background: var(--badge-bg);
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 1;
+            letter-spacing: 0.02em;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        &.red {
+            color: var(--red-600);
+            --badge-bg: var(--red-700);
+
+            body[data-dark="true"] & {
+                color: var(--red-400);
+                --badge-bg: var(--red-600);
+            }
+        }
+
+        &.orange {
+            color: var(--orange-600);
+            --badge-bg: var(--orange-700);
+
+            body[data-dark="true"] & {
+                color: var(--orange-400);
+                --badge-bg: var(--orange-600);
+            }
+        }
+
+        &.yellow {
+            color: var(--yellow-600);
+            --badge-bg: var(--yellow-700);
+
+            body[data-dark="true"] & {
+                color: var(--yellow-400);
+                --badge-bg: var(--yellow-600);
+            }
+        }
+
+        &.lime {
+            color: var(--lime-600);
+            --badge-bg: var(--lime-700);
+
+            body[data-dark="true"] & {
+                color: var(--lime-400);
+                --badge-bg: var(--lime-600);
+            }
+        }
+
+        &.green {
+            color: var(--green-600);
+            --badge-bg: var(--green-700);
+
+            body[data-dark="true"] & {
+                color: var(--green-400);
+                --badge-bg: var(--green-600);
+            }
+        }
+
+        &.lightBlue {
+            color: var(--lightBlue-600);
+            --badge-bg: var(--lightBlue-700);
+
+            body[data-dark="true"] & {
+                color: var(--lightBlue-400);
+                --badge-bg: var(--lightBlue-600);
+            }
+        }
+
+        &.blue {
+            color: var(--primary-600);
+            --badge-bg: var(--primary-700);
+
+            body[data-dark="true"] & {
+                color: var(--primary-400);
+                --badge-bg: var(--primary-600);
+            }
+        }
+
+        &.purple {
+            color: var(--purple-600);
+            --badge-bg: var(--purple-700);
+
+            body[data-dark="true"] & {
+                color: var(--purple-400);
+                --badge-bg: var(--purple-600);
+            }
+        }
+
+        &.pink {
+            color: var(--pink-600);
+            --badge-bg: var(--pink-700);
+
+            body[data-dark="true"] & {
+                color: var(--pink-400);
+                --badge-bg: var(--pink-600);
+            }
+        }
+
+        &.gray {
+            color: var(--gray-600);
+            --badge-bg: var(--gray-700);
+
+            body[data-dark="true"] & {
+                color: var(--gray-400);
+                --badge-bg: var(--gray-600);
+            }
+        }
+    }
+
+    .attachment-details {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        overflow: hidden;
+        min-width: 0;
+
+        .file-name {
+            font-size: 1rem;
+            color: var(--gray-950);
+            white-space: nowrap;
+
+            p {
+                margin: 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            body[data-dark="true"] & {
+                color: var(--gray-50);
+            }
+        }
+
+        .file-size {
+            color: var(--gray-400);
+
+            p {
+                font-size: 0.75rem;
+                margin: 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .error-text {
+                color: var(--red-600);
+            }
+
+            body[data-dark="true"] & {
+                color: var(--gray-600);
+
+                .error-text {
+                    color: var(--red-400);
+                }
+            }
+        }
+    }
+
+    // Track sits under the padding, matching the horizontal inset of the card.
+    .loading-progress-track {
+        position: absolute;
+        bottom: 0;
+        left: 8px;
+        right: 8px;
+        height: 2px;
+        border-radius: 1px;
+        overflow: hidden;
+
+        .loading-progress-fill {
+            height: 100%;
+            border-radius: 1px;
+            background: var(--gray-800);
+            // Smoothly animates toward each new progress value as it streams in.
+            transition: width 0.25s ease-out;
+
+            body[data-dark="true"] & {
+                background: var(--gray-200);
+            }
+        }
+
+        // Unknown progress (no byte-level updates available): a moving
+        // segment rather than a static/misleading fixed-width bar.
+        &--indeterminate {
+
+            &::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 40%;
+                border-radius: 1px;
+                background: var(--gray-800);
+                animation: attachment-indeterminate 1.2s ease-in-out infinite;
+
+                body[data-dark="true"] & {
+                    background: var(--gray-200);
+                }
+            }
+        }
+    }
+
+    button.button.ghost {
+        margin-left: auto;
+
+        &:hover {
+            background: var(--gray-100) !important;
+
+            body[data-dark="true"] & {
+                background: var(--gray-700) !important;
+            }
+        }
+    }
+}
+
+@keyframes attachment-indeterminate {
+    0% {
+        left: -40%;
+    }
+
+    100% {
+        left: 100%;
+    }
+}

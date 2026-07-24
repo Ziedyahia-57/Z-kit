@@ -6,14 +6,19 @@ const withDarkModeControl = (Story, context) => {
     const { darkmode = false } = context.args;
 
     useEffect(() => {
+        const main = document.querySelector(".sb-show-main");
+
         if (darkmode) {
             document.body.setAttribute("data-dark", "true");
+            main?.style.setProperty("background", "var(--gray-950)", "important");
         } else {
             document.body.removeAttribute("data-dark");
+            main?.style.setProperty("background", "var(--gray-25)", "important");
         }
 
         return () => {
             document.body.removeAttribute("data-dark");
+            main?.style.removeProperty("background");
         };
     }, [darkmode]);
 

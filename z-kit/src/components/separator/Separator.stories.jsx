@@ -7,20 +7,23 @@ const withDarkModeControl = (Story, context) => {
     const { darkmode = false } = context.args;
 
     useEffect(() => {
+        const main = document.querySelector(".sb-show-main");
+
         if (darkmode) {
             document.body.setAttribute("data-dark", "true");
+            main?.style.setProperty("background", "var(--gray-950)", "important");
         } else {
             document.body.removeAttribute("data-dark");
+            main?.style.setProperty("background", "var(--gray-25)", "important");
         }
 
         return () => {
             document.body.removeAttribute("data-dark");
+            main?.style.removeProperty("background");
         };
     }, [darkmode]);
 
-    return (
-        <Story />
-    );
+    return <Story />;
 };
 
 const meta = {
@@ -75,7 +78,7 @@ const useDarkMode = () => {
 // Helper wrapper to demonstrate separators properly
 const DemoContainer = ({ orientation, children }) => {
     const isDark = useDarkMode();
-    const background = isDark ? 'var(--gray-950)' : 'var(--gray-50)';
+    const background = isDark ? 'var(--gray-900)' : 'var(--gray-50)';
     const border = isDark ? 'var(--gray-800)' : 'var(--gray-200)';
 
     if (orientation === "vertical") {
