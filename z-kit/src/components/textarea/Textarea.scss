@@ -325,3 +325,40 @@ $width: 97px;
         transition: height 0.3s ease !important;
     }
 }
+
+.rtl {
+    .textarea {
+        .textarea-icon {
+            right: 12px;
+            left: auto;
+        }
+
+        // ===== HAS ICON STYLES =====
+        &.has-icon {
+            .textarea-input {
+                padding-right: 37px;
+                padding-left: 16px;
+            }
+        }
+
+        // ===== ICON FADED STYLES =====
+        &.icon-faded {
+            .textarea-input {
+                padding-right: 16px;
+                padding-left: 16px;
+            }
+        }
+
+        .textarea-resize-row {
+            left: 4px;
+            right: auto;
+
+            .textarea-resize-handle {
+                transform: scaleX(-1);
+            }
+        }
+    }
+}
+
+//TODO: scaling horizontally in rtl should expand the opposite way
+//TODO: fix icon fading animation/transition

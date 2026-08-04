@@ -238,6 +238,11 @@ export class Search extends React.Component {
         }
     }
 
+    handleFocus = (e) => {
+        if (this.props.onFocus) onFocus();
+        e.target.select();
+    };
+
     emptySearch = () => {
         const { enableSound = true } = this.props;
 
@@ -369,6 +374,7 @@ export class Search extends React.Component {
                         ref={this.searchInputRef}
                         value={this.state.value}
                         onChange={this.handleChange}
+                        onFocus={this.handleFocus}
                         placeholder={this.props.placeholder}
                         disabled={this.props.disabled}
                     />

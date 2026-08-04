@@ -1,6 +1,14 @@
-import React, { useState, useRef, useLayoutEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback, useId } from 'react';
 import './Tooltip.scss';
 import { Kbd, KbdGroup } from "../kbd/Kbd";
+
+// A tiny pub/sub so that only one tooltip is ever open at a time across the app.
+// When any tooltip opens, it broadcasts its id; every other mounted tooltip hears
+// this and closes itself immediately.
+const tooltipBus = new EventTarget();
+
+const OPEN_DELAY = 300;  // debounce before showing on hover, avoids flicker on fast mouse travel
+const CLOSE_DELAY = 100; // small grace period on mouse-leave (lets you move mouse into the tooltip itself, if hoverable)
 
 export const Tooltip = ({
     children,
@@ -12,12 +20,90 @@ export const Tooltip = ({
     shortcutMethod = "separated",
     shortcutPosition = "title",
     direction = 'top',
+    disabled = false,
 }) => {
+    const id = useId();
     const [isVisible, setIsVisible] = useState(false);
     const [computedDirection, setComputedDirection] = useState(direction);
     const [shift, setShift] = useState({ x: 0, y: 0 });
     const wrapperRef = useRef(null);
     const tooltipRef = useRef(null);
+    const openTimer = useRef(null);
+    const closeTimer = useRef(null);
+    const isVisibleRef = useRef(false); // mirrors state for use inside stable listeners
+
+    useEffect(() => { isVisibleRef.current = isVisible; }, [isVisible]);
+
+    const clearTimers = () => {
+        if (openTimer.current) clearTimeout(openTimer.current);
+        if (closeTimer.current) clearTimeout(closeTimer.current);
+        openTimer.current = null;
+        closeTimer.current = null;
+    };
+
+    const openNow = useCallback(() => {
+        clearTimers();
+        tooltipBus.dispatchEvent(new CustomEvent('tooltip:open', { detail: { id } }));
+        setIsVisible(true);
+    }, [id]);
+
+    const openDelayed = useCallback(() => {
+        if (disabled) return;
+        clearTimers();
+        openTimer.current = setTimeout(openNow, OPEN_DELAY);
+    }, [disabled, openNow]);
+
+    const close = useCallback((immediate = false) => {
+        clearTimers();
+        if (immediate) {
+            setIsVisible(false);
+        } else {
+            closeTimer.current = setTimeout(() => setIsVisible(false), CLOSE_DELAY);
+        }
+    }, []);
+
+    // Global listeners: escape key, clicks outside, scroll, resize, window blur,
+    // and "another tooltip just opened" — all of these should dismiss this tooltip.
+    useEffect(() => {
+        const onOtherTooltipOpen = (e) => {
+            if (e.detail.id !== id) close(true);
+        };
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape' && isVisibleRef.current) close(true);
+        };
+        const onScrollOrResize = () => {
+            if (isVisibleRef.current) close(true);
+        };
+        const onPointerDownOutside = (e) => {
+            if (isVisibleRef.current && wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+                close(true);
+            }
+        };
+        const onWindowBlur = () => {
+            if (isVisibleRef.current) close(true);
+        };
+
+        tooltipBus.addEventListener('tooltip:open', onOtherTooltipOpen);
+        window.addEventListener('keydown', onKeyDown);
+        window.addEventListener('scroll', onScrollOrResize, true); // capture so any scrollable ancestor counts
+        window.addEventListener('resize', onScrollOrResize);
+        document.addEventListener('mousedown', onPointerDownOutside, true);
+        document.addEventListener('touchstart', onPointerDownOutside, true);
+        window.addEventListener('blur', onWindowBlur);
+
+        return () => {
+            tooltipBus.removeEventListener('tooltip:open', onOtherTooltipOpen);
+            window.removeEventListener('keydown', onKeyDown);
+            window.removeEventListener('scroll', onScrollOrResize, true);
+            window.removeEventListener('resize', onScrollOrResize);
+            document.removeEventListener('mousedown', onPointerDownOutside, true);
+            document.removeEventListener('touchstart', onPointerDownOutside, true);
+            window.removeEventListener('blur', onWindowBlur);
+        };
+    }, [id, close]);
+
+    // Make sure timers don't fire after unmount
+    useEffect(() => () => clearTimers(), []);
 
     // Helper function to render shortcut
     const renderShortcut = () => {
@@ -126,11 +212,13 @@ export const Tooltip = ({
         <div
             className="tooltip"
             ref={wrapperRef}
-            onMouseEnter={() => setIsVisible(true)}
-            onMouseLeave={() => setIsVisible(false)}
+            onMouseEnter={openDelayed}
+            onMouseLeave={() => close(false)}
             onMouseMove={handleMouseMove}
-            onFocus={() => setIsVisible(true)}
-            onBlur={() => setIsVisible(false)}
+            onFocus={openNow}
+            onBlur={() => close(false)}
+            onMouseDown={() => close(true)}
+            onTouchStart={openNow}
         >
             {children}
             <div

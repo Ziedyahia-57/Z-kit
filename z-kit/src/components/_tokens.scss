@@ -139,6 +139,10 @@ small {
     transition: color 0.2s ease;
 }
 
+input {
+    unicode-bidi: plaintext;
+}
+
 input::spelling-error,
 textarea::spelling-error {
     text-decoration: 2px dashed underline var(--red-500);
@@ -164,6 +168,12 @@ input[type="search"]::-webkit-search-results-decoration {
         background-color: var(--gray-200);
         color: var(--gray-800);
     }
+}
+
+
+
+.rtl {
+    direction: rtl;
 }
 
 /*========== Animations ==========*/

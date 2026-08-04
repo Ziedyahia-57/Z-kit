@@ -2741,7 +2741,7 @@ export const Video = ({
                                     </button>
                                 </Tooltip>}
 
-                                <Tooltip title="Settings" direction="top">
+                                <Tooltip title="Settings" direction="top" >
                                     <button
                                         onPointerDown={(e) => e.stopPropagation()}
                                         onClick={openSettings}

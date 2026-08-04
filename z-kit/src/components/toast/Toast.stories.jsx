@@ -1,35 +1,39 @@
-import { Toast } from './Toast';
+import { toast } from './Toast';
+import { Button } from '../button/Button';
 import { useEffect } from 'react';
 
 const withDarkModeControl = (Story, context) => {
     const { darkmode = false } = context.args;
 
     useEffect(() => {
+        const main = document.querySelector(".sb-show-main");
+
         if (darkmode) {
             document.body.setAttribute("data-dark", "true");
+            main?.style.setProperty("background", "var(--gray-950)", "important");
         } else {
             document.body.removeAttribute("data-dark");
+            main?.style.setProperty("background", "var(--gray-25)", "important");
         }
 
         return () => {
             document.body.removeAttribute("data-dark");
+            main?.style.removeProperty("background");
         };
     }, [darkmode]);
 
-    return (
-        <Story />
-    );
+    return <Story />;
 };
 
 const meta = {
     title: "Z-kit/Toast",
-    component: Toast,
+    component: toast,
     tags: ["autodocs"],
     decorators: [withDarkModeControl],
     parameters: {
         docs: {
             description: {
-                story: "Toast UI Component",
+                component: "Toast UI Component - Displays temporary notifications with support for multiple types, positions, and actions.",
             },
         }
     },
@@ -50,60 +54,79 @@ const meta = {
             name: "message",
             description: "Message of the toast",
         },
+        description: {
+            control: "text",
+            name: "description",
+            description: "Description of the toast",
+        },
         duration: {
             control: "number",
             name: "duration",
-            description: "Duration of the toast",
-        },
-        requiresAction: {
-            control: { type: "boolean" },
-            name: "Requires Action",
-            description: "Defines whether the toast requires an action",
-        },
-        confirmText: {
-            control: "text",
-            name: "Confirm Text",
-            description: "Text of the confirm button",
-            if: { arg: "requiresAction", eq: true },
+            description: "Duration of the toast in milliseconds",
         },
         cancelText: {
             control: "text",
             name: "Cancel Text",
             description: "Text of the cancel button",
-            if: { arg: "requiresAction", eq: true },
+        },
+        confirmText: {
+            control: "text",
+            name: "Confirm Text",
+            description: "Text of the confirm button",
         },
         position: {
             control: "select",
-            options: ["top", "bottom"],
+            options: ["top-left", "top-middle", "top-right", "bottom-left", "bottom-middle", "bottom-right"],
             name: "Position",
             description: "Defines the position of the toast",
         },
-        index: {
-            control: "number",
-            name: "Index",
-            description: "Defines the index of the toast",
+        enableSound: {
+            control: { type: "boolean" },
+            name: "Enable Sound",
+            description: "Enable/disable sound effects",
         },
-        totalToasts: {
-            control: "number",
-            name: "Total Toasts",
-            description: "Defines the total number of toasts",
-        },
+        neutral: {
+            control: { type: "boolean" },
+            name: "Neutral",
+            description: "When true, applies gray styling to all toast types (overrides type-specific colors)",
+        }
     }
 };
 
 export default meta;
 
-export const toast = {
+const ToastDemo = (args) => {
+    const showToast = () => {
+        toast({
+            type: args.type,
+            message: args.message,
+            description: args.description,
+            duration: args.duration,
+            position: args.position,
+            cancel: args.cancelText,
+            accept: args.confirmText,
+            enableSound: args.enableSound,
+            neutral: args.neutral,
+            onCancel: () => console.log("Cancel clicked"),
+            onAccept: () => console.log("Accept clicked")
+        });
+    };
+
+    return <Button label="Show Toast" onClick={showToast} />;
+};
+
+export const toastStory = {
+    render: ToastDemo,
     args: {
         type: "success",
         message: "You can add at most 100 files to a chat. Please consider starting a new chat.",
-        duration: 30000,
-        requiresAction: false,
-        confirmText: "Confirm",
-        cancelText: "Cancel",
-        position: "top",
-        index: 0,
-        totalToasts: 1,
+        description: "",
+        duration: 4000,
+        cancelText: "",
+        confirmText: "",
+        position: "bottom-left",
+        enableSound: true,
         darkmode: false,
+        neutral: false,
     },
-}
+};

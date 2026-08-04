@@ -1,4 +1,4 @@
-import { Input, PasswordInput, EmailInput, PhoneInput } from './Input';
+import { Input, PasswordInput, EmailInput, PhoneInput, PaymentInput } from './Input';
 import { useEffect } from 'react';
 
 
@@ -80,6 +80,11 @@ const meta = {
             name: "onClick",
             description: "Defines the action to be performed when the accordion is clicked",
         },
+        fadeIconOnFocus: {
+            control: { type: "boolean" },
+            name: "Fade Icon on Focus",
+            description: "Defines if the button should fade when focused",
+        }
     }
 }
 
@@ -92,15 +97,18 @@ export const input = {
         disabled: false,
         placeholder: "Placeholder",
         showIcon: true,
+        fadeIconOnFocus: true
     }
 }
+
 export const passwordInput = {
     args: {
         darkmode: false,
         label: "Password",
         disabled: false,
-        placeholder: "Placeholder",
+        placeholder: "Password",
         showIcon: true,
+        fadeIconOnFocus: true
     },
     render: (args) => {
         return (<PasswordInput {...args} />)
@@ -112,8 +120,9 @@ export const emailInput = {
         darkmode: false,
         label: "email",
         disabled: false,
-        placeholder: "Placeholder",
+        placeholder: "name@example.com",
         showIcon: true,
+        fadeIconOnFocus: true
     },
     render: (args) => {
         return (<EmailInput {...args} />)
@@ -125,10 +134,25 @@ export const phoneInput = {
         darkmode: false,
         label: "phone",
         disabled: false,
-        placeholder: "Placeholder",
+        placeholder: "+000 000 000 000",
         showIcon: true,
+        fadeIconOnFocus: true
     },
     render: (args) => {
         return (<PhoneInput {...args} />)
+    }
+}
+
+export const paymentInput = {
+    args: {
+        darkmode: false,
+        label: "Payment",
+        disabled: false,
+        placeholder: "0000 0000 0000 0000",
+        showIcon: true,
+        fadeIconOnFocus: true
+    },
+    render: (args) => {
+        return (<PaymentInput {...args} />)
     }
 }

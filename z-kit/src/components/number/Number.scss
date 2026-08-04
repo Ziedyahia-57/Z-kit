@@ -86,7 +86,7 @@ $segment-min: 2.2ch;
         padding: 12px #{$field-pad};
 
         border-radius: 8px;
-        transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease, padding-left 0.2s ease, padding-right 0.2s ease, width 0.2s ease;
+        transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease, padding 0.2s ease, width 0.2s ease;
         outline: none;
         background-color: var(--gray-25);
         border: 1px solid var(--gray-100);
@@ -208,7 +208,7 @@ $segment-min: 2.2ch;
         color: var(--gray-950);
         padding: 0 #{$field-pad};
         user-select: none;
-        transition: padding-left 0.2s ease, padding-right 0.2s ease, color 0.2s ease;
+        transition: padding 0.2s ease, color 0.2s ease;
 
         body[data-dark="true"] & {
             color: var(--gray-50);
@@ -288,13 +288,13 @@ $segment-min: 2.2ch;
     &.has-btns-vertical {
         .number-input {
             width: calc(var(--content-width) + #{$btn-width} * 2);
-            padding-left: calc(#{$btn-width} / 2);
-            padding-right: calc(#{$btn-width} + #{$btn-width} / 2);
+            padding-inline-start: calc(#{$btn-width} / 2);
+            padding-inline-end: calc(#{$btn-width} + #{$btn-width} / 2);
         }
 
         .number-visual-overlay {
-            padding-left: calc(#{$btn-width} / 2);
-            padding-right: calc(#{$btn-width} + #{$btn-width} / 2);
+            padding-inline-start: calc(#{$btn-width} / 2);
+            padding-inline-end: calc(#{$btn-width} + #{$btn-width} / 2);
         }
 
         .number-wrapper:hover:has(.number-input:not(:disabled):not(.error)),
@@ -450,5 +450,36 @@ $segment-min: 2.2ch;
         position: relative;
         min-width: #{$segment-min};
         text-align: center;
+    }
+}
+
+.rtl {
+    .number.has-btns-vertical {
+        .button-group {
+            right: auto;
+            left: 0;
+
+            .number-plus {
+                border-radius: 8px 0 0 0;
+            }
+
+            .number-minus {
+                border-radius: 0 0 0 8px;
+            }
+        }
+    }
+
+    .number.has-btns-horizontal {
+        .number-plus {
+            right: auto;
+            left: 0;
+            border-radius: 8px 0 0 8px;
+        }
+
+        .number-minus {
+            right: 0;
+            left: auto;
+            border-radius: 0 8px 8px 0;
+        }
     }
 }

@@ -281,7 +281,7 @@
     }
 
     button.button.ghost {
-        margin-left: auto;
+        margin-inline-start: auto;
 
         &:hover {
             background: var(--gray-100) !important;
@@ -300,5 +300,17 @@
 
     100% {
         left: 100%;
+    }
+}
+
+.rtl {
+    .loading-progress-track {
+
+        &--indeterminate {
+
+            &::after {
+                animation: attachment-indeterminate 1.2s reverse ease-in-out infinite;
+            }
+        }
     }
 }

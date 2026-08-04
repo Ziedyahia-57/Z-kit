@@ -135,7 +135,7 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
         width: 100%;
         padding: 12px 16px;
         border-radius: 8px;
-        transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease, padding-left 0.2s ease;
+        transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease, padding 0.2s ease;
         outline: none;
         background-color: var(--gray-25);
         border: 1px solid var(--gray-100);
@@ -241,21 +241,21 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
     // ===== HAS ICON STYLES =====
     &.has-icon {
         .time-input {
-            padding-left: 37px;
+            padding-inline-start: 37px;
         }
     }
 
     // ===== ICON FADED STYLES =====
     &.icon-faded {
         .time-input {
-            padding-left: 16px;
+            padding-inline-start: 16px;
         }
     }
 
     // ===== AM/PM BUTTON =====
     &.has-ampm {
         .time-input {
-            padding-right: $ampm-btn-width;
+            padding-inline-end: $ampm-btn-width;
         }
 
         // Hover synchronization — only when input is in normal state
@@ -389,16 +389,16 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
         font-weight: 300;
         font-family: 'Inter', system-ui, -apple-system, sans-serif;
         color: var(--gray-950);
-        padding-left: 16px;
+        padding-inline-start: 16px;
         user-select: none;
-        transition: padding-left 0.2s ease, color 0.2s ease;
+        transition: padding-inline-start 0.2s ease, color 0.2s ease;
 
         &.has-icon {
-            padding-left: 37px;
+            padding-inline-start: 37px;
         }
 
         &.icon-faded {
-            padding-left: 16px;
+            padding-inline-start: 16px;
         }
 
         body[data-dark="true"] & {
@@ -442,5 +442,25 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
         position: relative;
         min-width: 2.2ch;
         text-align: center;
+    }
+}
+
+.rtl {
+    .time {
+        .time-icon {
+            left: auto;
+            right: 12px;
+        }
+
+        .time-ampm {
+            left: 0;
+            right: auto;
+            border-radius: 8px 0 0 8px;
+        }
+
+        .time-visual-overlay {
+            flex-direction: row-reverse;
+            place-content: flex-end;
+        }
     }
 }

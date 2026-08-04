@@ -4,12 +4,152 @@ $types: (
     'success': "green",
     'info': "lightBlue",
     'warning': "orange",
-    'error': "red"
+    'error': "red",
+    'neutral': "gray"
 );
+
+@keyframes fade-in-top {
+    0% {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fade-in-bottom {
+    0% {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fade-out {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+// ─── Stack container ────────────────────────────────────────────────────────
+
+.toast-stack {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+
+    // Collapsed: grid stacks all toasts in the same cell
+    display: grid;
+    grid-template-rows: 1fr;
+
+    &.bottom-left {
+        bottom: 8px;
+        left: 8px;
+    }
+
+    &.bottom-right {
+        bottom: 8px;
+        right: 8px;
+    }
+
+    &.bottom-middle {
+        bottom: 8px;
+        justify-self: center;
+    }
+
+    &.top-left {
+        top: 8px;
+        left: 8px;
+    }
+
+    &.top-right {
+        top: 8px;
+        right: 8px;
+    }
+
+    &.top-middle {
+        top: 8px;
+        justify-self: center;
+    }
+
+    // ── Collapsed: all toasts share the same grid cell ──
+    .toast {
+        grid-area: 1 / 1;
+        position: relative;
+        transition:
+            transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+            opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+            bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+            top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+            box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    // Bottom positions: front toast sits at 0, toasts behind peek upward
+    &.bottom-left .toast,
+    &.bottom-middle .toast,
+    &.bottom-right .toast {
+        align-self: end;
+        bottom: calc(var(--offset, 0) * 14px);
+        transform: scale(calc(1 - var(--offset, 0) * 0.05)) !important;
+    }
+
+    // Top positions: front toast sits at 0, toasts behind peek downward
+    &.top-left .toast,
+    &.top-middle .toast,
+    &.top-right .toast {
+        align-self: start;
+        top: calc(var(--offset, 0) * 14px);
+        transform: scale(calc(1 - var(--offset, 0) * 0.05)) !important;
+    }
+
+    // ── Expanded on hover — stay in grid, shift each toast by its full
+    //    height + gap using the same --offset custom property ──
+    &:hover {
+        pointer-events: auto;
+
+        &.bottom-left .toast,
+        &.bottom-middle .toast,
+        &.bottom-right .toast {
+            bottom: calc(var(--offset, 0) * (100% + 8px)) !important;
+            transform: scale(1) !important;
+            opacity: 1 !important;
+            pointer-events: auto;
+        }
+
+        &.top-left .toast,
+        &.top-middle .toast,
+        &.top-right .toast {
+            top: calc(var(--offset, 0) * (100% + 8px)) !important;
+            transform: scale(1) !important;
+            opacity: 1 !important;
+            pointer-events: auto;
+        }
+
+        // MIGHT REMOVE:
+
+        &.bottom-right .toast,
+        &.top-right .toast {
+            margin-left: auto;
+        }
+    }
+}
+
+// ─── Individual toast ────────────────────────────────────────────────────────
 
 @each $type, $color in $types {
     .toast.#{$type} {
-        position: relative;
+        pointer-events: auto;
         background-color: var(--#{$color}-100);
         border: 1px solid var(--#{$color}-200);
         border-radius: 8px;
@@ -19,14 +159,40 @@ $types: (
         flex-direction: column;
         gap: 16px;
         max-width: 604px;
-        width: fit-content;
+        width: inherit;
         box-sizing: border-box;
-        transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease;
+        transition:
+            color 0.2s ease,
+            background-color 0.2s ease,
+            border 0.2s ease,
+            transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+            opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+            bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+            top 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 
+        &.bottom-left,
+        &.bottom-right,
+        &.bottom-middle {
+            animation: fade-in-bottom 0.3s ease forwards;
+        }
+
+        &.top-left,
+        &.top-right,
+        &.top-middle {
+            animation: fade-in-top 0.3s ease forwards;
+        }
+
+        &.leaving {
+            animation: fade-out 0.3s ease forwards;
+        }
 
         .content {
             display: inline-flex;
             gap: 8px;
+
+            svg {
+                flex-shrink: 0;
+            }
         }
 
         .close {
@@ -55,6 +221,34 @@ $types: (
                 border-radius: 4px;
                 background-color: var(--#{$color}-800);
             }
+        }
+    }
+}
+
+// Add specific styling for neutral toasts to override type-specific colors
+.toast.neutral {
+    background-color: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    color: var(--gray-800);
+
+    body[data-dark="true"] & {
+        background-color: var(--gray-900);
+        border: 1px solid var(--gray-800);
+        color: var(--gray-200);
+
+        .close:hover {
+            background-color: var(--gray-800);
+        }
+    }
+}
+
+.rtl {
+    .toast {
+        padding: 24px 24px 24px 48px;
+
+        .close {
+            left: 8px;
+            right: auto;
         }
     }
 }

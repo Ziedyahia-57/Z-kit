@@ -178,3 +178,18 @@
         }
     }
 }
+
+.rtl {
+    .search {
+        .search-icon-container--right {
+            right: auto;
+            left: 12px;
+        }
+
+        .search-icon-container--left {
+            left: auto;
+            right: 12px;
+
+        }
+    }
+}
