@@ -8,6 +8,8 @@ $types: (
     'neutral': "gray"
 );
 
+// ─── Enter animations ───────────────────────────────────────────────────────
+
 @keyframes fade-in-top {
     0% {
         transform: translateY(-50px);
@@ -32,6 +34,8 @@ $types: (
     }
 }
 
+// ─── Exit animations (direction-aware, mirrors the entrance) ───────────────
+
 @keyframes fade-out {
     0% {
         opacity: 1;
@@ -39,6 +43,42 @@ $types: (
 
     100% {
         opacity: 0;
+    }
+}
+
+@keyframes fade-out-top {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-30px) scale(0.96);
+        opacity: 0;
+    }
+}
+
+@keyframes fade-out-bottom {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(30px) scale(0.96);
+        opacity: 0;
+    }
+}
+
+// ─── Timer bar shrink ────────────────────────────────────────────────────────
+
+@keyframes timer-shrink {
+    from {
+        transform: scaleX(1);
+    }
+
+    to {
+        transform: scaleX(0);
     }
 }
 
@@ -95,152 +135,239 @@ $types: (
             box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    // Bottom positions: front toast sits at 0, toasts behind peek upward
     &.bottom-left .toast,
     &.bottom-middle .toast,
     &.bottom-right .toast {
         align-self: end;
-        bottom: calc(var(--offset, 0) * 14px);
-        transform: scale(calc(1 - var(--offset, 0) * 0.05)) !important;
     }
 
-    // Top positions: front toast sits at 0, toasts behind peek downward
     &.top-left .toast,
     &.top-middle .toast,
     &.top-right .toast {
         align-self: start;
-        top: calc(var(--offset, 0) * 14px);
-        transform: scale(calc(1 - var(--offset, 0) * 0.05)) !important;
     }
 
-    // ── Expanded on hover — stay in grid, shift each toast by its full
-    //    height + gap using the same --offset custom property ──
-    &:hover {
-        pointer-events: auto;
+    &.bottom-right .toast,
+    &.top-right .toast {
+        margin-left: auto;
+    }
 
-        &.bottom-left .toast,
-        &.bottom-middle .toast,
-        &.bottom-right .toast {
-            bottom: calc(var(--offset, 0) * (100% + 8px)) !important;
-            transform: scale(1) !important;
-            opacity: 1 !important;
-            pointer-events: auto;
-        }
-
-        &.top-left .toast,
-        &.top-middle .toast,
-        &.top-right .toast {
-            top: calc(var(--offset, 0) * (100% + 8px)) !important;
-            transform: scale(1) !important;
-            opacity: 1 !important;
-            pointer-events: auto;
-        }
-
-        // MIGHT REMOVE:
-
-        &.bottom-right .toast,
-        &.top-right .toast {
-            margin-left: auto;
-        }
+    &.bottom-left .toast,
+    &.top-left .toast {
+        margin-right: auto;
     }
 }
 
 // ─── Individual toast ────────────────────────────────────────────────────────
 
-@each $type, $color in $types {
-    .toast.#{$type} {
-        pointer-events: auto;
-        background-color: var(--#{$color}-100);
-        border: 1px solid var(--#{$color}-200);
-        border-radius: 8px;
-        color: var(--#{$color}-800);
-        padding: 24px 48px 24px 24px;
-        display: inline-flex;
+.toast {
+    min-width: 350px;
+    pointer-events: auto;
+    background-color: var(--gray-25);
+    border: 1px solid var(--gray-100);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px 0px var(--gray-200);
+    color: var(--gray-950);
+    padding: 12px 48px 16px 12px;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 604px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease,
+        border 0.2s ease,
+        transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        top 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+
+    // ── Enter ──
+    &.bottom-left,
+    &.bottom-right,
+    &.bottom-middle {
+        animation: fade-in-bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    &.top-left,
+    &.top-right,
+    &.top-middle {
+        animation: fade-in-top 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    // ── Exit (generic fallback, overridden below by direction-specific rules) ──
+    &.leaving {
+        animation: fade-out 0.3s ease forwards;
+    }
+
+    // Exit direction mirrors the entrance direction, and wins over the
+    // generic fallback above thanks to the extra class in the selector.
+    &.top-left.leaving,
+    &.top-middle.leaving,
+    &.top-right.leaving {
+        animation: fade-out-top 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    &.bottom-left.leaving,
+    &.bottom-middle.leaving,
+    &.bottom-right.leaving {
+        animation: fade-out-bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .content {
+        display: flex;
         flex-direction: column;
-        gap: 16px;
-        max-width: 604px;
-        width: inherit;
-        box-sizing: border-box;
-        transition:
-            color 0.2s ease,
-            background-color 0.2s ease,
-            border 0.2s ease,
-            transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-            opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-            bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-            top 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        gap: 4px;
+        text-transform: capitalize;
 
-        &.bottom-left,
-        &.bottom-right,
-        &.bottom-middle {
-            animation: fade-in-bottom 0.3s ease forwards;
+        svg {
+            flex-shrink: 0;
         }
 
-        &.top-left,
-        &.top-right,
-        &.top-middle {
-            animation: fade-in-top 0.3s ease forwards;
-        }
-
-        &.leaving {
-            animation: fade-out 0.3s ease forwards;
-        }
-
-        .content {
-            display: inline-flex;
-            gap: 8px;
-
-            svg {
-                flex-shrink: 0;
-            }
-        }
-
-        .close {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-
-            svg {
-                width: 20px;
-                height: 20px;
-            }
-        }
-
-        .actions {
-            margin-left: auto;
+        .title {
             display: flex;
-            gap: 16px;
+            gap: 8px;
+            font-weight: 500;
+            font-size: 1rem;
+            align-items: center;
         }
 
-        body[data-dark="true"] & {
-            background-color: var(--#{$color}-900);
-            border: 1px solid var(--#{$color}-800);
-            color: var(--#{$color}-200);
+        .description {
+            font-size: 1rem;
+            color: var(--gray-600);
+        }
 
-            .close:hover {
-                border-radius: 4px;
-                background-color: var(--#{$color}-800);
-            }
+        .error {
+            color: var(--red-500);
+        }
+
+        .warning {
+            color: var(--orange-500);
+        }
+
+        .success {
+            color: var(--green-600);
+        }
+
+        .info {
+            color: var(--lightBlue-600);
         }
     }
-}
 
-// Add specific styling for neutral toasts to override type-specific colors
-.toast.neutral {
-    background-color: var(--gray-100);
-    border: 1px solid var(--gray-200);
-    color: var(--gray-800);
+    .close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        color: var(--gray-600) !important;
+
+        &:hover {
+            background-color: var(--gray-100) !important;
+        }
+
+        svg {
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    .actions {
+        margin-left: auto;
+        display: flex;
+        gap: 16px;
+    }
+
+    // ── Duration / countdown indicator ──
+    .timer-track {
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        bottom: 0;
+        height: 2px;
+        border-radius: 1px;
+        overflow: hidden;
+    }
+
+    .timer-fill {
+        height: 100%;
+        width: 100%;
+        border-radius: 1px;
+        transform-origin: left;
+        animation-name: timer-shrink;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+    }
+
+    // Timer color follows the toast's semantic type.
+    &.success .timer-fill {
+        background-color: var(--green-500);
+    }
+
+    &.error .timer-fill {
+        background-color: var(--red-500);
+    }
+
+    &.warning .timer-fill {
+        background-color: var(--orange-500);
+    }
+
+    &.info .timer-fill {
+        background-color: var(--lightBlue-500);
+    }
+
+    &.neutral .timer-fill {
+        background-color: var(--gray-500);
+    }
 
     body[data-dark="true"] & {
         background-color: var(--gray-900);
         border: 1px solid var(--gray-800);
-        color: var(--gray-200);
+        box-shadow: 0 1px 3px 0px var(--gray-800);
+        color: var(--gray-50);
 
-        .close:hover {
-            background-color: var(--gray-800);
+        .content {
+
+            .description {
+                color: var(--gray-400);
+            }
+        }
+
+        .close {
+            color: var(--gray-400) !important;
+
+            &:hover {
+                background-color: var(--gray-800) !important;
+            }
+        }
+
+        .timer-fill {
+            background-color: var(--gray-400);
+        }
+
+        &.success .timer-fill {
+            background-color: var(--green-400);
+        }
+
+        &.error .timer-fill {
+            background-color: var(--red-400);
+        }
+
+        &.warning .timer-fill {
+            background-color: var(--orange-400);
+        }
+
+        &.info .timer-fill {
+            background-color: var(--lightBlue-400);
+        }
+
+        &.neutral .timer-fill {
+            background-color: var(--gray-400);
         }
     }
 }
+
 
 .rtl {
     .toast {
@@ -249,6 +376,11 @@ $types: (
         .close {
             left: 8px;
             right: auto;
+        }
+
+        .timer-track {
+            left: 0;
+            right: 0;
         }
     }
 }
