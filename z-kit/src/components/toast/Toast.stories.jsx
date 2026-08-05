@@ -119,9 +119,9 @@ export const toastStory = {
     render: ToastDemo,
     args: {
         type: "success",
-        message: "You can add at most 100 files to a chat. Please consider starting a new chat.",
-        description: "",
-        duration: 4000,
+        message: "Upload complete",
+        description: "24 files were uploaded and are now available to your team.",
+        duration: 5000,
         cancelText: "",
         confirmText: "",
         position: "bottom-left",
