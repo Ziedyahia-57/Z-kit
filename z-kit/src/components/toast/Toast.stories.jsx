@@ -105,10 +105,10 @@ const ToastDemo = (args) => {
         });
     };
 
-    return <Button variant="secondary" onClick={showToast}>Add Event</Button>;
+    return <Button buttonType="label & icon" icon="plus" variant="secondary" onClick={showToast}>Add Event</Button>;
 };
 
-export const toastStory = {
+export const DefaultStory = {
     render: ToastDemo,
     args: {
         type: "success",

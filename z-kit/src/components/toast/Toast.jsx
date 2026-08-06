@@ -57,6 +57,14 @@ const resumeEntryTimer = (entry) => {
     startEntryTimer(entry);
 };
 
+const getRemainingTime = (entry) => {
+    if (!entry) return 0;
+    if (entry.timerId !== null) {
+        return Math.max(entry.remaining - (Date.now() - entry.startedAt), 0);
+    }
+    return entry.remaining;
+};
+
 const ToastStack = ({ toasts }) => {
     const positions = ['top-left', 'top-right', 'top-middle', 'bottom-left', 'bottom-right', 'bottom-middle'];
 
@@ -162,7 +170,6 @@ const ToastPositionStack = ({ position, group }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [visible.length]);
 
-    const isBottom = position.startsWith('bottom');
 
     // Calculate total height of the stack when expanded (sum of all heights + gaps)
     const totalHeight = visible.reduce((sum, t) => sum + (dimensions[t.id]?.height || 70), 0) + (total - 1) * 8;
@@ -216,7 +223,6 @@ const ToastPositionStack = ({ position, group }) => {
                         key={t.id}
                         {...t}
                         offset={offset}
-                        total={total}
                         isExpanded={isHovered}
                         toastOffset={toastOffset}
                         stackMinWidth={maxWidth || undefined}
@@ -240,7 +246,6 @@ const Toast = ({
     onAction,
     close,
     offset,
-    total,
     neutral = false,
     isExpanded,
     toastOffset,
@@ -249,6 +254,7 @@ const Toast = ({
 }) => {
     const [isLeaving, setIsLeaving] = React.useState(false);
     const [isPaused, setIsPaused] = React.useState(false);
+    const [hasEntered, setHasEntered] = React.useState(false);
     const elementRef = React.useRef(null);
 
     // ── Swipe-to-close (touch only) ──
@@ -263,7 +269,7 @@ const Toast = ({
     const initialRemainingRef = React.useRef(null);
     if (initialRemainingRef.current === null) {
         const entry = toasts.get(id);
-        initialRemainingRef.current = entry ? entry.remaining : duration;
+        initialRemainingRef.current = entry ? getRemainingTime(entry) : duration;
     }
 
     const isLeftPos = position === 'top-left' || position === 'bottom-left';
@@ -331,10 +337,10 @@ const Toast = ({
         };
     }, [id]);
 
-    // ── Drag handlers (touch only — mouse/pen pointers are ignored) ──
+    // ── Drag handlers (supports touch and mouse pointers) ──
     const handlePointerDown = (e) => {
         if (isSwipingOut) return;
-        if (e.pointerType !== 'touch') return;
+        if (e.button !== 0) return; // Only allow dragging with primary (left) button
         if (e.target.closest('button')) return;
         const now = performance.now();
         dragStartRef.current = { x: e.clientX, t: now, active: true, lastX: e.clientX, lastT: now };
@@ -365,7 +371,19 @@ const Toast = ({
             const distance = Math.abs(dragX);
             const elapsed = Math.max(lastT - startT, 1);
             const velocity = Math.abs(lastX - startX) / elapsed;
-            shouldClose = distance > SWIPE_CLOSE_THRESHOLD || velocity > SWIPE_VELOCITY_THRESHOLD;
+
+            // Swiping must be in the direction of where the toast is positioned
+            let isCorrectDirection = true;
+            if (isLeftPos) {
+                isCorrectDirection = dragX < 0;
+            } else if (isRightPos) {
+                isCorrectDirection = dragX > 0;
+            } else {
+                // Middle position can be swiped left or right to close
+                isCorrectDirection = dragX !== 0;
+            }
+
+            shouldClose = isCorrectDirection && (distance > SWIPE_CLOSE_THRESHOLD || velocity > SWIPE_VELOCITY_THRESHOLD);
         }
 
         if (shouldClose) {
@@ -426,8 +444,14 @@ const Toast = ({
         transition: transitionOverride,
     };
 
-    // Determine the actual class name based on neutral prop
-    const toastClass = `toast ${neutral ? 'neutral' : type} ${position} ${isLeaving ? 'leaving' : ''}`;
+    // Determine the actual class name based on neutral prop and dragging state
+    const toastClass = `toast ${neutral ? 'neutral' : type} ${position} ${isLeaving ? 'leaving' : ''} ${isDragging ? 'dragging' : ''} ${isSwipingOut ? 'swiping-out' : ''} ${hasEntered ? 'entered' : ''}`;
+
+    const handleAnimationEnd = (e) => {
+        if (e.animationName.startsWith('fade-in')) {
+            setHasEntered(true);
+        }
+    };
 
     return (
         <div
@@ -438,6 +462,7 @@ const Toast = ({
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerCancel}
+            onAnimationEnd={handleAnimationEnd}
         >
             <div className="content">
                 <div className="title">
@@ -447,7 +472,7 @@ const Toast = ({
                 {description && <p className="description">{description}</p>}
             </div>
             <div className="actions">
-                {action && <Button variant="secondary" size="small" buttonType="label" onClick={handleAction}>{action}</Button>}
+                {action && <Button buttonType="label & icon" icon="plus" variant="secondary" size="small" buttonType="label" onClick={handleAction}>{action}</Button>}
                 <Button
                     className="close"
                     variant="ghost"
@@ -469,7 +494,8 @@ const Toast = ({
                     <div
                         className="timer-fill"
                         style={{
-                            animationDuration: `${initialRemainingRef.current}ms`,
+                            animationDuration: `${duration}ms`,
+                            animationDelay: `-${duration - initialRemainingRef.current}ms`,
                             animationPlayState: isPaused ? 'paused' : 'running',
                         }}
                     />
@@ -491,7 +517,6 @@ Toast.propTypes = {
     onAction: PropTypes.func,
     close: PropTypes.func.isRequired,
     offset: PropTypes.number.isRequired,
-    total: PropTypes.number.isRequired,
     neutral: PropTypes.bool,
     isExpanded: PropTypes.bool.isRequired,
     toastOffset: PropTypes.number.isRequired,

@@ -181,6 +181,20 @@ $types: (
     user-select: none;
     // Horizontal swipe-to-dismiss; let vertical scroll gestures pass through.
     touch-action: pan-y;
+    cursor: grab;
+
+    &.dragging,
+    &.swiping-out,
+    &:active {
+        cursor: grabbing;
+    }
+
+    &.entered:not(.leaving),
+    &.dragging,
+    &.swiping-out {
+        animation: none !important;
+    }
+
     transition:
         color 0.2s ease,
         background-color 0.2s ease,
@@ -269,6 +283,7 @@ $types: (
     button {
         position: relative;
         padding: 0.5rem !important;
+        cursor: pointer;
 
         &:hover {
             background-color: var(--gray-100) !important;
