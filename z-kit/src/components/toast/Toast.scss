@@ -1,3 +1,4 @@
+// Toast.scss
 @use '../tokens';
 
 $types: (
@@ -132,6 +133,7 @@ $types: (
             opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
             bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1),
             top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+            min-width 0.2s ease,
             box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -161,6 +163,9 @@ $types: (
 // ─── Individual toast ────────────────────────────────────────────────────────
 
 .toast {
+    // Sizes to its own content by default; JS applies a `min-width` inline
+    // style so every toast in a stack matches the widest one currently
+    // visible (see Toast.jsx's dimension tracking).
     width: fit-content;
     pointer-events: auto;
     background-color: var(--gray-25);
@@ -171,9 +176,11 @@ $types: (
     padding: 0.75rem;
     display: flex;
     gap: 2rem;
-    width: 100%;
     box-sizing: border-box;
     overflow: hidden;
+    user-select: none;
+    // Horizontal swipe-to-dismiss; let vertical scroll gestures pass through.
+    touch-action: pan-y;
     transition:
         color 0.2s ease,
         background-color 0.2s ease,

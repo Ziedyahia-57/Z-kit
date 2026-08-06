@@ -1,3 +1,4 @@
+// Toast.jsx
 import React from "react";
 import { createRoot } from 'react-dom/client';
 import './Toast.scss';
@@ -10,6 +11,8 @@ let sharedContainer = null;
 let sharedRoot = null;
 
 const MAX_VISIBLE = 3;
+const SWIPE_CLOSE_THRESHOLD = 80;
+const SWIPE_VELOCITY_THRESHOLD = 0.5; // px/ms — a fast flick closes even under the distance threshold
 
 const getOrCreateContainer = () => {
     if (!sharedContainer) {
@@ -31,6 +34,29 @@ const renderToasts = () => {
     sharedRoot.render(<ToastStack toasts={[...toasts.values()]} />);
 };
 
+// ─── Per-toast countdown, lives at module scope ─────────────────────────────
+// Started the moment a toast is created, independent of whether its React
+// component is currently mounted. This is what lets toasts beyond the
+// visible window (4th+) keep counting down in the background instead of
+// being stuck "paused" until they scroll into view.
+const startEntryTimer = (entry) => {
+    if (entry.duration <= 0) return;
+    entry.startedAt = Date.now();
+    entry.timerId = setTimeout(() => entry.close(), entry.remaining);
+};
+
+const pauseEntryTimer = (entry) => {
+    if (entry.duration <= 0 || entry.timerId == null) return;
+    clearTimeout(entry.timerId);
+    entry.timerId = null;
+    entry.remaining = Math.max(entry.remaining - (Date.now() - entry.startedAt), 0);
+};
+
+const resumeEntryTimer = (entry) => {
+    if (entry.duration <= 0 || entry.timerId != null) return;
+    startEntryTimer(entry);
+};
+
 const ToastStack = ({ toasts }) => {
     const positions = ['top-left', 'top-right', 'top-middle', 'bottom-left', 'bottom-right', 'bottom-middle'];
 
@@ -44,8 +70,15 @@ const ToastStack = ({ toasts }) => {
 
 const ToastPositionStack = ({ position, group }) => {
     const [isHovered, setIsHovered] = React.useState(false);
-    const [heights, setHeights] = React.useState({});
+    // Tracks both height (for stack layout) and width (so every toast in the
+    // stack can be sized to match the widest one) per toast id.
+    const [dimensions, setDimensions] = React.useState({});
     const hoverTimeoutRef = React.useRef(null);
+    const containerRef = React.useRef(null);
+    // Last known pointer position, updated on every pointermove regardless of
+    // hover state, so we can tell whether the pointer is still over the
+    // container even when the container itself moved/shrank under it.
+    const lastPointerRef = React.useRef({ x: -Infinity, y: -Infinity });
 
     const handleMouseEnter = () => {
         if (hoverTimeoutRef.current) {
@@ -68,20 +101,31 @@ const ToastPositionStack = ({ position, group }) => {
         };
     }, []);
 
-    const handleHeightChange = React.useCallback((id, height) => {
-        setHeights(prev => {
-            if (prev[id] === height) return prev;
-            return { ...prev, [id]: height };
+    const isPointerInsideContainer = React.useCallback(() => {
+        const el = containerRef.current;
+        if (!el) return false;
+        const rect = el.getBoundingClientRect();
+        const { x, y } = lastPointerRef.current;
+        return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+    }, []);
+
+    const handleDimensionsChange = React.useCallback((id, dims) => {
+        setDimensions(prev => {
+            const existing = prev[id];
+            if (existing && existing.height === dims.height && existing.width === dims.width) {
+                return prev;
+            }
+            return { ...prev, [id]: dims };
         });
     }, []);
 
     const visible = group.slice(-MAX_VISIBLE);
     const total = visible.length;
 
-    // Clean up heights for toasts that are no longer visible
+    // Clean up dimensions for toasts that are no longer visible
     React.useEffect(() => {
         const visibleIds = new Set(visible.map(t => t.id));
-        setHeights(prev => {
+        setDimensions(prev => {
             const next = { ...prev };
             let changed = false;
             for (const id in next) {
@@ -94,10 +138,42 @@ const ToastPositionStack = ({ position, group }) => {
         });
     }, [visible]);
 
+    // Fixes a stuck-timer bug: isHovered is only ever updated by
+    // mouseenter/mouseleave, but when a toast closes the stack's box can
+    // shrink or shift out from under a pointer that never moved — no
+    // mouseleave fires in that case, so the stack would stay "hovered"
+    // until the user moved the mouse in and out again.
+    React.useEffect(() => {
+        const handlePointerMove = (e) => {
+            lastPointerRef.current = { x: e.clientX, y: e.clientY };
+            if (isHovered && !isPointerInsideContainer()) {
+                handleMouseLeave();
+            }
+        };
+        document.addEventListener('pointermove', handlePointerMove);
+        return () => document.removeEventListener('pointermove', handlePointerMove);
+    }, [isHovered, isPointerInsideContainer]);
+
+    React.useEffect(() => {
+        if (isHovered && !isPointerInsideContainer()) {
+            handleMouseLeave();
+        }
+        // Only needs to re-check when the visible set actually changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [visible.length]);
+
     const isBottom = position.startsWith('bottom');
 
     // Calculate total height of the stack when expanded (sum of all heights + gaps)
-    const totalHeight = visible.reduce((sum, t) => sum + (heights[t.id] || 70), 0) + (total - 1) * 8;
+    const totalHeight = visible.reduce((sum, t) => sum + (dimensions[t.id]?.height || 70), 0) + (total - 1) * 8;
+
+    // Widest visible toast's width — applied as a `min-width` to every toast
+    // in the stack so they all match the largest one instead of jumping
+    // narrower whenever the widest toast is removed.
+    const maxWidth = visible.reduce((max, t) => {
+        const w = dimensions[t.id]?.width || 0;
+        return w > max ? w : max;
+    }, 0);
 
     const stackStyle = {
         position: 'fixed',
@@ -109,6 +185,7 @@ const ToastPositionStack = ({ position, group }) => {
 
     return (
         <div
+            ref={containerRef}
             className={`toast-stack ${position}`}
             style={stackStyle}
             onMouseEnter={handleMouseEnter}
@@ -121,14 +198,14 @@ const ToastPositionStack = ({ position, group }) => {
                 if (isHovered) {
                     let sum = 0;
                     for (let j = index + 1; j < total; j++) {
-                        const h = heights[visible[j].id] || 70;
+                        const h = dimensions[visible[j].id]?.height || 70;
                         sum += h + 8;
                     }
                     toastOffset = sum;
                 } else {
                     const frontToastId = visible[total - 1].id;
-                    const h0 = heights[frontToastId] || 70;
-                    const hi = heights[t.id] || 70;
+                    const h0 = dimensions[frontToastId]?.height || 70;
+                    const hi = dimensions[t.id]?.height || 70;
                     const si = 1 - offset * 0.05;
                     const g = 14;
                     toastOffset = h0 + offset * g - hi * si;
@@ -142,7 +219,8 @@ const ToastPositionStack = ({ position, group }) => {
                         total={total}
                         isExpanded={isHovered}
                         toastOffset={toastOffset}
-                        onHeightChange={handleHeightChange}
+                        stackMinWidth={maxWidth || undefined}
+                        onDimensionsChange={handleDimensionsChange}
                     />
                 );
             })}
@@ -166,14 +244,31 @@ const Toast = ({
     neutral = false,
     isExpanded,
     toastOffset,
-    onHeightChange,
+    stackMinWidth,
+    onDimensionsChange,
 }) => {
     const [isLeaving, setIsLeaving] = React.useState(false);
     const [isPaused, setIsPaused] = React.useState(false);
-    const closeTimerRef = React.useRef(null);
-    const remainingRef = React.useRef(duration);
-    const startedAtRef = React.useRef(null);
     const elementRef = React.useRef(null);
+
+    // ── Swipe-to-close (touch only) ──
+    const [dragX, setDragX] = React.useState(0);
+    const [isDragging, setIsDragging] = React.useState(false);
+    const [isSwipingOut, setIsSwipingOut] = React.useState(false);
+    const dragStartRef = React.useRef({ x: 0, t: 0, active: false, lastX: 0, lastT: 0 });
+    const swipeDirRef = React.useRef(null); // 'left' | 'right'
+    // Captured once on mount so the timer-fill bar's animation-duration
+    // reflects whatever time was actually left when this toast last became
+    // visible, rather than resetting to the full duration on every re-render.
+    const initialRemainingRef = React.useRef(null);
+    if (initialRemainingRef.current === null) {
+        const entry = toasts.get(id);
+        initialRemainingRef.current = entry ? entry.remaining : duration;
+    }
+
+    const isLeftPos = position === 'top-left' || position === 'bottom-left';
+    const isRightPos = position === 'top-right' || position === 'bottom-right';
+    // Middle positions allow either direction.
 
     const closeToast = React.useCallback(() => {
         setIsLeaving(true);
@@ -185,53 +280,106 @@ const Toast = ({
         closeToast();
     };
 
-    // Start / restart the auto-close timer, respecting whatever time is left
-    // (used both on mount and when resuming from a hover-pause).
-    const startTimer = React.useCallback(() => {
-        if (duration <= 0) return;
-        startedAtRef.current = Date.now();
-        closeTimerRef.current = setTimeout(closeToast, remainingRef.current);
-    }, [duration, closeToast]);
-
     const pauseTimer = React.useCallback(() => {
-        if (duration <= 0) return;
-        clearTimeout(closeTimerRef.current);
-        const elapsed = Date.now() - startedAtRef.current;
-        remainingRef.current = Math.max(remainingRef.current - elapsed, 0);
+        const entry = toasts.get(id);
+        if (entry) pauseEntryTimer(entry);
         setIsPaused(true);
-    }, [duration]);
+    }, [id]);
 
     const resumeTimer = React.useCallback(() => {
-        if (duration <= 0) return;
-        startTimer();
+        const entry = toasts.get(id);
+        if (entry) resumeEntryTimer(entry);
         setIsPaused(false);
-    }, [duration, startTimer]);
+    }, [id]);
 
     React.useLayoutEffect(() => {
         if (!elementRef.current) return;
 
-        const updateHeight = () => {
+        const updateDimensions = () => {
             if (elementRef.current) {
-                onHeightChange(id, elementRef.current.offsetHeight);
+                onDimensionsChange(id, {
+                    height: elementRef.current.offsetHeight,
+                    width: elementRef.current.offsetWidth,
+                });
             }
         };
 
-        updateHeight();
+        updateDimensions();
 
-        const observer = new ResizeObserver(updateHeight);
+        const observer = new ResizeObserver(updateDimensions);
         observer.observe(elementRef.current);
 
         return () => observer.disconnect();
-    }, [id, onHeightChange]);
+    }, [id, onDimensionsChange]);
 
     React.useEffect(() => {
         if (isExpanded) {
             pauseTimer();
-        } else {
+        } else if (!isDragging) {
             resumeTimer();
         }
-        return () => clearTimeout(closeTimerRef.current);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isExpanded, pauseTimer, resumeTimer]);
+
+    // If this toast is paused (hover) and then gets pushed out of the
+    // visible window by newer toasts before it's resumed, make sure its
+    // countdown resumes in the background instead of staying stuck forever.
+    React.useEffect(() => {
+        return () => {
+            const entry = toasts.get(id);
+            if (entry) resumeEntryTimer(entry);
+        };
+    }, [id]);
+
+    // ── Drag handlers (touch only — mouse/pen pointers are ignored) ──
+    const handlePointerDown = (e) => {
+        if (isSwipingOut) return;
+        if (e.pointerType !== 'touch') return;
+        if (e.target.closest('button')) return;
+        const now = performance.now();
+        dragStartRef.current = { x: e.clientX, t: now, active: true, lastX: e.clientX, lastT: now };
+        setIsDragging(true);
+        pauseTimer();
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+    };
+
+    const handlePointerMove = (e) => {
+        if (!dragStartRef.current.active) return;
+        let delta = e.clientX - dragStartRef.current.x;
+        // Clamp to the allowed swipe direction for this toast's position.
+        if (isLeftPos && delta > 0) delta = 0;
+        if (isRightPos && delta < 0) delta = 0;
+        dragStartRef.current.lastX = e.clientX;
+        dragStartRef.current.lastT = performance.now();
+        setDragX(delta);
+    };
+
+    const endDrag = (shouldEvaluateClose) => {
+        if (!dragStartRef.current.active) return;
+        const { x: startX, t: startT, lastX, lastT } = dragStartRef.current;
+        dragStartRef.current.active = false;
+        setIsDragging(false);
+
+        let shouldClose = false;
+        if (shouldEvaluateClose) {
+            const distance = Math.abs(dragX);
+            const elapsed = Math.max(lastT - startT, 1);
+            const velocity = Math.abs(lastX - startX) / elapsed;
+            shouldClose = distance > SWIPE_CLOSE_THRESHOLD || velocity > SWIPE_VELOCITY_THRESHOLD;
+        }
+
+        if (shouldClose) {
+            swipeDirRef.current = dragX < 0 ? 'left' : 'right';
+            setIsSwipingOut(true);
+            setTimeout(close, 200);
+        } else {
+            setDragX(0);
+            if (!isExpanded) resumeTimer();
+        }
+    };
+
+    const handlePointerUp = () => endDrag(true);
+    const handlePointerCancel = () => endDrag(false);
 
     const renderIcon = () => {
         const iconMap = {
@@ -244,12 +392,38 @@ const Toast = ({
     };
 
     const isBottom = position.startsWith('bottom');
+    const baseScale = isExpanded ? 1 : 1 - offset * 0.05;
+    const baseOpacity = isExpanded ? 1 : 1 - offset * 0.15;
+
+    let transform;
+    let opacity;
+    let transitionOverride;
+
+    if (isSwipingOut) {
+        const dir = swipeDirRef.current;
+        transform = `translateX(${dir === 'left' ? '-150%' : '150%'}) scale(${baseScale})`;
+        opacity = 0;
+        transitionOverride = 'transform 0.2s ease, opacity 0.2s ease';
+    } else if (isDragging) {
+        // No transition here — the transform is set directly from the
+        // pointer's position on every move event, so it tracks the finger 1:1.
+        transform = `translateX(${dragX}px) scale(${baseScale})`;
+        opacity = Math.max(1 - Math.abs(dragX) / 200, 0.4) * baseOpacity;
+        transitionOverride = 'none';
+    } else {
+        transform = `scale(${baseScale})`;
+        opacity = baseOpacity;
+        transitionOverride = undefined; // fall back to the CSS transition (smooth snap-back)
+    }
+
     const collapsedStyle = {
-        transform: isExpanded ? 'scale(1)' : `scale(${1 - offset * 0.05})`,
+        transform,
         transformOrigin: isBottom ? 'bottom center' : 'top center',
-        opacity: isExpanded ? 1 : 1 - offset * 0.15,
+        opacity,
         zIndex: 100 - offset,
         [isBottom ? 'bottom' : 'top']: `${toastOffset}px`,
+        minWidth: stackMinWidth ? `${stackMinWidth}px` : undefined,
+        transition: transitionOverride,
     };
 
     // Determine the actual class name based on neutral prop
@@ -260,6 +434,10 @@ const Toast = ({
             ref={elementRef}
             className={toastClass}
             style={collapsedStyle}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
         >
             <div className="content">
                 <div className="title">
@@ -291,7 +469,7 @@ const Toast = ({
                     <div
                         className="timer-fill"
                         style={{
-                            animationDuration: `${duration}ms`,
+                            animationDuration: `${initialRemainingRef.current}ms`,
                             animationPlayState: isPaused ? 'paused' : 'running',
                         }}
                     />
@@ -317,7 +495,8 @@ Toast.propTypes = {
     neutral: PropTypes.bool,
     isExpanded: PropTypes.bool.isRequired,
     toastOffset: PropTypes.number.isRequired,
-    onHeightChange: PropTypes.func.isRequired,
+    stackMinWidth: PropTypes.number,
+    onDimensionsChange: PropTypes.func.isRequired,
 };
 
 export const toast = ({
@@ -334,11 +513,13 @@ export const toast = ({
     const id = toastId++;
 
     const close = () => {
+        const entry = toasts.get(id);
+        if (entry?.timerId) clearTimeout(entry.timerId);
         toasts.delete(id);
         renderToasts();
     };
 
-    toasts.set(id, {
+    const entry = {
         id,
         type,
         title,
@@ -350,7 +531,15 @@ export const toast = ({
         enableSound,
         neutral,
         close,
-    });
+        // Countdown state lives here so it survives the toast being
+        // unmounted while hidden behind the visible-3 stack.
+        remaining: duration,
+        startedAt: null,
+        timerId: null,
+    };
+
+    toasts.set(id, entry);
+    startEntryTimer(entry);
 
     getOrCreateContainer();
     renderToasts();

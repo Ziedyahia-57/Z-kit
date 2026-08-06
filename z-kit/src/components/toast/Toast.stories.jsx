@@ -105,7 +105,7 @@ const ToastDemo = (args) => {
         });
     };
 
-    return <Button label="Show Toast" onClick={showToast} />;
+    return <Button variant="secondary" onClick={showToast}>Add Event</Button>;
 };
 
 export const toastStory = {
