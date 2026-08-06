@@ -161,18 +161,16 @@ $types: (
 // ─── Individual toast ────────────────────────────────────────────────────────
 
 .toast {
-    min-width: 350px;
+    width: fit-content;
     pointer-events: auto;
     background-color: var(--gray-25);
     border: 1px solid var(--gray-100);
     border-radius: 8px;
     box-shadow: 0 1px 3px 0px var(--gray-200);
     color: var(--gray-950);
-    padding: 12px 48px 16px 12px;
-    display: inline-flex;
-    flex-direction: column;
-    gap: 16px;
-    max-width: 604px;
+    padding: 0.75rem;
+    display: flex;
+    gap: 2rem;
     width: 100%;
     box-sizing: border-box;
     overflow: hidden;
@@ -220,23 +218,27 @@ $types: (
     .content {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        align-self: center;
+        gap: 0.25rem;
         text-transform: capitalize;
+        transition: color 0.3s ease;
 
         svg {
             flex-shrink: 0;
+            width: 1.25rem;
+            height: 1.25rem;
         }
 
         .title {
             display: flex;
             gap: 8px;
             font-weight: 500;
-            font-size: 1rem;
+            font-size: 0.875rem;
             align-items: center;
         }
 
         .description {
-            font-size: 1rem;
+            font-size: 0.75rem;
             color: var(--gray-600);
         }
 
@@ -257,26 +259,27 @@ $types: (
         }
     }
 
-    .close {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        color: var(--gray-600) !important;
+    button {
+        position: relative;
+        padding: 0.5rem !important;
 
         &:hover {
             background-color: var(--gray-100) !important;
         }
 
         svg {
-            width: 20px;
-            height: 20px;
+            color: var(--gray-600) !important;
+            width: 1.25rem;
+            height: 1.25rem;
         }
     }
 
     .actions {
-        margin-left: auto;
+        margin-inline-start: auto;
         display: flex;
-        gap: 16px;
+        gap: 0.5rem;
+        max-height: 2.25rem;
+        align-self: center;
     }
 
     // ── Duration / countdown indicator ──
@@ -334,8 +337,11 @@ $types: (
             }
         }
 
-        .close {
-            color: var(--gray-400) !important;
+        button {
+
+            svg {
+                color: var(--gray-400) !important;
+            }
 
             &:hover {
                 background-color: var(--gray-800) !important;
@@ -371,7 +377,7 @@ $types: (
 
 .rtl {
     .toast {
-        padding: 24px 24px 24px 48px;
+        padding: 0.75rem;
 
         .close {
             left: 8px;

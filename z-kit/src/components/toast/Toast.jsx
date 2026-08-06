@@ -108,15 +108,15 @@ const ToastPositionStack = ({ position, group }) => {
     };
 
     return (
-        <div 
-            className={`toast-stack ${position}`} 
+        <div
+            className={`toast-stack ${position}`}
             style={stackStyle}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
             {visible.map((t, index) => {
                 const offset = (total - 1) - index;
-                
+
                 let toastOffset = 0;
                 if (isHovered) {
                     let sum = 0;
@@ -135,11 +135,11 @@ const ToastPositionStack = ({ position, group }) => {
                 }
 
                 return (
-                    <Toast 
-                        key={t.id} 
-                        {...t} 
-                        offset={offset} 
-                        total={total} 
+                    <Toast
+                        key={t.id}
+                        {...t}
+                        offset={offset}
+                        total={total}
                         isExpanded={isHovered}
                         toastOffset={toastOffset}
                         onHeightChange={handleHeightChange}
@@ -155,13 +155,11 @@ const Toast = ({
     id,
     type = 'success',
     duration = 4000,
-    message,
+    title,
     description,
     position = 'bottom-left',
-    cancelText,
-    onCancel,
-    confirmText,
-    onConfirm,
+    action,
+    onAction,
     close,
     offset,
     total,
@@ -182,13 +180,8 @@ const Toast = ({
         setTimeout(close, 300);
     }, [close]);
 
-    const handleCancel = () => {
-        if (onCancel) onCancel();
-        closeToast();
-    };
-
-    const handleConfirm = () => {
-        if (onConfirm) onConfirm();
+    const handleAction = () => {
+        if (onAction) onAction();
         closeToast();
     };
 
@@ -216,18 +209,18 @@ const Toast = ({
 
     React.useLayoutEffect(() => {
         if (!elementRef.current) return;
-        
+
         const updateHeight = () => {
             if (elementRef.current) {
                 onHeightChange(id, elementRef.current.offsetHeight);
             }
         };
-        
+
         updateHeight();
-        
+
         const observer = new ResizeObserver(updateHeight);
         observer.observe(elementRef.current);
-        
+
         return () => observer.disconnect();
     }, [id, onHeightChange]);
 
@@ -242,10 +235,10 @@ const Toast = ({
 
     const renderIcon = () => {
         const iconMap = {
-            'success': <svg className="success" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
-            'error': <svg className="error" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M4.929 4.929 19.07 19.071" /></svg>,
-            'warning': <svg className="warning" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>,
-            'info': <svg className="info" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>,
+            'success': <svg className="success" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
+            'error': <svg className="error" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M4.929 4.929 19.07 19.071" /></svg>,
+            'warning': <svg className="warning" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>,
+            'info': <svg className="info" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>,
         };
         return iconMap[type] || iconMap['info'];
     };
@@ -271,38 +264,28 @@ const Toast = ({
             <div className="content">
                 <div className="title">
                     {renderIcon()}
-                    <p className="title">{message}</p>
+                    <p className="title">{title}</p>
                 </div>
                 {description && <p className="description">{description}</p>}
             </div>
-            {(cancelText || confirmText) && (
-                <div className="actions">
-                    {cancelText && (
-                        <Button variant="ghost" size="small" onClick={handleCancel} enableSound={enableSound}>
-                            {cancelText}
-                        </Button>
-                    )}
-                    {confirmText && (
-                        <Button variant="solid" size="small" onClick={handleConfirm} enableSound={enableSound}>
-                            {confirmText}
-                        </Button>
-                    )}
-                </div>
-            )}
-            <Button
-                className="close"
-                variant="ghost"
-                size="small"
-                buttonType="icon"
-                icon={
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 6 6 18" />
-                        <path d="m6 6 12 12" />
-                    </svg>
-                }
-                onClick={closeToast}
-                enableSound={enableSound}
-            />
+            <div className="actions">
+                {action && <Button variant="secondary" size="small" buttonType="label" onClick={handleAction}>{action}</Button>}
+                <Button
+                    className="close"
+                    variant="ghost"
+                    size="small"
+                    buttonType="icon"
+                    icon={
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 6 6 18" />
+                            <path d="m6 6 12 12" />
+                        </svg>
+                    }
+                    onClick={closeToast}
+                    enableSound={enableSound}
+                />
+            </div>
+
             {duration > 0 && (
                 <div className="timer-track">
                     <div
@@ -323,13 +306,11 @@ Toast.propTypes = {
     id: PropTypes.number.isRequired,
     type: PropTypes.oneOf(['success', 'error', 'warning', 'info']),
     duration: PropTypes.number,
-    message: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
     description: PropTypes.string,
     position: PropTypes.oneOf(['top-left', 'top-right', 'top-middle', 'bottom-left', 'bottom-right', 'bottom-middle']),
-    cancelText: PropTypes.string,
-    onCancel: PropTypes.func,
-    confirmText: PropTypes.string,
-    onConfirm: PropTypes.func,
+    action: PropTypes.string,
+    onAction: PropTypes.func,
     close: PropTypes.func.isRequired,
     offset: PropTypes.number.isRequired,
     total: PropTypes.number.isRequired,
@@ -341,14 +322,12 @@ Toast.propTypes = {
 
 export const toast = ({
     type = 'success',
-    message,
+    title,
     description,
     position = 'bottom-right',
     duration = 4000,
-    cancel,
-    accept,
-    onCancel,
-    onAccept,
+    action,
+    onAction,
     enableSound = true,
     neutral = false
 }) => {
@@ -362,14 +341,12 @@ export const toast = ({
     toasts.set(id, {
         id,
         type,
-        message,
+        title,
         description,
         position,
         duration,
-        cancelText: cancel,
-        confirmText: accept,
-        onCancel,
-        onConfirm: onAccept,
+        action: action,
+        onAction,
         enableSound,
         neutral,
         close,

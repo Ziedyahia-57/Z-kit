@@ -49,7 +49,7 @@ const meta = {
             options: ["success", "error", "warning", "info"],
             description: "Defines the type of the toast",
         },
-        message: {
+        title: {
             control: "text",
             name: "message",
             description: "Message of the toast",
@@ -64,15 +64,10 @@ const meta = {
             name: "duration",
             description: "Duration of the toast in milliseconds",
         },
-        cancelText: {
+        action: {
             control: "text",
-            name: "Cancel Text",
-            description: "Text of the cancel button",
-        },
-        confirmText: {
-            control: "text",
-            name: "Confirm Text",
-            description: "Text of the confirm button",
+            name: "Action Text",
+            description: "Text of the action button",
         },
         position: {
             control: "select",
@@ -88,7 +83,7 @@ const meta = {
         neutral: {
             control: { type: "boolean" },
             name: "Neutral",
-            description: "When true, applies gray styling to all toast types (overrides type-specific colors)",
+            description: "When true, applies gray styling to all loading bars",
         }
     }
 };
@@ -99,16 +94,14 @@ const ToastDemo = (args) => {
     const showToast = () => {
         toast({
             type: args.type,
-            message: args.message,
+            title: args.title,
             description: args.description,
             duration: args.duration,
             position: args.position,
-            cancel: args.cancelText,
-            accept: args.confirmText,
+            action: args.action,
             enableSound: args.enableSound,
             neutral: args.neutral,
-            onCancel: () => console.log("Cancel clicked"),
-            onAccept: () => console.log("Accept clicked")
+            onAction: () => console.log("Action clicked")
         });
     };
 
@@ -119,11 +112,10 @@ export const toastStory = {
     render: ToastDemo,
     args: {
         type: "success",
-        message: "Upload complete",
-        description: "24 files were uploaded and are now available to your team.",
+        title: "Event Created",
+        description: "Sunday, December 03 at 09:00AM.",
         duration: 5000,
-        cancelText: "",
-        confirmText: "",
+        action: "",
         position: "bottom-left",
         enableSound: true,
         darkmode: false,
