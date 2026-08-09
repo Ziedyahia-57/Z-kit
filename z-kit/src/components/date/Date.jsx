@@ -5,7 +5,7 @@ import { ScrollSegment } from '../common/ScrollSegment';
 /**
  * Date input component with animated rolling segments and accelerated arrow key handling.
  */
-export const Date = ({ label = "label", disabled }) => {
+export const Date = ({ label = "date", disabled }) => {
     const [day, setDay] = useState('');
     const [month, setMonth] = useState('');
     const [year, setYear] = useState('');

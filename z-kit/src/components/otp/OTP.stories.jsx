@@ -26,11 +26,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/OTP Input",
     component: OTP,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -86,10 +96,22 @@ const meta = {
 export default meta;
 
 export const otp = {
+    name: "OTP",
     args: {
         darkmode: false,
-        label: "label",
+        label: "OTP",
         disabled: false,
         slots: 6,
+    }
+}
+
+export const otpRTL = {
+    name: "OTP (rtl)",
+    args: {
+        darkmode: false,
+        label: "رمز التحقق",
+        disabled: false,
+        slots: 6,
+        rtl: true,
     }
 }

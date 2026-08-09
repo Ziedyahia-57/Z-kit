@@ -10,7 +10,6 @@ soundManager.loadSound('click', clickSoundFile, 1);
 export const Button = ({
     variant = "primary",
     size = "medium",
-    colorScheme = "primaryColor",
     disabled = false,
     children = "Button", // Changed from label to children
     icon = null,
@@ -37,7 +36,6 @@ export const Button = ({
         'button',
         size,
         variant,
-        colorScheme,
         contentTypeClass,
         className
     ].filter(Boolean).join(' ');
@@ -99,7 +97,6 @@ export const Button = ({
 Button.propTypes = {
     variant: PropTypes.oneOf(['primary', 'secondary', 'outline', 'ghost']),
     size: PropTypes.oneOf(['small', 'medium', 'large', 'xlarge']),
-    colorScheme: PropTypes.oneOf(['primaryColor', 'warningColor', 'errorColor', 'successColor', 'infoColor', 'neutralColor']),
     disabled: PropTypes.bool,
     children: PropTypes.node, // Changed from label to children
     icon: PropTypes.oneOfType([
@@ -117,7 +114,6 @@ Button.propTypes = {
 Button.defaultProps = {
     variant: 'primary',
     size: 'medium',
-    colorScheme: 'primaryColor',
     disabled: false,
     children: 'Button', // Changed from label to children
     icon: null,

@@ -15,7 +15,9 @@ $width: 180px;
     }
 
     /* Target Firefox */
-    input[type=number] {
+    .phone-input,
+    .payment-input {
+        -webkit-appearance: none;
         -moz-appearance: textfield;
     }
 
@@ -50,7 +52,11 @@ $width: 180px;
         }
     }
 
-    &:has(.text-input:disabled) .input-label {
+    &:has(.text-input:disabled) .input-label,
+    &:has(.password-input:disabled) .input-label,
+    &:has(.email-input:disabled) .input-label,
+    &:has(.phone-input:disabled) .input-label,
+    &:has(.payment-input:disabled) .input-label {
         color: var(--gray-600);
 
         body[data-dark="true"] & {
@@ -59,7 +65,11 @@ $width: 180px;
     }
 
 
-    &:has(.text-input.error) .input-label {
+    &:has(.text-input.error) .input-label,
+    &:has(.password-input.error) .input-label,
+    &:has(.email-input.error) .input-label,
+    &:has(.phone-input.error) .input-label,
+    &:has(.payment-input.error) .input-label {
         color: var(--red-600);
 
         body[data-dark="true"] & {
@@ -68,7 +78,11 @@ $width: 180px;
     }
 
     // ---- Input styling ----
-    &:has(.text-input:not(:placeholder-shown):not(:disabled)) {
+    &:has(.text-input:not(:placeholder-shown):not(:disabled)),
+    &:has(.password-input:not(:placeholder-shown):not(:disabled)),
+    &:has(.email-input:not(:placeholder-shown):not(:disabled)),
+    &:has(.phone-input:not(:placeholder-shown):not(:disabled)),
+    &:has(.payment-input:not(:placeholder-shown):not(:disabled)) {
         .input-icon svg {
             stroke: var(--gray-950);
 
@@ -78,7 +92,11 @@ $width: 180px;
         }
     }
 
-    &:has(.text-input.error:not(:placeholder-shown):not(:disabled)) {
+    &:has(.text-input.error:not(:placeholder-shown):not(:disabled)),
+    &:has(.password-input.error:not(:placeholder-shown):not(:disabled)),
+    &:has(.email-input.error:not(:placeholder-shown):not(:disabled)),
+    &:has(.phone-input.error:not(:placeholder-shown):not(:disabled)),
+    &:has(.payment-input.error:not(:placeholder-shown):not(:disabled)) {
         .input-icon svg {
             stroke: var(--red-600);
 
@@ -164,7 +182,11 @@ $width: 180px;
         }
     }
 
-    .text-input {
+    .text-input,
+    .password-input,
+    .email-input,
+    .phone-input,
+    .payment-input {
         --caret-color: var(--gray-950);
 
         width: $width;
@@ -261,15 +283,25 @@ $width: 180px;
 
     // ===== HAS ICON STYLES =====
     &.has-icon {
-        .text-input {
-            padding-left: 37px;
+
+        .text-input,
+        .password-input,
+        .email-input,
+        .phone-input,
+        .payment-input {
+            padding-inline-start: 37px;
         }
     }
 
     // ===== ICON FADED STYLES =====
     &.icon-faded {
-        .text-input {
-            padding-left: 16px;
+
+        .text-input,
+        .password-input,
+        .email-input,
+        .phone-input,
+        .payment-input {
+            padding-inline-start: 16px;
             width: calc($width + 21px); // Original width + icon space
         }
     }
@@ -311,23 +343,34 @@ $width: 180px;
 
 .rtl {
     .input {
-        .text-input[type=tel] {
-            text-align: end;
+
+        // Phone/card numbers always read LTR, even in an RTL layout —
+        // but stay right-aligned to match the mirrored field.
+        .phone-input,
+        .payment-input {
+            direction: ltr;
+            text-align: right;
         }
 
+        // Because we just forced direction back to ltr on these two,
+        // their own padding-inline-start no longer matches the icon
+        // (which is still positioned via the *inherited* rtl direction).
+        // Pin it to the physical side instead of the logical one.
         &.has-icon {
-            .text-input {
-                padding-right: 37px;
-                padding-left: 16px;
 
+            .phone-input,
+            .payment-input {
+                padding-inline-start: 16px;
+                padding-right: 37px;
             }
         }
 
         &.icon-faded {
-            .text-input {
+
+            .phone-input,
+            .payment-input {
+                padding-inline-start: 16px;
                 padding-right: 16px;
-                padding-left: 16px;
-                width: calc($width + 21px); // Original width + icon space
             }
         }
     }

@@ -26,11 +26,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Textarea",
     component: Textarea,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -93,12 +103,27 @@ export default meta;
 export const textarea = {
     args: {
         darkmode: false,
-        label: "label",
+        label: "Comment",
+        placeholder: "Comment...",
         maxLength: 10,
         disabled: false,
         error: false,
         errorText: "invalid input",
-        placeholder: "Placeholder",
         showIcon: true,
+    }
+}
+
+export const textareaRTL = {
+    name: "Textarea (rtl)",
+    args: {
+        darkmode: false,
+        label: "تعليق",
+        placeholder: "علّق...",
+        maxLength: 10,
+        disabled: false,
+        error: false,
+        errorText: "invalid input",
+        showIcon: true,
+        rtl: true,
     }
 }

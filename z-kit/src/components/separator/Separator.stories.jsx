@@ -26,11 +26,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Separator",
     component: Separator,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -74,6 +84,7 @@ const useDarkMode = () => {
 
     return isDark;
 };
+
 
 // Helper wrapper to demonstrate separators properly
 const DemoContainer = ({ orientation, children }) => {
@@ -169,6 +180,104 @@ export const separator = {
                     <small style={{ color: smallColor }}>Support & docs</small>
                 </div>
             </DemoContainer>
+        );
+    }
+};
+
+const DemoContainerRTL = ({ orientation, children }) => {
+    const isDark = useDarkMode();
+    const background = isDark ? 'var(--gray-900)' : 'var(--gray-50)';
+    const border = isDark ? 'var(--gray-800)' : 'var(--gray-200)';
+
+    if (orientation === "vertical") {
+        return (
+            <div style={{
+                display: 'flex',
+                height: 'fitContent',
+                width: 'fitContent',
+                alignItems: 'center',
+                justifySelf: 'center',
+                gap: '20px',
+                padding: '20px',
+                border: `1px solid ${border}`,
+                borderRadius: '8px',
+                background: background,
+                transition: 'background 0.2s ease'
+            }}>
+                {children}
+            </div>
+        );
+    }
+
+    return (
+        <div style={{
+            display: 'flex',
+            flexDirection: "column",
+            justifySelf: 'center',
+            width: 'fitContent',
+            gap: '20px',
+            padding: '20px',
+            border: `1px solid ${border}`,
+            borderRadius: '8px',
+            background: background,
+            transition: 'background 0.2s ease'
+        }}>
+            {children}
+        </div>
+    );
+};
+
+export const separatorRTL = {
+    name: "Separator (rtl)",
+    args: {
+        darkmode: false,
+        orientation: "horizontal",
+        rtl: true,
+    },
+    render: (args) => {
+        const { orientation } = args;
+        const isDark = useDarkMode();
+        const pColor = isDark ? 'var(--gray-50)' : 'var(--gray-950)';
+        const smallColor = isDark ? 'var(--gray-400)' : 'var(--gray-600)';
+
+        if (orientation === "vertical") {
+            return (
+                <DemoContainerRTL orientation="vertical">
+                    <div>
+                        <p style={{ color: pColor, margin: 0 }}>الإعدادات</p>
+                        <small style={{ color: smallColor }}>إدارة التفضيلات</small>
+                    </div>
+                    <Separator {...args} />
+                    <div>
+                        <p style={{ color: pColor, margin: 0 }}>الحساب</p>
+                        <small style={{ color: smallColor }}>الملف الشخصي والأمان</small>
+                    </div>
+                    <Separator {...args} />
+                    <div>
+                        <p style={{ color: pColor, margin: 0 }}>المساعدة</p>
+                        <small style={{ color: smallColor }}>الدعم والوثائق</small>
+                    </div>
+                </DemoContainerRTL>
+            );
+        }
+
+        return (
+            <DemoContainerRTL orientation="horizontal">
+                <div>
+                    <p style={{ color: pColor, margin: 0 }}>الإعدادات</p>
+                    <small style={{ color: smallColor }}>إدارة التفضيلات</small>
+                </div>
+                <Separator {...args} />
+                <div>
+                    <p style={{ color: pColor, margin: 0 }}>الحساب</p>
+                    <small style={{ color: smallColor }}>الملف الشخصي والأمان</small>
+                </div>
+                <Separator {...args} />
+                <div>
+                    <p style={{ color: pColor, margin: 0 }}>المساعدة</p>
+                    <small style={{ color: smallColor }}>الدعم والوثائق</small>
+                </div>
+            </DemoContainerRTL>
         );
     }
 };

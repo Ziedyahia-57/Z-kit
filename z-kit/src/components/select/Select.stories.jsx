@@ -36,11 +36,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Select",
     component: Select,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -83,8 +93,8 @@ export default meta;
 export const select = {
     args: {
         darkmode: false,
-        label: 'label',
-        placeholder: "Placeholder",
+        label: 'item',
+        placeholder: "Empty",
         disabled: false,
         error: false,
     },
@@ -93,7 +103,7 @@ export const select = {
         const { darkmode, ...selectArgs } = args;
         return (
             <DropdownWrapper>
-                <DropdownTrigger><Select placeholder="Choose one..." {...selectArgs}>Item</Select></DropdownTrigger>
+                <DropdownTrigger><Select placeholder={args.placeholder} {...selectArgs}>{args.label}</Select></DropdownTrigger>
                 <Dropdown maxHeight={250}>
                     <DropdownGroup>
                         <GroupTitle>Fruits</GroupTitle>
@@ -114,6 +124,72 @@ export const select = {
                         <GroupItem mode="icons" shortcut="ctrl o"><Disc color="purple" />Cheese</GroupItem>
                         <GroupItem mode="icons" shortcut="ctrl b"><Disc color="pink" />Butter</GroupItem>
                         <GroupItem mode="icons" shortcut="ctrl b"><Disc color="gray" />Cream</GroupItem>
+                    </DropdownGroup>
+                </Dropdown>
+            </DropdownWrapper>
+        )
+    }
+};
+
+export const selectRTL = {
+    name: "Select (rtl)",
+    args: {
+        darkmode: false,
+        label: 'العنصر',
+        placeholder: "فارغ",
+        disabled: false,
+        error: false,
+        rtl: true,
+    },
+
+    render: (args) => {
+        const { darkmode, ...selectArgs } = args;
+        return (
+            <DropdownWrapper>
+                <DropdownTrigger>
+                    <Select placeholder={args.placeholder} {...selectArgs}>{args.label}</Select>
+                </DropdownTrigger>
+                <Dropdown maxHeight={250}>
+                    <DropdownGroup>
+                        <GroupTitle>الفواكه</GroupTitle>
+                        <GroupItem mode="icons" shortcut="ctrl a">
+                            <Disc color="red" />تفاح
+                        </GroupItem>
+                        <GroupItem mode="icons" shortcut="ctrl o">
+                            <Disc color="orange" />برتقال
+                        </GroupItem>
+                        <GroupItem mode="icons" shortcut="ctrl b">
+                            <Disc color="yellow" />موز
+                        </GroupItem>
+                    </DropdownGroup>
+
+                    <DropdownGroup>
+                        <GroupTitle>الخضروات</GroupTitle>
+                        <GroupItem mode="icons" shortcut="ctrl c">
+                            <Disc color="lime" />جزر
+                        </GroupItem>
+                        <GroupItem mode="icons" shortcut="ctrl r">
+                            <Disc color="green" />بروكلي
+                        </GroupItem>
+                        <GroupItem mode="icons" shortcut="ctrl s">
+                            <Disc color="lightBlue" />سبانخ
+                        </GroupItem>
+                    </DropdownGroup>
+
+                    <DropdownGroup>
+                        <GroupTitle>منتجات الألبان</GroupTitle>
+                        <GroupItem mode="icons" shortcut="ctrl a">
+                            <Disc color="primary" />حليب
+                        </GroupItem>
+                        <GroupItem mode="icons" shortcut="ctrl o">
+                            <Disc color="purple" />جبن
+                        </GroupItem>
+                        <GroupItem mode="icons" shortcut="ctrl b">
+                            <Disc color="pink" />زبدة
+                        </GroupItem>
+                        <GroupItem mode="icons" shortcut="ctrl b">
+                            <Disc color="gray" />قشطة
+                        </GroupItem>
                     </DropdownGroup>
                 </Dropdown>
             </DropdownWrapper>

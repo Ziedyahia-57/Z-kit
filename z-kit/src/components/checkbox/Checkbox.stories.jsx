@@ -25,11 +25,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Checkbox",
     component: Checkbox,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -133,6 +143,48 @@ export const checkbox = {
         darkmode: false,
         enableSound: true,
         disabled: false, // Global disabled control
+        onClick: () => { },
+    },
+};
+
+export const checkboxRTL = {
+    name: "Checkbox (rtl)",
+    render: (args) => (
+        <CheckboxGroup
+            globalDisabled={args.disabled}
+            checkboxes={[
+                {
+                    label: 'افتراضي',
+                    details: 'تباعد قياسي يناسب معظم الاستخدامات.',
+                    enableSound: args.enableSound,
+                    checked: true,
+                    disabled: false,
+                    indeterminate: false,
+                },
+                {
+                    label: 'مريح',
+                    details: 'تباعد أكبر بين العناصر.',
+                    enableSound: args.enableSound,
+                    checked: false,
+                    disabled: false,
+                    indeterminate: false,
+                },
+                {
+                    label: 'مضغوط',
+                    details: 'أقل تباعد ممكن للتخطيطات الكثيفة.',
+                    enableSound: args.enableSound,
+                    checked: false,
+                    disabled: false,
+                    indeterminate: true,
+                },
+            ]}
+        />
+    ),
+    args: {
+        darkmode: false,
+        enableSound: true,
+        disabled: false, // Global disabled control
+        rtl: true,
         onClick: () => { },
     },
 };

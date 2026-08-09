@@ -25,11 +25,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Accordion",
     component: Accordion,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -182,6 +192,42 @@ export const accordion = {
         disabled: false,
         enableSound: true,
         soundVolume: 1,
+    },
+    render: (args) => {
+        const { accordionBehavior, accordion1, answer1, accordion2, answer2, accordion3, answer3, disabled, enableSound, soundVolume, darkmode } = args;
+        return (
+            <AccordionGroup
+                accordionBehavior={accordionBehavior}
+                accordion1={accordion1}
+                answer1={answer1}
+                accordion2={accordion2}
+                answer2={answer2}
+                accordion3={accordion3}
+                answer3={answer3}
+                disabled={disabled}
+                enableSound={enableSound}
+                soundVolume={soundVolume}
+                darkmode={darkmode}
+            />
+        );
+    },
+};
+
+export const accordionRTL = {
+    name: "Accordion (rtl)",
+    args: {
+        darkmode: false,
+        accordionBehavior: "collapseOthers",
+        accordion1: "ما هي سياسة الإرجاع الخاصة بكم؟",
+        answer1: "نوفر سياسة إرجاع لمدة 30 يومًا لجميع المنتجات غير المستخدمة وفي عبواتها الأصلية. الإرجاع مجاني داخل الولايات المتحدة القارية.",
+        accordion2: "كم تستغرق مدة الشحن؟",
+        answer2: "يستغرق الشحن القياسي من 3 إلى 5 أيام عمل. ويستغرق الشحن السريع من يوم إلى يومي عمل. الطلبات التي تزيد قيمتها عن 50 دولارًا تُشحن مجانًا!",
+        accordion3: "هل توفرون الشحن الدولي؟",
+        answer3: "نعم، نقوم بالشحن إلى أكثر من 50 دولة حول العالم. يستغرق الشحن الدولي عادةً من 7 إلى 14 يوم عمل. تختلف تكلفة الشحن حسب وجهة التسليم.",
+        disabled: false,
+        enableSound: true,
+        soundVolume: 1,
+        rtl: true,
     },
     render: (args) => {
         const { accordionBehavior, accordion1, answer1, accordion2, answer2, accordion3, answer3, disabled, enableSound, soundVolume, darkmode } = args;

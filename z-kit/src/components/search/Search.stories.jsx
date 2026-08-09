@@ -25,11 +25,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Search",
     component: Search,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -68,5 +78,15 @@ export const search = {
         darkmode: false,
         disabled: false,
         placeholder: "Search...",
+    }
+}
+
+export const searchRTL = {
+    name: "Search (rtl)",
+    args: {
+        darkmode: false,
+        disabled: false,
+        placeholder: "بحث...",
+        rtl: true,
     }
 }

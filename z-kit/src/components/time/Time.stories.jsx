@@ -26,11 +26,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Time",
     component: Time,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -99,11 +109,23 @@ export default meta;
 export const time = {
     args: {
         darkmode: false,
-        label: "label",
+        label: "Time",
         disabled: false,
-        placeholder: "Placeholder",
         showIcon: true,
         showSeconds: false,
         format: "auto",
+    }
+}
+
+export const timeRTL = {
+    name: "Time (rtl)",
+    args: {
+        darkmode: false,
+        label: "الوقت",
+        disabled: false,
+        showIcon: true,
+        showSeconds: false,
+        format: "auto",
+        rtl: true,
     }
 }

@@ -25,11 +25,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Tag",
     component: Tag,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -91,11 +101,41 @@ const colors = [
 
 export const tag = {
     args: {
-        label: "Tag",
+        label: "Done",
         tagType: "label & icon",
-        icon: "chart",
+        icon: "check",
         removable: false,
         darkmode: false,
+    },
+    render: (args) => (
+        <div
+            style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "12px",
+                alignItems: "center",
+            }}
+        >
+            {colors.map((color) => (
+                <Tag
+                    key={color}
+                    {...args}
+                    color={color}
+                />
+            ))}
+        </div>
+    ),
+};
+
+export const tagRTL = {
+    name: "Tag (rtl)",
+    args: {
+        label: "منجز",
+        tagType: "label & icon",
+        icon: "check",
+        removable: false,
+        darkmode: false,
+        rtl: true,
     },
     render: (args) => (
         <div

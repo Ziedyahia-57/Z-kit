@@ -34,11 +34,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Dropdown",
     component: Dropdown,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: { component: "A dropdown menu component with automatic separators between groups" }
@@ -214,6 +224,217 @@ export const contextMenuWithActions = {
                     <Dropdown>
                         <DropdownGroup>
                             <GroupTitle>Formats</GroupTitle>
+                            <GroupItem><Disc color="red" />PDF</GroupItem>
+                            <GroupItem><Disc color="primary" />Word</GroupItem>
+                            <GroupItem><Disc color="orange" />SVG</GroupItem>
+                        </DropdownGroup>
+                    </Dropdown>
+                </GroupItem>
+            </DropdownGroup>
+        </Dropdown>
+    )
+};
+
+export const dropdownRTL = {
+    name: "Dropdown (rtl)",
+    args: {
+        darkmode: false,
+        debugSafetyCone: false,
+        rtl: true,
+    },
+    render: (args) => (
+
+        <Dropdown maxHeight={250}>
+            <DropdownGroup>
+                <GroupTitle>الفواكه</GroupTitle>
+                <GroupItem mode="icons" shortcut="ctrl a">
+                    <Disc color="red" />تفاح
+                </GroupItem>
+                <GroupItem mode="icons" shortcut="ctrl o">
+                    <Disc color="orange" />برتقال
+                </GroupItem>
+                <GroupItem mode="icons" shortcut="ctrl b">
+                    <Disc color="yellow" />موز
+                </GroupItem>
+            </DropdownGroup>
+            <DropdownGroup>
+                <GroupTitle>الخضروات</GroupTitle>
+                <GroupItem mode="icons" shortcut="ctrl c">
+                    <Disc color="lime" />جزر
+                </GroupItem>
+                <GroupItem mode="icons" shortcut="ctrl r">
+                    <Disc color="green" />بروكلي
+                </GroupItem>
+                <GroupItem mode="icons" shortcut="ctrl s">
+                    <Disc color="lightBlue" />سبانخ
+                </GroupItem>
+            </DropdownGroup>
+            <DropdownGroup>
+                <GroupTitle>منتجات الألبان</GroupTitle>
+                <GroupItem mode="icons" shortcut="ctrl a">
+                    <Disc color="primary" />حليب
+                </GroupItem>
+                <GroupItem mode="icons" shortcut="ctrl o">
+                    <Disc color="purple" />جبن
+                </GroupItem>
+                <GroupItem mode="icons" shortcut="ctrl b">
+                    <Disc color="pink" />زبدة
+                </GroupItem>
+                <GroupItem mode="icons" shortcut="ctrl b">
+                    <Disc color="gray" />قشطة
+                </GroupItem>
+            </DropdownGroup>
+        </Dropdown>
+    )
+};
+
+export const contextMenuRTL = {
+    name: "Context Menu (rtl)",
+    args: {
+        darkmode: false,
+        debugSafetyCone: false,
+        rtl: true,
+    },
+    render: (args) => (
+        <Dropdown search={true} contextMenu={true}>
+            <DropdownGroup>
+                <GroupTitle>ملف</GroupTitle>
+
+                <GroupItem mode="icons" shortcut="ctrl c" debugSafetyCone={args.debugSafetyCone}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 0 2 .9 2 2" /></svg>
+                    نسخ
+                </GroupItem>
+
+                <GroupItem mode="icons" shortcut="ctrl v" debugSafetyCone={args.debugSafetyCone}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /></svg>
+                    لصق
+                </GroupItem>
+
+                <GroupItem mode="icons" shortcut="ctrl x" debugSafetyCone={args.debugSafetyCone}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3" /><path d="M8.12 8.12 12 12" /><path d="M20 4 8.12 15.88" /><circle cx="6" cy="18" r="3" /><path d="M14.8 14.8 20 20" /></svg>
+                    قص
+                </GroupItem>
+
+                <GroupItem mode="icons" shortcut="ctrl d" debugSafetyCone={args.debugSafetyCone}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 13.74a2 2 0 0 1-2 0L2.5 8.87a1 1 0 0 1 0-1.74L11 2.26a2 2 0 0 1 2 0l8.5 4.87a1 1 0 0 1 0 1.74z" /><path d="m20 14.285 1.5.845a1 1 0 0 1 0 1.74L13 21.74a2 2 0 0 1-2 0l-8.5-4.87a1 1 0 0 1 0-1.74l1.5-.845" /></svg>
+                    تكرار
+                </GroupItem>
+            </DropdownGroup>
+
+            <DropdownGroup>
+                <GroupTitle>تحرير</GroupTitle>
+
+                <GroupItem mode="icons" debugSafetyCone={args.debugSafetyCone}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3 4 7l4 4" /><path d="M4 7h16" /><path d="m16 21 4-4-4-4" /><path d="M20 17H4" /></svg>
+                    تحويل إلى...
+                    <Dropdown>
+                        <DropdownGroup>
+                            <GroupTitle>الصيغة</GroupTitle>
+                            <GroupItem><Disc color="red" />PDF</GroupItem>
+                            <GroupItem><Disc color="primary" />Word</GroupItem>
+                            <GroupItem><Disc color="orange" />SVG</GroupItem>
+                        </DropdownGroup>
+                    </Dropdown>
+                </GroupItem>
+
+                <GroupItem mode="icons" debugSafetyCone={args.debugSafetyCone}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" /><path d="M14 2v5a1 1 0 0 0 1 1h5" /><path d="M12 18v-6" /><path d="m9 15 3 3 3-3" /></svg>
+                    تصدير باسم...
+                    <Dropdown>
+                        <DropdownGroup>
+                            <GroupTitle>الصيغة</GroupTitle>
+                            <GroupItem><Disc color="red" />PDF</GroupItem>
+                            <GroupItem><Disc color="primary" />Word</GroupItem>
+                            <GroupItem><Disc color="orange" />SVG</GroupItem>
+                        </DropdownGroup>
+                    </Dropdown>
+                </GroupItem>
+            </DropdownGroup>
+
+            <DropdownGroup>
+                <GroupTitle>منطقة الخطر</GroupTitle>
+
+                <GroupItem mode="icons" shortcut="bsp" danger={true} debugSafetyCone={args.debugSafetyCone}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                    حذف
+                </GroupItem>
+            </DropdownGroup>
+        </Dropdown>
+    )
+};
+
+export const contextMenuWithActionsRTL = {
+    name: "Context Menu with Actions (rtl)",
+    args: {
+        darkmode: false,
+        debugSafetyCone: false,
+        rtl: true,
+    },
+    render: (args) => (
+        <Dropdown search={true} contextMenu={true}>
+            <DropdownGroup>
+                <QuickActions>
+                    <GroupItem mode="icons" debugSafetyCone={args.debugSafetyCone}>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v13" /><path d="m16 6-4-4-4 4" /><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /></svg>
+                        مشاركة
+                    </GroupItem>
+
+                    <GroupItem mode="icons" debugSafetyCone={args.debugSafetyCone}>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" /><path d="M7 3v4a1 1 0 0 0 1 1h7" /></svg>
+                        حفظ
+                    </GroupItem>
+
+                    <GroupItem mode="icons" danger={true} debugSafetyCone={args.debugSafetyCone}>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 11v6" /><path d="M14 11v6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                        حذف
+                    </GroupItem>
+                </QuickActions>
+
+                <GroupTitle>ملف</GroupTitle>
+
+                <GroupItem mode="icons" shortcut="ctrl c" debugSafetyCone={args.debugSafetyCone}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 0 2 .9 2 2" /></svg>
+                    نسخ
+                </GroupItem>
+
+                <GroupItem mode="icons" shortcut="ctrl v" debugSafetyCone={args.debugSafetyCone}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /></svg>
+                    لصق
+                </GroupItem>
+
+                <GroupItem mode="icons" shortcut="ctrl x" debugSafetyCone={args.debugSafetyCone}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="6" r="3" /><path d="M8.12 8.12 12 12" /><path d="M20 4 8.12 15.88" /><circle cx="6" cy="18" r="3" /><path d="M14.8 14.8 20 20" /></svg>
+                    قص
+                </GroupItem>
+
+                <GroupItem mode="icons" shortcut="ctrl d" debugSafetyCone={args.debugSafetyCone}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 13.74a2 2 0 0 1-2 0L2.5 8.87a1 1 0 0 1 0-1.74L11 2.26a2 2 0 0 1 2 0l8.5 4.87a1 1 0 0 1 0 1.74z" /><path d="m20 14.285 1.5.845a1 1 0 0 1 0 1.74L13 21.74a2 2 0 0 1-2 0l-8.5-4.87a1 1 0 0 1 0-1.74l1.5-.845" /></svg>
+                    تكرار
+                </GroupItem>
+            </DropdownGroup>
+
+            <DropdownGroup>
+                <GroupTitle>تحرير</GroupTitle>
+
+                <GroupItem mode="icons" debugSafetyCone={args.debugSafetyCone}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3 4 7l4 4" /><path d="M4 7h16" /><path d="m16 21 4-4-4-4" /><path d="M20 17H4" /></svg>
+                    تحويل إلى...
+                    <Dropdown>
+                        <DropdownGroup>
+                            <GroupTitle>الصيغة</GroupTitle>
+                            <GroupItem><Disc color="red" />PDF</GroupItem>
+                            <GroupItem><Disc color="primary" />Word</GroupItem>
+                            <GroupItem><Disc color="orange" />SVG</GroupItem>
+                        </DropdownGroup>
+                    </Dropdown>
+                </GroupItem>
+
+                <GroupItem mode="icons" debugSafetyCone={args.debugSafetyCone}>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" /><path d="M14 2v5a1 1 0 0 0 1 1h5" /><path d="M12 18v-6" /><path d="m9 15 3 3 3-3" /></svg>
+                    تصدير باسم...
+                    <Dropdown>
+                        <DropdownGroup>
+                            <GroupTitle>الصيغة</GroupTitle>
                             <GroupItem><Disc color="red" />PDF</GroupItem>
                             <GroupItem><Disc color="primary" />Word</GroupItem>
                             <GroupItem><Disc color="orange" />SVG</GroupItem>

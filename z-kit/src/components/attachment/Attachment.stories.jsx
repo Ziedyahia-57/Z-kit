@@ -31,12 +31,21 @@ const withDarkModeControl = (Story, context) => {
 
     return <Story />;
 };
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
 
 const meta = {
     title: "Z-kit/Attachment",
     component: AttachmentDemo,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -112,5 +121,18 @@ export const attachment = {
         status: "uploading",
         indeterminate: true,
         progress: 42,
+    }
+};
+
+export const attachmentRTL = {
+    name: "Attachment (rtl)",
+    args: {
+        darkmode: false,
+        name: "التقرير-الفصلي.pdf",
+        size: 2_500_000,
+        status: "uploading",
+        indeterminate: true,
+        progress: 42,
+        rtl: true,
     }
 };

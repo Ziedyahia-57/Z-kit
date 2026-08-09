@@ -378,10 +378,15 @@ export const GroupItem = ({
 
         if (hasSubmenu && itemRef.current) {
             const rect = itemRef.current.getBoundingClientRect();
-            const submenuWidth = 222;
+            const submenuWidth = 222; // only used as a rough "is there room" check now
             const spaceRight = window.innerWidth - rect.right;
             const openLeft = spaceRight < submenuWidth + 8;
-            setPos({ top: rect.top, left: openLeft ? rect.left - submenuWidth - 4 : rect.right + 4 });
+
+            setPos(
+                openLeft
+                    ? { top: rect.top, right: window.innerWidth - rect.left + 4, left: undefined }
+                    : { top: rect.top, left: rect.right + 4, right: undefined }
+            );
             setHeadPos({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
         }
 
@@ -543,7 +548,12 @@ export const GroupItem = ({
                         <div
                             ref={submenuRef}
                             className={`submenu-dropdown-portal${leaving ? " is-leaving" : ""}${hovered && !leaving ? " is-visible" : ""}`}
-                            style={{ top: pos.top, left: pos.left, position: "fixed", zIndex: 1000 }}
+                            style={{
+                                top: pos.top,
+                                ...(pos.left !== undefined ? { left: pos.left } : { right: pos.right }),
+                                position: "fixed",
+                                zIndex: 1000,
+                            }}
                             onMouseEnter={handleMouseEnterSubmenu}
                             onMouseLeave={() => { }}
                         >
@@ -571,6 +581,7 @@ export const DropdownWrapper = ({ children, offset = 4 }) => {
     const [isLeaving, setIsLeaving] = useState(false);
     const [pos, setPos] = useState({ top: 0, left: 0 });
     const [posReady, setPosReady] = useState(false);
+    const [opensUpward, setOpensUpward] = useState(false);
 
     const triggerRef = useRef(null);
     const dropdownRef = useRef(null);
@@ -598,12 +609,12 @@ export const DropdownWrapper = ({ children, offset = 4 }) => {
         const spaceBelow = window.innerHeight - rect.bottom;
         const spaceAbove = rect.top;
 
-        const top = dropH > 0 && spaceBelow < dropH + offset && spaceAbove > spaceBelow
-            ? rect.top - dropH - offset
-            : rect.bottom + offset;
+        const shouldOpenUp = dropH > 0 && spaceBelow < dropH + offset && spaceAbove > spaceBelow;
+        const top = shouldOpenUp ? rect.top - dropH - offset : rect.bottom + offset;
 
         const left = Math.max(8, Math.min(rect.left, window.innerWidth - 222 - 8));
         setPos({ top, left });
+        setOpensUpward(shouldOpenUp); // add this
         setPosReady(true);
     };
 
@@ -721,7 +732,7 @@ export const DropdownWrapper = ({ children, offset = 4 }) => {
                 ReactDOM.createPortal(
                     <div
                         ref={dropdownRef}
-                        className={`submenu-dropdown-portal${isLeaving ? " is-leaving" : " is-visible"}`}
+                        className={`submenu-dropdown-portal${isLeaving ? " is-leaving" : " is-visible"}${opensUpward ? " opens-upward" : ""}`}
                         style={{
                             top: pos.top,
                             left: pos.left,

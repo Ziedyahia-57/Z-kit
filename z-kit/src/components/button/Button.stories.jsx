@@ -25,11 +25,21 @@ const withDarkModeControl = (Story, context) => {
   return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+  const { rtl = false } = context.args;
+
+  return (
+    <div className={rtl ? "rtl" : ""}>
+      <Story />
+    </div>
+  );
+};
+
 const meta = {
   title: "Z-kit/Button",
   component: Button,
   tags: ["autodocs"],
-  decorators: [withDarkModeControl],
+  decorators: [withDarkModeControl, withRTLControl],
   parameters: {
     docs: {
       description: {
@@ -99,12 +109,26 @@ export const button = {
   args: {
     darkmode: false,
     variant: "primary",
-    colorScheme: "primaryColor",
-    children: "Button",
+    children: "Add",
     size: "large",
     disabled: false,
-    buttonType: "label",
-    icon: null,
+    buttonType: "label & icon",
+    icon: "plus",
     iconPosition: "left",
+  },
+};
+
+export const buttonRTL = {
+  name: "Button (rtl)",
+  args: {
+    darkmode: false,
+    variant: "primary",
+    children: "إضافة",
+    size: "large",
+    disabled: false,
+    buttonType: "label & icon",
+    icon: "plus",
+    iconPosition: "left",
+    rtl: true,
   },
 };

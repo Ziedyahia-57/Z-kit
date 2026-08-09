@@ -25,11 +25,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Kbd",
     component: Kbd,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -89,6 +99,54 @@ export const AllVariants = {
         group1Shortcut2: 'c',
         group2Shortcut1: 'ctrl',
         group2Shortcut2: 'a',
+    },
+    render: (args) => {
+        const {
+            mode,
+            singleShortcut,
+            group1Shortcut1,
+            group1Shortcut2,
+            group2Shortcut1,
+            group2Shortcut2
+        } = args;
+
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <Kbd mode={mode}>
+                    {singleShortcut}
+                </Kbd>
+
+
+
+
+                <KbdGroup>
+                    <Kbd mode={mode}>{group1Shortcut1}</Kbd>
+                    <Kbd mode={mode}>{group1Shortcut2}</Kbd>
+                </KbdGroup>
+
+
+
+                <KbdGroup>
+                    <Kbd mode={mode}>{group2Shortcut1}</Kbd>
+                    <p>+</p>
+                    <Kbd mode={mode}>{group2Shortcut2}</Kbd>
+                </KbdGroup>
+
+            </div>
+        );
+    }
+};
+export const AllVariantsRTL = {
+    name: "All Variants (rtl)",
+    args: {
+        darkmode: false,
+        mode: 'icons',
+        singleShortcut: 'shift + s',
+        group1Shortcut1: 'ctrl',
+        group1Shortcut2: 'c',
+        group2Shortcut1: 'ctrl',
+        group2Shortcut2: 'a',
+        rtl: true
     },
     render: (args) => {
         const {

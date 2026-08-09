@@ -26,11 +26,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Number",
     component: Number,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -79,10 +89,23 @@ export default meta;
 export const number = {
     args: {
         darkmode: false,
-        label: "label",
+        label: "quantity",
         disabled: false,
         min: 0,
         max: 100,
         orientation: "horizontal",
+    }
+}
+
+export const numberRTL = {
+    name: "Number (rtl)",
+    args: {
+        darkmode: false,
+        label: "الكمية",
+        disabled: false,
+        min: 0,
+        max: 100,
+        orientation: "horizontal",
+        rtl: true
     }
 }

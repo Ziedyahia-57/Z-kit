@@ -26,11 +26,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Input",
     component: Input,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -96,6 +106,8 @@ export const input = {
         label: "label",
         disabled: false,
         placeholder: "Placeholder",
+        error: false,
+        errorText: "invalid input",
         showIcon: true,
         fadeIconOnFocus: true
     }
@@ -156,3 +168,84 @@ export const paymentInput = {
         return (<PaymentInput {...args} />)
     }
 }
+
+
+/**/
+export const inputRTL = {
+    name: "Input (rtl)",
+    args: {
+        darkmode: false,
+        label: "الأسم",
+        disabled: false,
+        placeholder: "الأسم",
+        error: false,
+        errorText: "قيمة غير صالحة",
+        showIcon: true,
+        fadeIconOnFocus: true,
+        rtl: true,
+    },
+};
+
+export const passwordInputRTL = {
+    name: "Password Input (rtl)",
+    args: {
+        darkmode: false,
+        label: "كلمة المرور",
+        disabled: false,
+        placeholder: "كلمة المرور",
+        showIcon: true,
+        fadeIconOnFocus: true,
+        rtl: true,
+    },
+    render: (args) => {
+        return <PasswordInput {...args} />;
+    },
+};
+
+export const emailInputRTL = {
+    name: "Email Input (rtl)",
+    args: {
+        darkmode: false,
+        label: "البريد الإلكتروني",
+        disabled: false,
+        placeholder: "name@example.com",
+        showIcon: true,
+        fadeIconOnFocus: true,
+        rtl: true,
+    },
+    render: (args) => {
+        return <EmailInput {...args} />;
+    },
+};
+
+export const phoneInputRTL = {
+    name: "Phone Input (rtl)",
+    args: {
+        darkmode: false,
+        label: "رقم الهاتف",
+        disabled: false,
+        placeholder: "+000 000 000 000",
+        showIcon: true,
+        fadeIconOnFocus: true,
+        rtl: true,
+    },
+    render: (args) => {
+        return <PhoneInput {...args} />;
+    },
+};
+
+export const paymentInputRTL = {
+    name: "Payment Input (rtl)",
+    args: {
+        darkmode: false,
+        label: "طريقة الدفع",
+        disabled: false,
+        placeholder: "0000 0000 0000 0000",
+        showIcon: true,
+        fadeIconOnFocus: true,
+        rtl: true,
+    },
+    render: (args) => {
+        return <PaymentInput {...args} />;
+    },
+};

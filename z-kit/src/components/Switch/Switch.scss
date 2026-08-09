@@ -111,6 +111,10 @@
     // ── Disabled state ────────────────────────────────────────────────────
     &.disabled {
 
+        .switchComponent-wrapper {
+            cursor: not-allowed;
+        }
+
         .switchComponent-indicator {
             background: var(--gray-200);
             cursor: not-allowed;

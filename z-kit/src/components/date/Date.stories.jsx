@@ -26,11 +26,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Date Input",
     component: Date,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -73,7 +83,17 @@ export default meta;
 export const date = {
     args: {
         darkmode: false,
-        label: "label",
-        disabled: false
+        label: "Date",
+        disabled: false,
+    }
+}
+
+export const dateRTl = {
+    name: "Date (rtl)",
+    args: {
+        darkmode: false,
+        label: "التاريخ",
+        disabled: false,
+        rtl: true,
     }
 }

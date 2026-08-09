@@ -25,11 +25,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Radio",
     component: Radio,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -116,10 +126,45 @@ export const radio = {
     ),
     args: {
         darkmode: false,
-        label: 'label',
-        details: "details",
         disabled: false,
         enableSound: true,
         onClick: () => { },
+    },
+};
+
+export const radioRTL = {
+    name: "Radio (rtl)",
+    render: (args) => (
+        <RadioGroup
+            globalDisabled={args.disabled}
+            radios={[
+                {
+                    label: 'افتراضي',
+                    details: 'المسافات القياسية لمعظم الاستخدامات.',
+                    disabled: false,
+                    enableSound: args.enableSound,
+                    checked: args.checked,
+                },
+                {
+                    label: 'مريح',
+                    details: 'مساحة أكبر بين العناصر.',
+                    disabled: false,
+                    enableSound: args.enableSound,
+                },
+                {
+                    label: 'مضغوط',
+                    details: 'مسافات أقل للتخطيطات الكثيفة.',
+                    disabled: false,
+                    enableSound: args.enableSound,
+                },
+            ]}
+        />
+    ),
+    args: {
+        darkmode: false,
+        disabled: false,
+        enableSound: true,
+        onClick: () => { },
+        rtl: true,
     },
 };

@@ -25,11 +25,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Toast",
     component: toast,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -96,6 +106,7 @@ const ToastDemo = (args) => {
             type: args.type,
             title: args.title,
             description: args.description,
+            action: args.action,
             duration: args.duration,
             position: args.position,
             action: args.action,
@@ -108,17 +119,35 @@ const ToastDemo = (args) => {
     return <Button buttonType="label & icon" icon="plus" variant="secondary" onClick={showToast}>Add Event</Button>;
 };
 
-export const DefaultStory = {
+export const toastComponent = {
+    name: "Toast",
     render: ToastDemo,
     args: {
         type: "success",
         title: "Event Created",
         description: "Sunday, December 03 at 09:00AM.",
+        action: "Undo",
         duration: 5000,
-        action: "",
         position: "bottom-left",
         enableSound: true,
         darkmode: false,
         neutral: false,
+    },
+};
+
+export const toastComponentRTL = {
+    name: "Toast (rtl)",
+    render: ToastDemo,
+    args: {
+        type: "success",
+        title: "تم إنشاء الفعالية",
+        description: "الأحد، 3 ديسمبر الساعة 09:00 صباحًا.",
+        action: "إلغاء",
+        duration: 5000,
+        position: "bottom-left",
+        enableSound: true,
+        darkmode: false,
+        neutral: false,
+        rtl: true,
     },
 };

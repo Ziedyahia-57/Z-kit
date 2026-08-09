@@ -331,20 +331,31 @@
     z-index: 1000;
     visibility: hidden;
     pointer-events: none;
-    transition: visibility 0s linear 0.1s;
+    transition: visibility 0s linear 0.15s;
 
     .dropdown {
         width: 100%;
         min-width: 145px;
         box-sizing: border-box;
         opacity: 0;
-        filter: blur(4px);
-        transition: opacity 0.1s ease, filter 0.1s ease, background 0.2s ease, border 0.2s ease, color 0.2s ease;
+        transform: scale(0.96) translateY(-4px);
+        transform-origin: top;
+        transition:
+            opacity 0.15s ease,
+            transform 0.15s cubic-bezier(0.2, 0, 0.2, 1),
+            background 0.2s ease,
+            border 0.2s ease,
+            color 0.2s ease;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 
         body[data-dark="true"] & {
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
         }
+    }
+
+    &.opens-upward .dropdown {
+        transform-origin: bottom;
+        transform: scale(0.96) translateY(4px);
     }
 
     &.is-visible {
@@ -355,17 +366,29 @@
 
     &.is-visible .dropdown {
         opacity: 1;
-        filter: blur(0px);
+        transform: scale(1) translateY(0);
     }
 
     &.is-leaving .dropdown {
         opacity: 0;
-        filter: blur(4px);
+        transform: scale(0.96) translateY(-4px);
+    }
+
+    &.is-leaving.opens-upward .dropdown {
+        transform: scale(0.96) translateY(4px);
     }
 }
 
 .rtl {
     .item-chevron {
         transform: scaleX(-1);
+    }
+
+    .dropdown {
+        direction: ltr;
+
+        .dropdown-inner {
+            direction: rtl; // restore normal content flow for children
+        }
     }
 }

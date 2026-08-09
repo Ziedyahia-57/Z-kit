@@ -7,7 +7,7 @@ import { Loader } from '../spinner/Spinner';
 
 export function Input(props) {
     const {
-        label,
+        label = "Input",
         placeholder = "Placeholder",
         disabled,
         error,
@@ -116,24 +116,21 @@ Input.defaultProps = {
 
 export function PasswordInput(props) {
     const {
-        label,
+        label = "Password",
         placeholder = "Password",
         disabled,
         onChange,
         onFocus,
         onBlur,
         fadeIconOnFocus,
+        showIcon,
     } = props;
 
     const [value, setValue] = useState('');
-    const [showIcon, setShowIcon] = useState(props.showIcon || false);
+
     const [isFocused, setIsFocused] = useState(false);
     const [error, setError] = useState(false);
     const [errorText, setErrorText] = useState('');
-
-    useEffect(() => {
-        setShowIcon(props.showIcon);
-    }, [props.showIcon]);
 
     const handleChange = (e) => {
         setValue(e.target.value);
@@ -217,7 +214,7 @@ export function PasswordInput(props) {
                 <input
                     type="password"
                     autoComplete='off'
-                    className={`text-input ${error ? 'error' : ''}`}
+                    className={`password-input ${error ? 'error' : ''}`}
                     id={id}
                     value={value}
                     onChange={handleChange}
@@ -239,24 +236,21 @@ export function PasswordInput(props) {
 
 export function EmailInput(props) {
     const {
-        label,
+        label = "Email",
         placeholder = "name@example.com",
         disabled,
         onChange,
         onFocus,
         onBlur,
         fadeIconOnFocus,
+        showIcon,
     } = props;
 
     const [value, setValue] = useState('');
-    const [showIcon, setShowIcon] = useState(props.showIcon || false);
+
     const [isFocused, setIsFocused] = useState(false);
     const [error, setError] = useState(false);
     const [errorText, setErrorText] = useState('');
-
-    useEffect(() => {
-        setShowIcon(props.showIcon);
-    }, [props.showIcon]);
 
     const handleChange = (e) => {
         setValue(e.target.value);
@@ -311,7 +305,7 @@ export function EmailInput(props) {
                 <input
                     type="email"
                     autoComplete='off'
-                    className={`text-input ${error ? 'error' : ''}`}
+                    className={`email-input ${error ? 'error' : ''}`}
                     id={id}
                     value={value}
                     onChange={handleChange}
@@ -578,27 +572,24 @@ function sanitizePhone(raw) {
 
 export function PhoneInput(props) {
     const {
-        label,
+        label = "Phone",
         placeholder = "+000 000 000 000",
         disabled,
         onChange,
         onFocus,
         onBlur,
         fadeIconOnFocus,
+        showIcon,
     } = props;
 
     const [value, setValue] = useState('');
-    const [showIcon, setShowIcon] = useState(props.showIcon || false);
+
     const [isFocused, setIsFocused] = useState(false);
     const [error, setError] = useState(false);
     const [errorText, setErrorText] = useState('');
     const [detectedCountry, setDetectedCountry] = useState(null);
     const [isValidating, setIsValidating] = useState(false); // only shown when there is NO detected country
     const [flagKey, setFlagKey] = useState(0); // bumped on country change to replay blur-in + shine
-
-    useEffect(() => {
-        setShowIcon(props.showIcon);
-    }, [props.showIcon]);
 
     const handleChange = (e) => {
         const sanitized = sanitizePhone(e.target.value);
@@ -714,7 +705,7 @@ export function PhoneInput(props) {
                 <input
                     type="tel"
                     autoComplete="off"
-                    className={`text-input ${error ? 'error' : ''}`}
+                    className={`phone-input ${error ? 'error' : ''}`}
                     id={id}
                     value={formatNumber(value, 3)}
                     onChange={handleChange}
@@ -722,7 +713,6 @@ export function PhoneInput(props) {
                     onBlur={handleBlur}
                     placeholder={placeholder}
                     disabled={disabled}
-                    inputMode="text"
                     inputmode="numeric"
                     maxLength={16}
                 />
@@ -1193,12 +1183,18 @@ function caretPositionForDigitCount(digitCount) {
 
 export const PaymentInput = (props) => {
     const {
-        label, placeholder = "0000 0000 0000 0000", disabled, onChange, onFocus, onBlur,
-        fadeIconOnFocus, supportedPaymentMethods, showIcon: propShowIcon,
+        label = "Payment",
+        placeholder = "0000 0000 0000 0000",
+        disabled,
+        onChange,
+        onFocus,
+        onBlur,
+        fadeIconOnFocus,
+        supportedPaymentMethods,
+        showIcon,
     } = props;
 
     const [value, setValue] = useState(''); // raw digits, source of truth
-    const [showIcon, setShowIcon] = useState(propShowIcon || false);
     const [isFocused, setIsFocused] = useState(false);
     const [error, setError] = useState(false);
     const [errorText, setErrorText] = useState('');
@@ -1210,10 +1206,6 @@ export const PaymentInput = (props) => {
     const pendingCursorRef = useRef(null);
 
     const isDark = useIsDark();
-
-    useEffect(() => {
-        setShowIcon(propShowIcon);
-    }, [propShowIcon]);
 
     useEffect(() => {
         if (pendingCursorRef.current !== null && inputRef.current) {
@@ -1331,8 +1323,6 @@ export const PaymentInput = (props) => {
 
         const fadeClass = showIcon && isFocused && fadeIconOnFocus ? 'fade-out' : '';
 
-        const DefaultIcon = () => { return <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card-icon lucide-credit-card"><rect width="20" height="14" x="2" y="5" rx="2" /><line x1="2" x2="22" y1="10" y2="10" /></svg> };
-
         return (
             <span className={`input-icon ${fadeClass}`}>
                 {detectedCard ? (
@@ -1345,9 +1335,7 @@ export const PaymentInput = (props) => {
                 ) : isValidating ? (
                     <Loader size="small" />
                 ) : (
-                    <span className="card-icon">
-                        <DefaultIcon width={16} height={16} />
-                    </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="card-icon lucide lucide-credit-card-icon lucide-credit-card"><rect width="20" height="14" x="2" y="5" rx="2" /><line x1="2" x2="22" y1="10" y2="10" /></svg>
                 )}
             </span>
         );
@@ -1364,17 +1352,17 @@ export const PaymentInput = (props) => {
                 <input
                     ref={inputRef}
                     type="text"
-                    className={`text-input ${error ? 'error' : ''}`}
+                    className={`payment-input ${error ? 'error' : ''}`}
                     id={id}
-                    placeholder={placeholder}
-                    disabled={disabled}
                     value={formatNumber(value)}
-                    inputMode="numeric"
-                    maxLength={23}
                     onChange={handleChange}
-                    onKeyDown={handleKeyDown}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
+                    onKeyDown={handleKeyDown}
+                    placeholder={placeholder}
+                    disabled={disabled}
+                    inputMode="numeric"
+                    maxLength={23}
                 />
             </div>
             <label className={`input-error ${error ? 'visible' : ''}`}>

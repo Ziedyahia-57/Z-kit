@@ -25,11 +25,21 @@ const withDarkModeControl = (Story, context) => {
     return <Story />;
 };
 
+const withRTLControl = (Story, context) => {
+    const { rtl = false } = context.args;
+
+    return (
+        <div className={rtl ? "rtl" : ""}>
+            <Story />
+        </div>
+    );
+};
+
 const meta = {
     title: "Z-kit/Switch",
     component: Switch,
     tags: ["autodocs"],
-    decorators: [withDarkModeControl],
+    decorators: [withDarkModeControl, withRTLControl],
     parameters: {
         docs: {
             description: {
@@ -98,6 +108,13 @@ const SwitchGroup = ({ switchComponents, globalDisabled }) => {
 };
 
 export const switchComponent = {
+    name: "Switch",
+    args: {
+        darkmode: false,
+        enableSound: true,
+        disabled: false, // Global disabled control
+        onClick: () => { },
+    },
     render: (args) => (
         <SwitchGroup
             globalDisabled={args.disabled}
@@ -126,10 +143,70 @@ export const switchComponent = {
             ]}
         />
     ),
+};
+
+const SwitchGroupRTL = ({ switchComponents, globalDisabled }) => {
+    const [checkedStates, setCheckedStates] = useState(
+        switchComponents.map(switchComponent => switchComponent.checked || false)
+    );
+
+    const handleToggle = (index) => {
+        setCheckedStates(prev => {
+            const newStates = [...prev];
+            newStates[index] = !newStates[index];
+            return newStates;
+        });
+    };
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {switchComponents.map((switchComponent, index) => (
+                <Switch
+                    key={index}
+                    {...switchComponent}
+                    disabled={globalDisabled || switchComponent.disabled}
+                    checked={checkedStates[index]}
+                    onClick={() => handleToggle(index)}
+                />
+            ))}
+        </div>
+    );
+};
+
+export const switchComponentRTL = {
+    name: "Switch (rtl)",
     args: {
         darkmode: false,
         enableSound: true,
         disabled: false, // Global disabled control
         onClick: () => { },
+        rtl: true,
     },
+    render: (args) => (
+        <SwitchGroupRTL
+            globalDisabled={args.disabled}
+            switchComponents={[
+                {
+                    label: 'افتراضي',
+                    details: 'المسافات القياسية لمعظم الاستخدامات.',
+                    enableSound: args.enableSound,
+                    checked: true,
+                    disabled: false,
+                },
+                {
+                    label: 'مريح',
+                    details: 'مساحة أكبر بين العناصر.',
+                    enableSound: args.enableSound,
+                    checked: false,
+                    disabled: false,
+                },
+                {
+                    label: 'مضغوط',
+                    details: 'مسافات أقل للتخطيطات الكثيفة.',
+                    enableSound: args.enableSound,
+                    checked: false,
+                    disabled: false,
+                },
+            ]}
+        />
+    ),
 };
