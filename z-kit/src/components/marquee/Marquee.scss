@@ -6,11 +6,14 @@
     .marquee-title {
         text-align: center;
         color: var(--gray-950);
-        font-size: 0.85rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
         margin-bottom: 2.5rem;
         transition: color 0.3s ease;
+
+        h5 {
+            letter-spacing: 0.12em;
+            font-weight: 400;
+            text-transform: uppercase;
+        }
 
         body[data-dark='true'] & {
             color: var(--gray-50);
@@ -23,6 +26,7 @@
         --gap: clamp(20px, 5vw, 80px);
 
         overflow: hidden;
+        direction: ltr !important;
         -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
         mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
 
@@ -39,15 +43,30 @@
     .marquee-track {
         display: flex;
         align-items: center;
-        width: max-content;
-        gap: var(--gap);
-        padding-right: var(--gap);
-        animation: marquee-scroll var(--duration) linear infinite;
-
-        // GPU-composited transform only => no layout/paint per frame, no stutter
         will-change: transform;
         backface-visibility: hidden;
         transform: translateZ(0);
+
+        &.animate {
+            width: max-content;
+            animation: marquee-scroll var(--duration) linear infinite;
+
+            .marquee-group {
+                padding-inline-end: var(--gap);
+            }
+        }
+
+        &:not(.animate) {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    .marquee-group {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        gap: var(--gap);
     }
 
     .marquee-brand {
@@ -55,9 +74,6 @@
         align-items: center;
         gap: 0.6rem;
         flex-shrink: 0;
-        // critical: every item gets this, including the last one,
-        // so total track width = 2 × set-width and -50% is exact
-        margin-right: var(--gap);
 
         &--icon-only p {
             display: none;
@@ -90,9 +106,6 @@
     }
 }
 
-// translateX(-50%) moves by exactly half the track width.
-// Because every brand (including the last) carries margin-right,
-// the two identical sets are perfectly back-to-back.
 @keyframes marquee-scroll {
     from {
         transform: translateX(0);
@@ -103,8 +116,28 @@
     }
 }
 
+@keyframes marquee-scroll-rtl {
+    from {
+        transform: translateX(-50%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+.rtl {
+    .marquee-track.animate {
+        animation-name: marquee-scroll-rtl !important;
+    }
+
+    .marquee-group {
+        flex-direction: row-reverse;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .marquee-track {
-        animation: none;
+        animation: none !important;
     }
 }
