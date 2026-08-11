@@ -1,0 +1,110 @@
+@use '../tokens';
+
+.marquee {
+    width: 100%;
+
+    .marquee-title {
+        text-align: center;
+        color: var(--gray-950);
+        font-size: 0.85rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 2.5rem;
+        transition: color 0.3s ease;
+
+        body[data-dark='true'] & {
+            color: var(--gray-50);
+        }
+    }
+
+    .marquee-brands {
+        // noticeably larger, still responsive
+        --logo-size: clamp(24px, 6vw, 32px);
+        --gap: clamp(20px, 5vw, 80px);
+
+        overflow: hidden;
+        -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+        mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+
+        &:hover .marquee-track {
+            animation-play-state: paused;
+        }
+
+        @media (max-width: 480px) {
+            --logo-size: clamp(24px, 8vw, 40px);
+            --gap: clamp(1.5rem, 6vw, 2.5rem);
+        }
+    }
+
+    .marquee-track {
+        display: flex;
+        align-items: center;
+        width: max-content;
+        gap: var(--gap);
+        padding-right: var(--gap);
+        animation: marquee-scroll var(--duration) linear infinite;
+
+        // GPU-composited transform only => no layout/paint per frame, no stutter
+        will-change: transform;
+        backface-visibility: hidden;
+        transform: translateZ(0);
+    }
+
+    .marquee-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex-shrink: 0;
+        // critical: every item gets this, including the last one,
+        // so total track width = 2 × set-width and -50% is exact
+        margin-right: var(--gap);
+
+        &--icon-only p {
+            display: none;
+        }
+
+        svg {
+            width: var(--logo-size);
+            height: var(--logo-size);
+            display: block;
+            flex-shrink: 0;
+            color: var(--gray-900);
+            transition: color 0.3s ease;
+
+            body[data-dark='true'] & {
+                color: var(--gray-100);
+            }
+        }
+
+        p {
+            margin: 0;
+            color: var(--gray-900);
+            font-weight: 600;
+            white-space: nowrap;
+            transition: color 0.3s ease;
+
+            body[data-dark='true'] & {
+                color: var(--gray-100);
+            }
+        }
+    }
+}
+
+// translateX(-50%) moves by exactly half the track width.
+// Because every brand (including the last) carries margin-right,
+// the two identical sets are perfectly back-to-back.
+@keyframes marquee-scroll {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .marquee-track {
+        animation: none;
+    }
+}
