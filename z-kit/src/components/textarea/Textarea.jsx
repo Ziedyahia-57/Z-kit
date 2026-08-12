@@ -7,7 +7,6 @@ export class Textarea extends React.Component {
         super(props);
         this.state = {
             value: '',
-            showIcon: props.showIcon || false,
             isFocused: false,
             charLimitFlash: false,
             initialHeight: 0,
@@ -67,25 +66,11 @@ export class Textarea extends React.Component {
     handleFocus = (e) => {
         this.setState({ isFocused: true });
 
-        if (this.props.showIcon) {
-            this.triggerHeightAnimation();
-            requestAnimationFrame(() => {
-                this.autoResize();
-            });
-        }
-
         if (this.props.onFocus) this.props.onFocus(e);
     }
 
     handleBlur = (e) => {
         this.setState({ isFocused: false });
-
-        if (this.props.showIcon) {
-            this.triggerHeightAnimation();
-            requestAnimationFrame(() => {
-                this.autoResize();
-            });
-        }
 
         if (this.props.onBlur) this.props.onBlur(e);
     }
@@ -96,16 +81,28 @@ export class Textarea extends React.Component {
 
         const currentHeight = textarea.offsetHeight;
 
-        // 1. Reset height to auto to measure true scrollHeight
-        textarea.style.height = 'auto';
+        // Create a temporary clone to measure the target scrollHeight without interrupting active transitions
+        const clone = textarea.cloneNode(true);
+        clone.removeAttribute('id');
+        clone.removeAttribute('name');
+        clone.style.position = 'absolute';
+        clone.style.visibility = 'hidden';
+        clone.style.height = 'auto';
+        clone.style.transition = 'none';
 
-        // 2. Calculate the height the content NEEDS (Removed window.innerHeight * 0.5 limit)
+        // Insert clone into the same parent to inherit CSS variables, alignment, and styling classes
+        textarea.parentNode.appendChild(clone);
+
+        // Force a layout recalculation on the clone to get its target scrollHeight
         const neededHeight = Math.max(
             this.state.initialHeight,
-            textarea.scrollHeight
+            clone.scrollHeight
         );
 
-        // 3. Determine final target: use the larger of "needed" or "user-set"
+        // Clean up the clone immediately
+        textarea.parentNode.removeChild(clone);
+
+        // Determine final target: use the larger of "needed" or "user-set"
         const targetHeight = (this._userSetHeight !== null && this._userSetHeight > neededHeight)
             ? this._userSetHeight
             : neededHeight;
@@ -115,13 +112,7 @@ export class Textarea extends React.Component {
             return;
         }
 
-        // 4. Snap back to current height visually
-        textarea.style.height = `${currentHeight}px`;
-
-        // 5. Force reflow
-        textarea.offsetHeight;
-
-        // 6. Set to target height
+        // Set to target height (this will trigger height transition smoothly while padding-inline-start/width transitions continue running)
         textarea.style.height = `${targetHeight}px`;
     }
 
@@ -132,7 +123,7 @@ export class Textarea extends React.Component {
     componentDidMount() {
         const textarea = this.textareaRef.current;
         if (textarea) {
-            textarea.style.transition = 'none';
+            textarea.style.transition = '';
             textarea.style.height = 'auto';
 
             const intrinsicHeight = textarea.scrollHeight;
@@ -145,7 +136,7 @@ export class Textarea extends React.Component {
         }
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState) {
         if (prevProps.showIcon !== this.props.showIcon) {
             this.setState({ showIcon: this.props.showIcon });
         }
@@ -158,6 +149,12 @@ export class Textarea extends React.Component {
             this.setState({ value: this.props.value }, () => {
                 this.autoResize();
             });
+        }
+
+        if (prevState.isFocused !== this.state.isFocused) {
+            if (this.props.showIcon) {
+                this.autoResize();
+            }
         }
     }
 
@@ -175,6 +172,9 @@ export class Textarea extends React.Component {
 
         const el = this.textareaRef.current;
         if (!el) return;
+
+        // Disable transitions during resize drag so width/height follow mouse instantly
+        el.style.transition = 'none';
 
         this._resizeState = {
             startX: e.clientX,
@@ -195,7 +195,9 @@ export class Textarea extends React.Component {
         if (!el) return;
 
         const { startX, startY, startW, startH } = this._resizeState;
-        const newW = Math.max(144, startW + (e.clientX - startX));
+        const isRtl = window.getComputedStyle(el).direction === 'rtl';
+        const deltaX = e.clientX - startX;
+        const newW = Math.max(144, startW + (isRtl ? -deltaX : deltaX));
 
         el.style.width = `${newW}px`;
         el.style.height = 'auto';
@@ -218,6 +220,9 @@ export class Textarea extends React.Component {
     _onPointerUp = (e) => {
         const el = this.textareaRef.current;
         if (el) {
+            // Restore transitions
+            el.style.transition = '';
+
             const finalHeight = el.offsetHeight;
             const contentNeeds = Math.max(
                 this.state.initialHeight,
@@ -242,7 +247,7 @@ export class Textarea extends React.Component {
     }
 
     renderIcon = () => {
-        if (!this.state.showIcon) return null;
+        if (!this.props.showIcon) return null;
         return (
             <span className={`textarea-icon ${this.state.isFocused && this.props.fadeIconOnFocus ? 'fade-out' : ''}`}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -283,7 +288,7 @@ export class Textarea extends React.Component {
         const id = `textarea-${this.props.label.replace(/\s+/g, '-').toLowerCase()}`;
 
         return (
-            <div className={`textarea ${this.state.showIcon ? 'has-icon' : ''} ${shouldFadeOut ? 'icon-faded' : ''}`}>
+            <div className={`textarea ${this.props.showIcon ? 'has-icon' : ''} ${shouldFadeOut ? 'icon-faded' : ''}`}>
                 <label className='textarea-label'><p>{this.props.label}</p></label>
                 <div className="textarea-wrapper">
                     {this.renderIcon()}
