@@ -22,7 +22,8 @@
 
     .marquee-brands {
         // noticeably larger, still responsive
-        --logo-size: clamp(24px, 6vw, 32px);
+        // --logo-size: clamp(24px, 6vw, 32px);
+        --logo-size: 1.5rem;
         --gap: clamp(20px, 5vw, 80px);
 
         overflow: hidden;
@@ -35,7 +36,8 @@
         }
 
         @media (max-width: 480px) {
-            --logo-size: clamp(24px, 8vw, 40px);
+            // --logo-size: clamp(24px, 8vw, 40px);
+            --logo-size: 1.5rem;
             --gap: clamp(1.5rem, 6vw, 2.5rem);
         }
     }
@@ -75,20 +77,32 @@
         gap: 0.6rem;
         flex-shrink: 0;
 
-        &--icon-only p {
-            display: none;
-        }
-
-        svg {
-            width: var(--logo-size);
+        svg,
+        img {
+            object-fit: contain;
+            // width: var(--logo-size);
+            max-width: 3rem;
             height: var(--logo-size);
             display: block;
             flex-shrink: 0;
             color: var(--gray-900);
             transition: color 0.3s ease;
 
-            body[data-dark='true'] & {
+        }
+
+        .monochrome {
+            transition: filter 0.3s ease;
+        }
+
+        body[data-dark='true'] & {
+
+            svg,
+            img {
                 color: var(--gray-100);
+            }
+
+            .monochrome {
+                filter: invert(1);
             }
         }
 
@@ -101,6 +115,25 @@
 
             body[data-dark='true'] & {
                 color: var(--gray-100);
+            }
+        }
+
+        &--icon-only {
+            p {
+                display: none;
+            }
+
+            img,
+            svg {
+                object-fit: contain;
+                width: auto;
+                max-width: 8rem;
+                height: 4rem;
+
+                @media (max-width: 480px) {
+                    max-width: 4rem;
+                    height: 2rem;
+                }
             }
         }
     }
@@ -141,3 +174,9 @@
         animation: none !important;
     }
 }
+
+//img (no text): 8rem x 4rem (2:1)           4rem x 2rem (2:1)
+//img (with text): 3rem x 1.5rem (2:1)       3rem x 1.5rem (2:1) !!!
+
+//svg (no text): 8rem x 4rem (2:1)           4rem x 2rem (2:1)
+//svg (with text): 3rem x 1.5rem (2:1)       3rem x 1.5rem (2:1) !!!
