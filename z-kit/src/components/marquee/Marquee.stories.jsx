@@ -120,7 +120,7 @@ export const marquee = {
                 <p>Dropbox</p>
             </MarqueeBrand>,
             <MarqueeBrand key="microsoft" showName={args.showName}>
-                <svg fill="CurrentColor" width="512px" height="512px" viewBox="0 0 512 512" id="icons" xmlns="http://www.w3.org/2000/svg"><path d="M31.87,30.58H244.7V243.39H31.87Z" /><path d="M266.89,30.58H479.7V243.39H266.89Z" /><path d="M31.87,265.61H244.7v212.8H31.87Z" /><path d="M266.89,265.61H479.7v212.8H266.89Z" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="CurrentColor" width="800px" height="800px" viewBox="0 0 512 512" id="icons"><path d="M31.87,30.58H244.7V243.39H31.87Z" /><path d="M266.89,30.58H479.7V243.39H266.89Z" /><path d="M31.87,265.61H244.7v212.8H31.87Z" /><path d="M266.89,265.61H479.7v212.8H266.89Z" /></svg>
                 <p>Microsoft</p>
             </MarqueeBrand>,
         ];
@@ -149,67 +149,67 @@ export const marqueeRTL = {
     render: (args) => {
         const allBrands = [
             <MarqueeBrand key="scc" showName={false}>
-                <img className="monochrome" src="/logos/scc.png" />
+                <img className="monochrome" src="/logos/scc.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="pif" showName={false}>
-                <img className="monochrome" src="/logos/pif.png" />
+                <img className="monochrome" src="/logos/pif.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="mbsc" showName={false}>
-                <img className="monochrome" src="/logos/mbsc.png" />
+                <img className="monochrome" src="/logos/mbsc.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="sda" showName={false}>
-                <img className="monochrome" src="/logos/sda.png" />
+                <img className="monochrome" src="/logos/sda.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="almajdouie" showName={false}>
-                <img className="monochrome" src="/logos/almajdouie.png" />
+                <img className="monochrome" src="/logos/almajdouie.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="tamer" showName={false}>
-                <img className="monochrome" src="/logos/tamer.png" />
+                <img className="monochrome" src="/logos/tamer.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="srmg" showName={false}>
-                <img className="monochrome" src="/logos/srmg.png" />
+                <img className="monochrome" src="/logos/srmg.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="tasnee" showName={false}>
-                <img className="monochrome" src="/logos/tasnee.png" />
+                <img className="monochrome" src="/logos/tasnee.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="srm" showName={false}>
-                <img className="monochrome" src="/logos/srm.png" />
+                <img className="monochrome" src="/logos/srm.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="jadwa" showName={false}>
-                <img className="monochrome" src="/logos/jadwa.png" />
+                <img className="monochrome" src="/logos/jadwa.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="sunbulah" showName={false}>
-                <img className="monochrome" src="/logos/sunbulah.png" />
+                <img className="monochrome" src="/logos/sunbulah.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="kaust" showName={false}>
-                <img className="monochrome" src="/logos/kaust.png" />
+                <img className="monochrome" src="/logos/kaust.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="saudisoft" showName={false}>
-                <img className="monochrome" src="/logos/saudisoft.png" />
+                <img className="monochrome" src="/logos/saudisoft.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="uptown" showName={false}>
-                <img className="monochrome" src="/logos/uptown.png" />
+                <img className="monochrome" src="/logos/uptown.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="smsa" showName={false}>
-                <img className="monochrome" src="/logos/smsa.png" />
+                <img className="monochrome" src="/logos/smsa.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="idom" showName={false}>
-                <img className="monochrome" src="/logos/idom.png" />
+                <img className="monochrome" src="/logos/idom.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="dubai-expo" showName={false}>
-                <img className="monochrome" src="/logos/dubai-expo.png" />
+                <img className="monochrome" src="/logos/dubai-expo.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="bae" showName={false}>
-                <img className="monochrome" src="/logos/bae.png" />
+                <img className="monochrome" src="/logos/bae.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="misk" showName={false}>
-                <img className="monochrome" src="/logos/misk.png" />
+                <img className="monochrome" src="/logos/misk.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="savola" showName={false}>
-                <img className="monochrome" src="/logos/savola.png" />
+                <img className="monochrome" src="/logos/savola.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="tazaj" showName={false}>
-                <img className="monochrome" src="/logos/tazaj.png" />
+                <img className="monochrome" src="/logos/tazaj.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="al-musbah" showName={false}>
                 <img className="monochrome" src="/logos/al-musbah.webp" />
@@ -218,7 +218,7 @@ export const marqueeRTL = {
                 <img className="monochrome" src="/logos/aramco.webp" />
             </MarqueeBrand>,
             <MarqueeBrand key="aman" showName={false}>
-                <img className="monochrome" src="/logos/aman.avif" />
+                <img className="monochrome" src="/logos/aman.webp" />
             </MarqueeBrand>,
         ];
 

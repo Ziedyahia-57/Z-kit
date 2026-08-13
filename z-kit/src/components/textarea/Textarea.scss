@@ -154,6 +154,7 @@ $width: 97px;
     &:has(.textarea-input.error) .textarea-resize-handle {
         width: 8px;
         height: 8px;
+        position: relative;
         cursor: nwse-resize;
         display: flex;
         align-items: center;
@@ -164,6 +165,11 @@ $width: 97px;
         color: var(--gray-200);
         transition: color 0.2s ease;
         user-select: none;
+
+        svg {
+            position: absolute;
+            padding: 8px;
+        }
 
         // Mirror the diagonal arrow glyph in RTL. Kept class-based (not
         // [dir="rtl"] / :dir()) since direction is controlled via the
@@ -341,6 +347,11 @@ $width: 97px;
     .textarea {
         .textarea-resize-handle {
             transform: scaleX(-1);
+        }
+
+        .textarea-resize-handle,
+        &:has(.textarea-input.error) .textarea-resize-handle {
+            cursor: nesw-resize;
         }
     }
 }

@@ -81,6 +81,7 @@
         img {
             object-fit: contain;
             // width: var(--logo-size);
+            width: fit-content;
             max-width: 3rem;
             height: var(--logo-size);
             display: block;
