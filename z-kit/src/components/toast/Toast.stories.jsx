@@ -135,12 +135,31 @@ export const toastComponent = {
     },
 };
 
+const ToastDemoRTL = (args) => {
+    const showToast = () => {
+        toast({
+            type: args.type,
+            title: args.title,
+            description: args.description,
+            action: args.action,
+            duration: args.duration,
+            position: args.position,
+            action: args.action,
+            enableSound: args.enableSound,
+            neutral: args.neutral,
+            onAction: () => console.log("Action clicked")
+        });
+    };
+
+    return <Button buttonType="label & icon" icon="plus" variant="secondary" onClick={showToast}>إضافة حدث</Button>;
+};
+
 export const toastComponentRTL = {
     name: "Toast (rtl)",
-    render: ToastDemo,
+    render: ToastDemoRTL,
     args: {
         type: "success",
-        title: "تم إنشاء الفعالية",
+        title: "تم إضافة الحدث",
         description: "الأحد، 3 ديسمبر الساعة 09:00 صباحًا.",
         action: "إلغاء",
         duration: 5000,

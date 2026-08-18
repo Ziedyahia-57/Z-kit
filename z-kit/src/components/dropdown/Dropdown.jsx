@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef, useEffect } from "react";
+import React, { useState, useContext, useRef, useEffect, useCallback, useLayoutEffect } from "react";
 import ReactDOM from "react-dom";
 import "./Dropdown.scss";
 import { Separator } from "../separator/Separator";
@@ -33,7 +33,7 @@ const getItemText = (item) =>
         .trim()
         .toLowerCase();
 
-export const Dropdown = ({ children, search, maxHeight, contextMenu, adjustmentOffset = 18 }) => {
+export const Dropdown = ({ children, search, maxHeight, contextMenu, adjustmentOffset = 18, forcedWidth, onWidthChange }) => {
     const [query, setQuery] = useState("");
     const [isHovered, setIsHovered] = useState(false);
     const [height, setHeight] = useState("auto");
@@ -80,9 +80,14 @@ export const Dropdown = ({ children, search, maxHeight, contextMenu, adjustmentO
                 const style = window.getComputedStyle(dropdownEl);
                 const paddingTop = parseFloat(style.paddingTop) || 0;
                 const paddingBottom = parseFloat(style.paddingBottom) || 0;
+                const paddingLeft = parseFloat(style.paddingLeft) || 0;
+                const paddingRight = parseFloat(style.paddingRight) || 0;
                 const borderTop = parseFloat(style.borderTopWidth) || 0;
                 const borderBottom = parseFloat(style.borderBottomWidth) || 0;
+                const borderLeft = parseFloat(style.borderLeftWidth) || 0;
+                const borderRight = parseFloat(style.borderRightWidth) || 0;
                 const verticalSpacing = paddingTop + paddingBottom + borderTop + borderBottom;
+                const horizontalSpacing = paddingLeft + paddingRight + borderLeft + borderRight;
 
                 const contentHeight = innerHeight + verticalSpacing;
                 const maxH = typeof maxHeight === "string" ? parseFloat(maxHeight) : maxHeight;
@@ -95,6 +100,13 @@ export const Dropdown = ({ children, search, maxHeight, contextMenu, adjustmentO
                     setIsOverflowing(false);
                 }
 
+                // Report this dropdown's natural (border-box) content width so an
+                // ancestor (e.g. DropdownWrapper) can sync a trigger's width to it.
+                // Note: once `forcedWidth` is applied below, this will simply
+                // report the forced value back — which is a no-op for the caller
+                // (same width in, same width out), so this can't feedback-loop.
+                onWidthChange?.(Math.ceil(entry.contentRect.width + horizontalSpacing));
+
                 if (!isInitializedRef.current) {
                     isInitializedRef.current = true;
                     requestAnimationFrame(() => setIsInitialized(true));
@@ -104,7 +116,7 @@ export const Dropdown = ({ children, search, maxHeight, contextMenu, adjustmentO
 
         resizeObserver.observe(innerEl);
         return () => resizeObserver.disconnect();
-    }, [maxHeight, adjustmentOffset]);
+    }, [maxHeight, adjustmentOffset, onWidthChange]);
 
     const handleSearchChange = (value) => {
         const newQuery = typeof value === "string" ? value : value?.target?.value ?? "";
@@ -117,7 +129,12 @@ export const Dropdown = ({ children, search, maxHeight, contextMenu, adjustmentO
             <div
                 ref={dropdownRef}
                 className={`dropdown${isHovered ? " is-hovered" : ""}${isInitialized ? " is-initialized" : ""} ${contextMenu ? " context-menu" : ""}`}
-                style={{ height, maxHeight, overflowY: isOverflowing ? "auto" : "hidden" }}
+                style={{
+                    height,
+                    maxHeight,
+                    overflowY: isOverflowing ? "auto" : "hidden",
+                    ...(forcedWidth ? { width: `${forcedWidth}px` } : {}),
+                }}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
@@ -576,12 +593,19 @@ export const QuickActions = ({ children }) => (
 );
 
 // ─── DropdownWrapper ─────────────────────────────────────────────────────────
-export const DropdownWrapper = ({ children, offset = 4 }) => {
+export const DropdownWrapper = ({ children, offset = 4, value, onValueChange }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isLeaving, setIsLeaving] = useState(false);
     const [pos, setPos] = useState({ top: 0, left: 0 });
     const [posReady, setPosReady] = useState(false);
     const [opensUpward, setOpensUpward] = useState(false);
+
+    // The initial base width of the trigger.
+    // Applied to the trigger so it maintains its initial width, never expands when an option is selected,
+    // and never changes width after the dropdown opens.
+    const [syncedWidth, setSyncedWidth] = useState(null);
+    const dropdownNaturalWidthRef = useRef(0);
+    const initialTriggerWidthRef = useRef(0);
 
     const triggerRef = useRef(null);
     const dropdownRef = useRef(null);
@@ -602,6 +626,46 @@ export const DropdownWrapper = ({ children, offset = 4 }) => {
         else otherChildren.push(child);
     });
 
+    // Measure the trigger's initial base width once and lock it.
+    const recomputeSyncedWidth = useCallback(() => {
+        const triggerEl = triggerRef.current;
+        if (!triggerEl) return;
+
+        if (!initialTriggerWidthRef.current) {
+            const prevTriggerWidth = triggerEl.style.width;
+            triggerEl.style.width = '';
+            const measuredTriggerW = triggerEl.offsetWidth;
+            triggerEl.style.width = prevTriggerWidth;
+            if (measuredTriggerW > 0) {
+                initialTriggerWidthRef.current = measuredTriggerW;
+            }
+        }
+
+        const initialW = initialTriggerWidthRef.current;
+        if (initialW > 0) {
+            setSyncedWidth((prev) => (prev === initialW ? prev : initialW));
+        }
+    }, []);
+
+    const handleDropdownWidthChange = useCallback((width) => {
+        if (width > 0) {
+            dropdownNaturalWidthRef.current = width;
+            recomputeSyncedWidth();
+        }
+    }, [recomputeSyncedWidth]);
+
+    // Run synchronous measurement on mount so layout does not jump/flicker
+    useLayoutEffect(() => {
+        recomputeSyncedWidth();
+    }, [recomputeSyncedWidth]);
+
+    // Keep the trigger pinned to its initial base width.
+    useEffect(() => {
+        if (triggerRef.current) {
+            triggerRef.current.style.width = syncedWidth ? `${syncedWidth}px` : '';
+        }
+    }, [syncedWidth]);
+
     const computePos = (dropdownEl) => {
         if (!triggerRef.current) return;
         const rect = triggerRef.current.getBoundingClientRect();
@@ -612,9 +676,19 @@ export const DropdownWrapper = ({ children, offset = 4 }) => {
         const shouldOpenUp = dropH > 0 && spaceBelow < dropH + offset && spaceAbove > spaceBelow;
         const top = shouldOpenUp ? rect.top - dropH - offset : rect.bottom + offset;
 
-        const left = Math.max(8, Math.min(rect.left, window.innerWidth - 222 - 8));
+        // Use the actual synced width (same value the dropdown is rendered
+        // at) rather than a heuristic, so left/right positioning lines up
+        // exactly with the dropdown's real rendered box in both LTR and RTL.
+        const dropW = syncedWidth ?? (triggerRef.current ? triggerRef.current.offsetWidth : 0);
+
+        // RTL support: align to the trigger's "start" edge, which is its right
+        // edge in RTL, not its left edge.
+        const isRTL = getComputedStyle(triggerRef.current).direction === 'rtl';
+        const desiredLeft = isRTL ? rect.right - dropW : rect.left;
+        const left = Math.max(8, Math.min(desiredLeft, window.innerWidth - dropW - 8));
+
         setPos({ top, left });
-        setOpensUpward(shouldOpenUp); // add this
+        setOpensUpward(shouldOpenUp);
         setPosReady(true);
     };
 
@@ -625,7 +699,25 @@ export const DropdownWrapper = ({ children, offset = 4 }) => {
         ro.observe(el);
         computePos(el);
         return () => ro.disconnect();
-    }, [isOpen]);
+    }, [isOpen, syncedWidth]);
+
+    const close = useCallback(() => {
+        setIsLeaving(true);
+        setPosReady(false);
+        closeTimerRef.current = setTimeout(() => {
+            setIsOpen(false);
+            setIsLeaving(false);
+            closeTimerRef.current = null;
+        }, 120);
+    }, []);
+
+    const open = useCallback(() => {
+        if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
+        setIsLeaving(false);
+        setIsOpen(true);
+    }, []);
+
+    const toggle = useCallback(() => { if (isOpenRef.current) close(); else open(); }, [close, open]);
 
     // ── Keyboard navigation ───────────────────────────────────────────────
     useEffect(() => {
@@ -669,33 +761,41 @@ export const DropdownWrapper = ({ children, offset = 4 }) => {
 
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen]);
+    }, [isOpen, close]);
     // ─────────────────────────────────────────────────────────────────────
 
-    const close = () => {
-        setIsLeaving(true);
-        setPosReady(false);
-        closeTimerRef.current = setTimeout(() => {
-            setIsOpen(false);
-            setIsLeaving(false);
-            closeTimerRef.current = null;
-        }, 120);
-    };
-
-    const open = () => {
-        if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
-        setIsLeaving(false);
-        setIsOpen(true);
-    };
-
-    const toggle = () => { if (isOpenRef.current) close(); else open(); };
+    const buildDisplayNode = (rawText) =>
+        rawText ? <span className="item-label">{rawText}</span> : null;
 
     const onSelect = (displayNode, rawText) => {
-        setValueRef.current?.(displayNode, rawText);
+        ReactDOM.flushSync(() => {
+            setValueRef.current?.(displayNode, rawText);
+        });
+        onValueChange?.(rawText); // tell the controlling parent what was picked
         close();
     };
 
-    const registerSetValue = (fn) => { setValueRef.current = fn; };
+    const registerSetValue = (fn) => {
+        setValueRef.current = fn;
+        // Push the current controlled value in immediately on registration,
+        // so Select shows the right thing on first mount, not just after
+        // the next value change.
+        if (fn && value !== undefined) {
+            ReactDOM.flushSync(() => {
+                fn(buildDisplayNode(value), value);
+            });
+        }
+    };
+
+    // Whenever the controlled `value` prop changes from OUTSIDE (e.g.
+    // ColorInput syncing the dropdown format from typed input), push it
+    // into the registered Select. No-ops for uncontrolled usage.
+    useLayoutEffect(() => {
+        if (value === undefined) return;
+        ReactDOM.flushSync(() => {
+            setValueRef.current?.(buildDisplayNode(value), value);
+        });
+    }, [value]);
 
     useEffect(() => {
         const handlePointerDown = (e) => {
@@ -721,28 +821,52 @@ export const DropdownWrapper = ({ children, offset = 4 }) => {
 
     useEffect(() => () => { if (closeTimerRef.current) clearTimeout(closeTimerRef.current); }, []);
 
-    const triggerWidth = triggerRef.current?.offsetWidth ?? 0;
-    const portalWidth = Math.max(145, triggerWidth);
+    const triggerWidth = syncedWidth ?? triggerRef.current?.offsetWidth ?? 0;
+    const portalWidth = Math.max(triggerWidth, dropdownNaturalWidthRef.current);
 
     return (
         <DropdownWrapperContext.Provider value={{ isOpen, toggle, triggerRef, onSelect, registerSetValue }}>
             {triggerChild}
             {otherChildren}
-            {(isOpen || isLeaving) && dropdownChild &&
+            {!isOpen && !isLeaving && dropdownChild &&
+                ReactDOM.createPortal(
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: "-9999px",
+                            left: "-9999px",
+                            visibility: "hidden",
+                            pointerEvents: "none",
+                            zIndex: -9999,
+                        }}
+                        aria-hidden="true"
+                    >
+                        {React.cloneElement(dropdownChild, {
+                            onWidthChange: handleDropdownWidthChange,
+                        })}
+                    </div>,
+                    document.body
+                )
+            }
+            {dropdownChild &&
                 ReactDOM.createPortal(
                     <div
                         ref={dropdownRef}
-                        className={`submenu-dropdown-portal${isLeaving ? " is-leaving" : " is-visible"}${opensUpward ? " opens-upward" : ""}`}
+                        className={`submenu-dropdown-portal${isLeaving ? " is-leaving" : ""}${isOpen && !isLeaving ? " is-visible" : ""}${opensUpward ? " opens-upward" : ""}`}
                         style={{
                             top: pos.top,
                             left: pos.left,
                             position: "fixed",
                             zIndex: 1000,
                             width: portalWidth || undefined,
-                            visibility: posReady ? "visible" : "hidden",
+                            visibility: (isOpen || isLeaving) && posReady ? "visible" : "hidden",
+                            pointerEvents: (isOpen && !isLeaving) ? "auto" : "none",
                         }}
                     >
-                        {dropdownChild}
+                        {React.cloneElement(dropdownChild, {
+                            forcedWidth: syncedWidth,
+                            onWidthChange: handleDropdownWidthChange,
+                        })}
                     </div>,
                     document.body
                 )

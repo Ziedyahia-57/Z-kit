@@ -304,6 +304,13 @@
 }
 
 .rtl {
+
+    .file-name,
+    .file-size {
+        direction: ltr;
+        place-self: flex-start;
+    }
+
     .loading-progress-track {
 
         &--indeterminate {

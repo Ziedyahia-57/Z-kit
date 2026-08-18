@@ -1,4 +1,4 @@
-import { Input, PasswordInput, EmailInput, PhoneInput, PaymentInput } from './Input';
+import { Input, PasswordInput, EmailInput, PhoneInput, PaymentInput, ColorInput } from './Input';
 import { useEffect } from 'react';
 
 
@@ -168,6 +168,18 @@ export const paymentInput = {
         return (<PaymentInput {...args} />)
     }
 }
+export const colorInput = {
+    name: "Color Input",
+    args: {
+        darkmode: false,
+        label: "Color",
+        placeholder: "#000000",
+        disabled: false,
+    },
+    render: (args) => {
+        return <ColorInput {...args} />;
+    },
+};
 
 
 /**/
@@ -247,5 +259,19 @@ export const paymentInputRTL = {
     },
     render: (args) => {
         return <PaymentInput {...args} />;
+    },
+};
+
+export const colorInputRTL = {
+    name: "Color Input (rtl)",
+    args: {
+        darkmode: false,
+        label: "اللون",
+        placeholder: "#000000",
+        disabled: false,
+        rtl: true,
+    },
+    render: (args) => {
+        return <ColorInput {...args} />;
     },
 };

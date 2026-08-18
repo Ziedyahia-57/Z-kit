@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import PropTypes from "prop-types";
 import './Input.scss';
-import { Loader } from '../spinner/Spinner';
+import { Loader } from '../spinner/Spinner'; //used by phone and payment inputs
+import { Dropdown, DropdownWrapper, DropdownTrigger, DropdownGroup, GroupTitle, GroupItem } from '../dropdown/Dropdown'; //used by color input
+import { Select } from '../select/Select'; //used by color input
 
 /*____________________ Input ____________________ */
 
@@ -1364,6 +1366,421 @@ export const PaymentInput = (props) => {
                     inputMode="numeric"
                     maxLength={23}
                 />
+            </div>
+            <label className={`input-error ${error ? 'visible' : ''}`}>
+                <small>{errorText}</small>
+            </label>
+        </div>
+    );
+};
+
+
+/* color picker input */
+function hsbToRgb(h, s, b) {
+    s /= 100;
+    b /= 100;
+    const k = (n) => (n + h / 60) % 6;
+    const f = (n) => b - b * s * Math.max(0, Math.min(k(n), 4 - k(n), 1));
+    return {
+        r: Math.round(f(5) * 255),
+        g: Math.round(f(3) * 255),
+        b: Math.round(f(1) * 255),
+    };
+}
+
+// Each entry validates one syntax and returns a CSS-safe color string.
+// Order matters: hex is checked before the function-based formats.
+const CSS_COLOR_NAMES = new Set([
+    'aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige', 'bisque', 'black',
+    'blanchedalmond', 'blue', 'blueviolet', 'brown', 'burlywood', 'cadetblue', 'chartreuse',
+    'chocolate', 'coral', 'cornflowerblue', 'cornsilk', 'crimson', 'cyan', 'darkblue', 'darkcyan',
+    'darkgoldenrod', 'darkgray', 'darkgrey', 'darkgreen', 'darkkhaki', 'darkmagenta',
+    'darkolivegreen', 'darkorange', 'darkorchid', 'darkred', 'darksalmon', 'darkseagreen',
+    'darkslateblue', 'darkslategray', 'darkslategrey', 'darkturquoise', 'darkviolet', 'deeppink',
+    'deepskyblue', 'dimgray', 'dimgrey', 'dodgerblue', 'firebrick', 'floralwhite', 'forestgreen',
+    'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod', 'gray', 'grey', 'green', 'greenyellow',
+    'honeydew', 'hotpink', 'indianred', 'indigo', 'ivory', 'khaki', 'lavender', 'lavenderblush',
+    'lawngreen', 'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan', 'lightgoldenrodyellow',
+    'lightgray', 'lightgrey', 'lightgreen', 'lightpink', 'lightsalmon', 'lightseagreen',
+    'lightskyblue', 'lightslategray', 'lightslategrey', 'lightsteelblue', 'lightyellow', 'lime',
+    'limegreen', 'linen', 'magenta', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid',
+    'mediumpurple', 'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise',
+    'mediumvioletred', 'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite', 'navy',
+    'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid', 'palegoldenrod', 'palegreen',
+    'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff', 'peru', 'pink', 'plum', 'powderblue',
+    'purple', 'rebeccapurple', 'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown',
+    'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue', 'slategray', 'slategrey',
+    'snow', 'springgreen', 'steelblue', 'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet',
+    'wheat', 'white', 'whitesmoke', 'yellow', 'yellowgreen', 'transparent',
+]);
+
+const COLOR_PATTERNS = [
+    {
+        format: 'hex',
+        regex: /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/,
+        toCss: (value) => value,
+    },
+    {
+        format: 'rgba',
+        regex: /^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(0|1|0?\.\d+)\s*\)$/,
+        toCss: (value, [, r, g, b, a]) => {
+            if ([r, g, b].some((n) => Number(n) > 255)) return null;
+            return `rgba(${r}, ${g}, ${b}, ${a})`;
+        },
+    },
+    {
+        format: 'rgb',
+        regex: /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/,
+        toCss: (value, [, r, g, b]) => {
+            if ([r, g, b].some((n) => Number(n) > 255)) return null;
+            return `rgb(${r}, ${g}, ${b})`;
+        },
+    },
+    {
+        format: 'hsla',
+        regex: /^hsla\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*,\s*(0|1|0?\.\d+)\s*\)$/,
+        toCss: (value, [, h, s, l, a]) => {
+            if (Number(h) > 360 || Number(s) > 100 || Number(l) > 100) return null;
+            return `hsla(${h}, ${s}%, ${l}%, ${a})`;
+        },
+    },
+    {
+        format: 'hsl',
+        regex: /^hsl\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*\)$/,
+        toCss: (value, [, h, s, l]) => {
+            if (Number(h) > 360 || Number(s) > 100 || Number(l) > 100) return null;
+            return `hsl(${h}, ${s}%, ${l}%)`;
+        },
+    },
+    {
+        format: 'hsb',
+        regex: /^hsb\(\s*(\d{1,3})\s*,\s*(\d{1,3})%\s*,\s*(\d{1,3})%\s*\)$/,
+        toCss: (value, [, h, s, b]) => {
+            if (Number(h) > 360 || Number(s) > 100 || Number(b) > 100) return null;
+            const { r, g, b: bl } = hsbToRgb(Number(h), Number(s), Number(b));
+            return `rgb(${r}, ${g}, ${bl})`;
+        },
+    },
+    {
+        format: 'named',
+        regex: /^[a-zA-Z]+(?:\s+[a-zA-Z]+)*$/,
+        toCss: (value) => {
+            const normalized = value.trim().toLowerCase().replace(/\s+/g, '');
+            if (!CSS_COLOR_NAMES.has(normalized)) return null;
+            return normalized;
+        },
+    },
+];
+
+function detectColor(rawValue) {
+    const value = rawValue.trim();
+    if (!value) return null;
+
+    for (const entry of COLOR_PATTERNS) {
+        const match = value.match(entry.regex);
+        if (!match) continue;
+        const css = entry.toCss(value, match);
+        if (css) return { format: entry.format, css };
+    }
+    return null;
+}
+
+// Cycled through the placeholder so people can see what's accepted
+// without reading docs.
+const COLOR_PLACEHOLDERS = [
+    '#000',
+    '#000000',
+    'rgb(0, 0, 0)',
+    'rgba(0, 0, 0, 0)',
+    'hsl(0, 0%, 0%)',
+    'hsla(0, 0%, 0%, 0)',
+    'hsb(0, 0%, 0%)',
+];
+
+// --- Format dropdown options + conversion layer -------------------------
+// The dropdown only offers formats we can round-trip through {r,g,b,a}.
+// "named" colors (e.g. "red") are detectable, but aren't a selectable
+// dropdown target — only Auto accepts them.
+const FORMAT_OPTIONS = [
+    { value: 'auto', label: 'Auto' },
+    { value: 'hex', label: 'Hex' },
+    { value: 'rgb', label: 'RGB' },
+    { value: 'rgba', label: 'RGBA' },
+    { value: 'hsl', label: 'HSL' },
+    { value: 'hsla', label: 'HSLA' },
+    { value: 'hsb', label: 'HSB' },
+];
+const SELECTABLE_FORMATS = FORMAT_OPTIONS.map((o) => o.value).filter((v) => v !== 'auto');
+
+// Resolves *any* valid CSS color string (hex / rgb / rgba / hsl / hsla /
+// named) to normalized {r, g, b, a} by letting the browser parse it via a
+// throwaway element + getComputedStyle, rather than hand-rolling a parser
+// per format.
+function cssToRgba(cssColor) {
+    const el = document.createElement('div');
+    el.style.color = cssColor;
+    document.body.appendChild(el);
+    const computed = getComputedStyle(el).color;
+    document.body.removeChild(el);
+
+    const match = computed.match(/rgba?\(([^)]+)\)/);
+    if (!match) return null;
+
+    const parts = match[1].split(',').map((n) => parseFloat(n.trim()));
+    const [r, g, b, a = 1] = parts;
+    return { r, g, b, a };
+}
+
+function rgbToHex({ r, g, b, a }) {
+    const toHex = (n) => Math.round(n).toString(16).padStart(2, '0');
+    const base = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    return a >= 1 ? base : `${base}${toHex(a * 255)}`;
+}
+
+function rgbToHsl({ r, g, b }) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
+
+    if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+
+function rgbToHsb({ r, g, b }) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const d = max - min;
+    let h = 0;
+    const s = max === 0 ? 0 : d / max;
+    const v = max;
+
+    if (d !== 0) {
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    return { h: Math.round(h * 360), s: Math.round(s * 100), b: Math.round(v * 100) };
+}
+
+// Given resolved {r,g,b,a}, format for the requested dropdown format.
+function rgbaToFormat({ r, g, b, a }, format) {
+    switch (format) {
+        case 'hex':
+            return rgbToHex({ r, g, b, a });
+        case 'rgb':
+            return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+        case 'rgba':
+            return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${Math.round(a * 100) / 100})`;
+        case 'hsl': {
+            const { h, s, l } = rgbToHsl({ r, g, b });
+            return `hsl(${h}, ${s}%, ${l}%)`;
+        }
+        case 'hsla': {
+            const { h, s, l } = rgbToHsl({ r, g, b });
+            return `hsla(${h}, ${s}%, ${l}%, ${Math.round(a * 100) / 100})`;
+        }
+        case 'hsb': {
+            const { h, s, b: bb } = rgbToHsb({ r, g, b });
+            return `hsb(${h}, ${s}%, ${bb}%)`;
+        }
+        default:
+            return null;
+    }
+}
+
+// Converts an already-typed, valid color into the requested target format.
+// Returns null for Auto (nothing to rewrite) or if nothing valid is typed.
+function convertColorToFormat(detected, targetFormat) {
+    if (!detected || targetFormat === 'auto') return null;
+    const rgba = cssToRgba(detected.css);
+    if (!rgba) return null;
+    return rgbaToFormat(rgba, targetFormat);
+}
+
+// Swatch shown over a checkerboard background so alpha/transparency is visible.
+// Stays mounted the whole time — only `background-color` changes when the
+// value changes, which CSS can transition smoothly. Opacity is only toggled
+// at the empty <-> has-color edges (that's the only case that should "fade").
+const ColorSwatch = ({ color }) => (
+    <span className="color-display">
+        <span
+            className={`color-display-fill ${color ? 'visible' : ''}`}
+            style={{ backgroundColor: color || 'transparent' }}
+        />
+    </span>
+);
+
+export const ColorInput = (props) => {
+    const {
+        label = "Color",
+        placeholder,
+        disabled,
+        onChange,
+        onFocus,
+        onBlur,
+        fadeIconOnFocus,
+    } = props;
+
+    const [value, setValue] = useState('');
+    const [isFocused, setIsFocused] = useState(false);
+    const [error, setError] = useState(false);
+    const [errorText, setErrorText] = useState('');
+    const [detectedColor, setDetectedColor] = useState(null);
+    const [placeholderIndex, setPlaceholderIndex] = useState(0);
+    const [format, setFormat] = useState('auto'); // selected dropdown format
+
+    // Only cycle when no fixed placeholder was passed in via props.
+    useEffect(() => {
+        if (placeholder) return;
+        const interval = setInterval(() => {
+            setPlaceholderIndex((i) => (i + 1) % COLOR_PLACEHOLDERS.length);
+        }, 2000);
+        return () => clearInterval(interval);
+    }, [placeholder]);
+
+    const handleChange = (e) => {
+        const next = e.target.value;
+        const nextDetected = detectColor(next);
+
+        setValue(next);
+        setError(false);
+        setErrorText('');
+        setDetectedColor(nextDetected);
+
+        // A specific format is selected, but the user typed a valid color
+        // that doesn't match it — follow their lead and sync the dropdown:
+        //  - if the typed value matches a different *selectable* format
+        //    (e.g. typed rgb() while Hex was selected), switch to that format.
+        //  - if it's only valid as a named color (e.g. "red"), there's no
+        //    dropdown option for "named" — fall back to Auto instead of
+        //    leaving the dropdown showing a format that doesn't match.
+        if (format !== 'auto' && nextDetected && nextDetected.format !== format) {
+            if (SELECTABLE_FORMATS.includes(nextDetected.format)) {
+                setFormat(prev => nextDetected.format);
+            } else {
+                setFormat(prev => 'auto');
+            }
+        }
+
+        if (onChange) {
+            onChange(next, nextDetected?.css ?? null);
+        }
+    };
+
+    const handleFormatSelect = (nextFormat) => {
+        setFormat(nextFormat);
+
+        // Auto never rewrites what's already typed — it just stops
+        // constraining future input.
+        if (nextFormat === 'auto') return;
+
+        const converted = convertColorToFormat(detectedColor, nextFormat);
+        if (!converted) return; // nothing valid typed yet, nothing to translate
+
+        const redetected = detectColor(converted);
+        setValue(converted);
+        setDetectedColor(redetected);
+        setError(false);
+        setErrorText('');
+
+        if (onChange) {
+            onChange(converted, redetected?.css ?? null);
+        }
+    };
+
+    const handleFocus = (e) => {
+        setIsFocused(true);
+        if (onFocus) onFocus();
+        e.target.select();
+    };
+
+    const handleBlur = () => {
+        setIsFocused(false);
+
+        let nextError = false;
+        let nextErrorText = '';
+
+        if (!value) {
+            // Empty — no error on blur if untouched
+        } else if (!detectedColor) {
+            nextError = true;
+            nextErrorText = 'Unrecognized color format';
+        }
+
+        setError(nextError);
+        setErrorText(nextErrorText);
+
+        if (onBlur) onBlur();
+    };
+
+    const shouldFadeOut = isFocused && fadeIconOnFocus;
+    const id = `input-${label.replace(/\s+/g, '-').toLowerCase()}`;
+    const selectedOption = FORMAT_OPTIONS.find((o) => o.value === format);
+
+    return (
+        <div className={`input has-icon ${shouldFadeOut ? 'icon-faded' : ''}`}>
+            {label && <label className="input-label"><p>{label}</p></label>}
+            <div className="input-wrapper">
+                <span className={`input-icon ${shouldFadeOut ? 'fade-out' : ''}`}>
+                    <ColorSwatch color={detectedColor?.css ?? null} />
+                </span>
+
+                <input
+                    type="text"
+                    autoComplete="off"
+                    className={`color-input ${error ? 'error' : ''}`}
+                    id={id}
+                    value={value}
+                    onChange={handleChange}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    placeholder={placeholder || COLOR_PLACEHOLDERS[placeholderIndex]}
+                    disabled={disabled}
+                />
+                <DropdownWrapper value={format !== 'auto' ? FORMAT_OPTIONS.find((o) => o.value === format)?.label : 'Auto'}
+                    onValueChange={(rawText) => {
+                        const picked = FORMAT_OPTIONS.find((o) => o.label === rawText);
+                        if (picked) handleFormatSelect(picked.value);
+                    }}>
+                    <DropdownTrigger>
+                        <Select
+                            placeholder="Auto"
+                            value={format !== 'auto' ? selectedOption?.label : undefined}
+                            disabled={disabled}
+                        />
+                    </DropdownTrigger>
+
+                    <Dropdown maxHeight={120}>
+                        <DropdownGroup>
+                            {FORMAT_OPTIONS.map((option) => (
+                                <GroupItem
+                                    key={option.value}
+                                    selected={format === option.value}
+                                    onClick={() => handleFormatSelect(option.value)}
+                                >
+                                    {option.label}
+                                </GroupItem>
+                            ))}
+                        </DropdownGroup>
+                    </Dropdown>
+                </DropdownWrapper>
             </div>
             <label className={`input-error ${error ? 'visible' : ''}`}>
                 <small>{errorText}</small>

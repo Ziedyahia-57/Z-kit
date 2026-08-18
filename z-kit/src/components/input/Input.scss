@@ -1,5 +1,5 @@
 @use '../tokens';
-$width: 180px;
+$width: 193px;
 
 .input {
     display: inline-flex;
@@ -56,7 +56,8 @@ $width: 180px;
     &:has(.password-input:disabled) .input-label,
     &:has(.email-input:disabled) .input-label,
     &:has(.phone-input:disabled) .input-label,
-    &:has(.payment-input:disabled) .input-label {
+    &:has(.payment-input:disabled) .input-label,
+    &:has(.color-input:disabled) .input-label {
         color: var(--gray-600);
 
         body[data-dark="true"] & {
@@ -69,7 +70,8 @@ $width: 180px;
     &:has(.password-input.error) .input-label,
     &:has(.email-input.error) .input-label,
     &:has(.phone-input.error) .input-label,
-    &:has(.payment-input.error) .input-label {
+    &:has(.payment-input.error) .input-label,
+    &:has(.color-input.error) .input-label {
         color: var(--red-600);
 
         body[data-dark="true"] & {
@@ -82,7 +84,8 @@ $width: 180px;
     &:has(.password-input:not(:placeholder-shown):not(:disabled)),
     &:has(.email-input:not(:placeholder-shown):not(:disabled)),
     &:has(.phone-input:not(:placeholder-shown):not(:disabled)),
-    &:has(.payment-input:not(:placeholder-shown):not(:disabled)) {
+    &:has(.payment-input:not(:placeholder-shown):not(:disabled)),
+    &:has(.color-input:not(:placeholder-shown):not(:disabled)) {
         .input-icon svg {
             stroke: var(--gray-950);
 
@@ -96,7 +99,8 @@ $width: 180px;
     &:has(.password-input.error:not(:placeholder-shown):not(:disabled)),
     &:has(.email-input.error:not(:placeholder-shown):not(:disabled)),
     &:has(.phone-input.error:not(:placeholder-shown):not(:disabled)),
-    &:has(.payment-input.error:not(:placeholder-shown):not(:disabled)) {
+    &:has(.payment-input.error:not(:placeholder-shown):not(:disabled)),
+    &:has(.color-input.error:not(:placeholder-shown):not(:disabled)) {
         .input-icon svg {
             stroke: var(--red-600);
 
@@ -180,13 +184,74 @@ $width: 180px;
         .img {
             animation: iconFadeIn 0.2s ease;
         }
+
+        .color-display {
+            width: 1rem;
+            height: 1rem;
+            position: relative;
+            display: flex;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px 0px var(--gray-200);
+
+            // checkerboard, always present — this is what makes low-alpha
+            // colors actually read as transparent instead of just "faint".
+            background-image:
+                linear-gradient(45deg, var(--gray-300) 25%, transparent 25%),
+                linear-gradient(-45deg, var(--gray-300) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, var(--gray-300) 75%),
+                linear-gradient(-45deg, transparent 75%, var(--gray-300) 75%);
+            background-size: 8px 8px;
+            background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+            background-color: var(--gray-50);
+
+            body[data-dark="true"] & {
+                box-shadow: 0 1px 2px 0px var(--gray-800);
+                background-image:
+                    linear-gradient(45deg, var(--gray-700) 25%, transparent 25%),
+                    linear-gradient(-45deg, var(--gray-700) 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, var(--gray-700) 75%),
+                    linear-gradient(-45deg, transparent 75%, var(--gray-700) 75%);
+                background-color: var(--gray-900);
+            }
+        }
+
+        &:has(.color-input:disabled) .color-display {
+            opacity: 0.5;
+            filter: saturate(0.4);
+        }
+
+        .color-display-fill {
+            position: absolute;
+            inset: 0;
+            transition: background-color 0.3s ease;
+
+            &.visible {
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    top: -50%;
+                    left: -75%;
+                    width: 50%;
+                    height: 200%;
+                    background: linear-gradient(to right,
+                            rgba(255, 255, 255, 0) 0%,
+                            rgba(255, 255, 255, 0.6) 50%,
+                            rgba(255, 255, 255, 0) 100%);
+                    transform: skewX(-15deg);
+                    animation: shine-ray 0.8s ease-out 0.25s 1 forwards;
+                }
+            }
+        }
     }
 
     .text-input,
     .password-input,
     .email-input,
     .phone-input,
-    .payment-input {
+    .payment-input,
+    .color-input {
         --caret-color: var(--gray-950);
 
         width: $width;
@@ -241,7 +306,7 @@ $width: 180px;
             --caret-color: var(--gray-50);
 
             background-color: var(--gray-900);
-            border: 1px solid var(--gray-800);
+            border-color: var(--gray-800);
             color: var(--gray-50);
 
             &::placeholder {
@@ -281,6 +346,107 @@ $width: 180px;
         }
     }
 
+    .color-input {
+        width: calc($width - 84px); // Original width + icon space
+        border-start-start-radius: 8px;
+        border-end-start-radius: 8px;
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+        border-inline-end: none;
+    }
+
+    .input-wrapper .select .select-wrapper {
+        border-start-start-radius: 0;
+        border-end-start-radius: 0;
+        border-start-end-radius: 8px;
+        border-end-end-radius: 8px;
+        padding-inline: 8px;
+        gap: 8px;
+        min-width: 85px;
+
+        svg {
+            margin-inline-start: 0;
+        }
+
+
+    }
+
+    &:has(.color-input:disabled) .select .select-wrapper {
+        background-color: var(--gray-200);
+        border-color: var(--gray-300);
+        color: var(--gray-600);
+        cursor: not-allowed;
+
+        body[data-dark="true"] & {
+            background-color: var(--gray-950);
+            border-color: var(--gray-900);
+            color: var(--gray-400);
+        }
+
+    }
+
+    .input-wrapper:hover:has(.color-input:not(:disabled):not(.error)),
+    .input-wrapper:has(.color-input:focus:not(:disabled):not(.error)),
+    .select-wrapper:hover:has(.color-input:not(:disabled):not(.error)),
+    .select-wrapper:has(.color-input:focus:not(:disabled):not(.error)) {
+        .color-input {
+            border-color: var(--gray-200);
+
+            body[data-dark="true"] & {
+                border-color: var(--gray-700);
+            }
+        }
+
+        .select-wrapper {
+            border-color: var(--gray-200);
+
+            body[data-dark="true"] & {
+                border-color: var(--gray-700);
+            }
+        }
+    }
+
+    &:has(.color-input.error:not(:placeholder-shown)) .input-wrapper,
+    &:has(.color-input.error:not(:placeholder-shown)) .select-wrapper {
+        border-color: var(--red-600);
+        color: var(--red-600);
+
+        svg {
+            stroke: var(--red-600);
+        }
+
+        &:active:not(:disabled),
+        &:hover:not(:disabled),
+        &:focus:not(:disabled) {
+            border-color: var(--red-600);
+            color: var(--red-600);
+
+            svg {
+                stroke: var(--red-600);
+            }
+        }
+
+        body[data-dark="true"] & {
+            border-color: var(--red-400);
+            color: var(--red-400);
+
+            svg {
+                stroke: var(--red-400);
+            }
+
+            &:active:not(:disabled),
+            &:hover:not(:disabled),
+            &:focus:not(:disabled) {
+                border-color: var(--red-400);
+                color: var(--red-400);
+
+                svg {
+                    stroke: var(--red-400);
+                }
+            }
+        }
+    }
+
     // ===== HAS ICON STYLES =====
     &.has-icon {
 
@@ -288,7 +454,8 @@ $width: 180px;
         .password-input,
         .email-input,
         .phone-input,
-        .payment-input {
+        .payment-input,
+        .color-input {
             padding-inline-start: 37px;
         }
     }
@@ -300,9 +467,14 @@ $width: 180px;
         .password-input,
         .email-input,
         .phone-input,
-        .payment-input {
+        .payment-input,
+        .color-input {
             padding-inline-start: 16px;
             width: calc($width + 21px); // Original width + icon space
+        }
+
+        .color-input {
+            width: calc($width + 37px - 75px); // Original width + icon space
         }
     }
 

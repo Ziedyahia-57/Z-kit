@@ -37,6 +37,8 @@
         display: inline-flex;
         min-width: 145px;
         width: fit-content;
+        max-width: 100%;
+        box-sizing: border-box;
         gap: 8px;
         align-items: center;
         padding: 12px 16px;
@@ -49,8 +51,21 @@
         -webkit-user-select: none;
 
         svg {
+            width: 1rem;
+            height: 1rem;
             margin-inline-start: auto;
             color: var(--gray-700);
+            flex-shrink: 0;
+        }
+
+        >p {
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+            flex: 1;
+            text-align: start;
         }
 
         .placeholder {
@@ -61,6 +76,9 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            min-width: 0;
+            flex: 1;
+            overflow: hidden;
 
             .disc {
                 flex-shrink: 0;
@@ -68,6 +86,12 @@
 
             .item-label {
                 color: inherit;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                min-width: 0;
+                flex: 1;
+                text-align: start;
 
                 &.danger {
                     color: inherit;
