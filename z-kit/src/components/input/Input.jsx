@@ -1648,6 +1648,7 @@ export const ColorInput = (props) => {
         onFocus,
         onBlur,
         fadeIconOnFocus,
+        withSelect = false,
     } = props;
 
     const [value, setValue] = useState('');
@@ -1686,6 +1687,11 @@ export const ColorInput = (props) => {
         }, 3500);
         return () => clearInterval(interval);
     }, [placeholder, format]);
+
+    // Override chosen color format to be able to rotate placeholders when the component uses no select 
+    useEffect(() => {
+        !withSelect && setFormat('auto');
+    }, [withSelect])
 
     const handleChange = (e) => {
         const next = e.target.value;
@@ -1767,7 +1773,7 @@ export const ColorInput = (props) => {
     const selectedOption = FORMAT_OPTIONS.find((o) => o.value === format);
 
     return (
-        <div className={`input has-icon ${shouldFadeOut ? 'icon-faded' : ''}`}>
+        <div className={`input has-icon ${withSelect ? 'with-select' : ''} ${shouldFadeOut ? 'icon-faded' : ''}`}>
             {label && <label className="input-label"><p>{label}</p></label>}
             <div className="input-wrapper">
                 <span className={`input-icon ${shouldFadeOut ? 'fade-out' : ''}`}>
@@ -1791,33 +1797,35 @@ export const ColorInput = (props) => {
                         {displayedPlaceholder}
                     </span>
                 )}
-                <DropdownWrapper value={format !== 'auto' ? FORMAT_OPTIONS.find((o) => o.value === format)?.label : 'Auto'}
-                    onValueChange={(rawText) => {
-                        const picked = FORMAT_OPTIONS.find((o) => o.label === rawText);
-                        if (picked) handleFormatSelect(picked.value);
-                    }}>
-                    <DropdownTrigger>
-                        <Select
-                            placeholder="Auto"
-                            value={format !== 'auto' ? selectedOption?.label : undefined}
-                            disabled={disabled}
-                        />
-                    </DropdownTrigger>
+                {withSelect && (
+                    <DropdownWrapper value={format !== 'auto' ? FORMAT_OPTIONS.find((o) => o.value === format)?.label : 'Auto'}
+                        onValueChange={(rawText) => {
+                            const picked = FORMAT_OPTIONS.find((o) => o.label === rawText);
+                            if (picked) handleFormatSelect(picked.value);
+                        }}>
+                        <DropdownTrigger>
+                            <Select
+                                placeholder="Auto"
+                                value={format !== 'auto' ? selectedOption?.label : undefined}
+                                disabled={disabled}
+                            />
+                        </DropdownTrigger>
 
-                    <Dropdown maxHeight={120}>
-                        <DropdownGroup>
-                            {FORMAT_OPTIONS.map((option) => (
-                                <GroupItem
-                                    key={option.value}
-                                    selected={format === option.value}
-                                    onClick={() => handleFormatSelect(option.value)}
-                                >
-                                    {option.label}
-                                </GroupItem>
-                            ))}
-                        </DropdownGroup>
-                    </Dropdown>
-                </DropdownWrapper>
+                        <Dropdown maxHeight={120}>
+                            <DropdownGroup>
+                                {FORMAT_OPTIONS.map((option) => (
+                                    <GroupItem
+                                        key={option.value}
+                                        selected={format === option.value}
+                                        onClick={() => handleFormatSelect(option.value)}
+                                    >
+                                        {option.label}
+                                    </GroupItem>
+                                ))}
+                            </DropdownGroup>
+                        </Dropdown>
+                    </DropdownWrapper>
+                )}
             </div>
             <label className={`input-error ${error ? 'visible' : ''}`}>
                 <small>{errorText}</small>

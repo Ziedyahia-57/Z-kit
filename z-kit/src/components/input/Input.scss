@@ -347,13 +347,37 @@ $width: 193px;
         }
     }
 
-    .color-input {
-        width: calc($width - 84px); // Original width + icon space
-        border-start-start-radius: 8px;
-        border-end-start-radius: 8px;
-        border-start-end-radius: 0;
-        border-end-end-radius: 0;
-        border-inline-end: none;
+    // Only shrink/flatten the field when a select is actually rendered next to it
+    &.with-select {
+        .color-input {
+            width: calc($width - 84px); // Original width + icon space
+            border-start-start-radius: 8px;
+            border-end-start-radius: 8px;
+            border-start-end-radius: 0;
+            border-end-end-radius: 0;
+            border-inline-end: none;
+        }
+
+        .color-input-placeholder {
+            width: calc(#{$width} + 37px - 75px - 37px - 10px);
+            max-width: calc(#{$width} + 37px - 75px - 37px - 10px);
+
+            &.icon-faded {
+                width: calc(#{$width} + 37px - 75px - 16px - 10px);
+                max-width: calc(#{$width} + 37px - 75px - 16px - 10px);
+            }
+        }
+
+        &.icon-faded {
+            .color-input {
+                width: calc($width + 37px - 75px); // Original width + icon space
+            }
+
+            .color-input-placeholder {
+                width: calc(#{$width} + 37px - 75px - 16px - 10px);
+                max-width: calc(#{$width} + 37px - 75px - 16px - 10px);
+            }
+        }
     }
 
     .input-wrapper .select .select-wrapper {
@@ -508,14 +532,10 @@ $width: 193px;
             width: calc($width + 21px); // Original width + icon space
         }
 
-        .color-input {
-            width: calc($width + 37px - 75px); // Original width + icon space
-        }
-
         .color-input-placeholder {
             inset-inline-start: 16px;
-            width: calc(#{$width} + 37px - 75px - 16px - 10px);
-            max-width: calc(#{$width} + 37px - 75px - 16px - 10px);
+            width: calc(#{$width} + 11px);
+            max-width: calc(#{$width} + 11px);
         }
     }
 
