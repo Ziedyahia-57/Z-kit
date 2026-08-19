@@ -8,14 +8,7 @@ import { DropdownWrapperContext } from '../dropdown/Dropdown';
 
 soundManager.loadSound('click', clickSoundFile, 1);
 
-const ChevronDownIcon = React.forwardRef(({ duration = 0.2, ...props }, ref) => {
-    const controls = useAnimation();
-
-    React.useImperativeHandle(ref, () => ({
-        startAnimation: () => controls.start("animate"),
-        stopAnimation: () => controls.start("normal"),
-    }));
-
+const ChevronDownIcon = React.forwardRef(({ isOpen, duration = 0.2, ...props }, ref) => {
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -36,7 +29,7 @@ const ChevronDownIcon = React.forwardRef(({ duration = 0.2, ...props }, ref) => 
                     animate: { d: "M6 15L12 9L18 15" },
                 }}
                 initial="normal"
-                animate={controls}
+                animate={isOpen ? "animate" : "normal"}
                 transition={{ duration }}
             />
         </svg>
@@ -54,6 +47,7 @@ export const Select = React.forwardRef(function Select(
         enableSound = true,
         onToggle,
         soundVolume = 1,
+        value: valueProp,
         children,
     },
     buttonRef
@@ -61,13 +55,21 @@ export const Select = React.forwardRef(function Select(
     const context = useContext(DropdownWrapperContext);
 
     const [active, setActive] = useState(false);
-    const [input, setInput] = useState('');
-    const [display, setDisplay] = useState(null);
+    const [input, setInput] = useState(valueProp ?? '');
+    const [display, setDisplay] = useState(valueProp ? <span className="item-label">{valueProp}</span> : null);
 
     const chevronRef = useRef(null);
     // Tracks the last-seen context.isOpen so we only react to *changes*,
     // not every render (mirrors the old componentDidUpdate diff check).
     const prevOpenRef = useRef(context?.isOpen);
+
+    // Sync direct value prop when controlled from outside
+    useEffect(() => {
+        if (valueProp !== undefined) {
+            setInput(valueProp ?? '');
+            setDisplay(valueProp ? <span className="item-label">{valueProp}</span> : null);
+        }
+    }, [valueProp]);
 
     // Equivalent of the old constructor-time audio preload.
     // Empty deps -> runs once on mount, just like the constructor did once per instance.
@@ -163,6 +165,7 @@ export const Select = React.forwardRef(function Select(
                         : <p className="placeholder">{placeholder}</p>
                 }
                 <ChevronDownIcon
+                    isOpen={isExpanded}
                     ref={chevronRef}
                     duration={0.2}
                     width={20}
@@ -184,5 +187,6 @@ Select.propTypes = {
     enableSound: PropTypes.bool,
     onToggle: PropTypes.func,
     soundVolume: PropTypes.number,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
     children: PropTypes.node,
 };

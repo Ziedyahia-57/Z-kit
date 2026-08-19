@@ -113,7 +113,8 @@ $width: 193px;
 
     .input-wrapper {
         position: relative;
-        display: inline-block;
+        display: inline-flex;
+        flex-wrap: nowrap;
     }
 
     .input-icon {
@@ -460,6 +461,40 @@ $width: 193px;
         }
     }
 
+    .color-input-placeholder {
+        position: absolute;
+        inset-inline-start: 37px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        color: var(--gray-600);
+        font-size: 1rem;
+        line-height: 1.5;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: calc(#{$width} + 37px - 75px - 37px - 10px);
+        max-width: calc(#{$width} + 37px - 75px - 37px - 10px);
+        opacity: 1;
+        transition: opacity 0.4s ease-in-out, inset-inline-start 0.3s ease, width 0.3s ease, max-width 0.3s ease;
+        user-select: none;
+        box-sizing: border-box;
+
+        &.fading {
+            opacity: 0;
+        }
+
+        body[data-dark="true"] & {
+            color: var(--gray-400);
+        }
+
+        &.icon-faded {
+            inset-inline-start: 16px;
+            width: calc(#{$width} + 37px - 75px - 16px - 10px);
+            max-width: calc(#{$width} + 37px - 75px - 16px - 10px);
+        }
+    }
+
     // ===== ICON FADED STYLES =====
     &.icon-faded {
 
@@ -475,6 +510,12 @@ $width: 193px;
 
         .color-input {
             width: calc($width + 37px - 75px); // Original width + icon space
+        }
+
+        .color-input-placeholder {
+            inset-inline-start: 16px;
+            width: calc(#{$width} + 37px - 75px - 16px - 10px);
+            max-width: calc(#{$width} + 37px - 75px - 16px - 10px);
         }
     }
 

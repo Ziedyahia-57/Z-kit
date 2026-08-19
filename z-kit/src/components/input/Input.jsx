@@ -1497,6 +1497,16 @@ const COLOR_PLACEHOLDERS = [
     'hsb(0, 0%, 0%)',
 ];
 
+const FORMAT_PLACEHOLDERS = {
+    auto: null,
+    hex: '#000000',
+    rgb: 'rgb(0, 0, 0)',
+    rgba: 'rgba(0, 0, 0, 1)',
+    hsl: 'hsl(0, 0%, 0%)',
+    hsla: 'hsla(0, 0%, 0%, 1)',
+    hsb: 'hsb(0, 0%, 0%)',
+};
+
 // --- Format dropdown options + conversion layer -------------------------
 // The dropdown only offers formats we can round-trip through {r,g,b,a}.
 // "named" colors (e.g. "red") are detectable, but aren't a selectable
@@ -1627,6 +1637,8 @@ const ColorSwatch = ({ color }) => (
     </span>
 );
 
+/* ───────────────────────── ColorInput ───────────────────────── */
+
 export const ColorInput = (props) => {
     const {
         label = "Color",
@@ -1646,14 +1658,34 @@ export const ColorInput = (props) => {
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
     const [format, setFormat] = useState('auto'); // selected dropdown format
 
-    // Only cycle when no fixed placeholder was passed in via props.
+    const targetPlaceholder = placeholder
+        ? placeholder
+        : format !== 'auto' && FORMAT_PLACEHOLDERS[format]
+            ? FORMAT_PLACEHOLDERS[format]
+            : COLOR_PLACEHOLDERS[placeholderIndex];
+
+    const [displayedPlaceholder, setDisplayedPlaceholder] = useState(targetPlaceholder);
+    const [isPlaceholderFading, setIsPlaceholderFading] = useState(false);
+
+    // Soft fade transition whenever target placeholder string changes
     useEffect(() => {
-        if (placeholder) return;
+        if (targetPlaceholder === displayedPlaceholder) return;
+        setIsPlaceholderFading(true);
+        const timer = setTimeout(() => {
+            setDisplayedPlaceholder(targetPlaceholder);
+            setIsPlaceholderFading(false);
+        }, 350);
+        return () => clearTimeout(timer);
+    }, [targetPlaceholder, displayedPlaceholder]);
+
+    // Only cycle when no fixed placeholder was passed in via props and format is 'auto'.
+    useEffect(() => {
+        if (placeholder || format !== 'auto') return;
         const interval = setInterval(() => {
             setPlaceholderIndex((i) => (i + 1) % COLOR_PLACEHOLDERS.length);
-        }, 2000);
+        }, 3500);
         return () => clearInterval(interval);
-    }, [placeholder]);
+    }, [placeholder, format]);
 
     const handleChange = (e) => {
         const next = e.target.value;
@@ -1751,9 +1783,14 @@ export const ColorInput = (props) => {
                     onChange={handleChange}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
-                    placeholder={placeholder || COLOR_PLACEHOLDERS[placeholderIndex]}
+                    placeholder=""
                     disabled={disabled}
                 />
+                {!value && (
+                    <span className={`color-input-placeholder ${shouldFadeOut ? 'icon-faded' : ''} ${isPlaceholderFading ? 'fading' : ''}`}>
+                        {displayedPlaceholder}
+                    </span>
+                )}
                 <DropdownWrapper value={format !== 'auto' ? FORMAT_OPTIONS.find((o) => o.value === format)?.label : 'Auto'}
                     onValueChange={(rawText) => {
                         const picked = FORMAT_OPTIONS.find((o) => o.label === rawText);

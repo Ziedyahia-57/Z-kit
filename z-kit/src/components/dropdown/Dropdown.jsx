@@ -768,9 +768,7 @@ export const DropdownWrapper = ({ children, offset = 4, value, onValueChange }) 
         rawText ? <span className="item-label">{rawText}</span> : null;
 
     const onSelect = (displayNode, rawText) => {
-        ReactDOM.flushSync(() => {
-            setValueRef.current?.(displayNode, rawText);
-        });
+        setValueRef.current?.(displayNode, rawText);
         onValueChange?.(rawText); // tell the controlling parent what was picked
         close();
     };
@@ -781,9 +779,7 @@ export const DropdownWrapper = ({ children, offset = 4, value, onValueChange }) 
         // so Select shows the right thing on first mount, not just after
         // the next value change.
         if (fn && value !== undefined) {
-            ReactDOM.flushSync(() => {
-                fn(buildDisplayNode(value), value);
-            });
+            fn(buildDisplayNode(value), value);
         }
     };
 
@@ -792,9 +788,7 @@ export const DropdownWrapper = ({ children, offset = 4, value, onValueChange }) 
     // into the registered Select. No-ops for uncontrolled usage.
     useLayoutEffect(() => {
         if (value === undefined) return;
-        ReactDOM.flushSync(() => {
-            setValueRef.current?.(buildDisplayNode(value), value);
-        });
+        setValueRef.current?.(buildDisplayNode(value), value);
     }, [value]);
 
     useEffect(() => {
@@ -883,8 +877,11 @@ export const DropdownTrigger = ({ children }) => {
     return React.cloneElement(child, {
         ref: triggerRef,
         onClick: (e) => {
-            child.props.onClick?.(e);
-            toggle();
+            if (child.props.onClick) {
+                child.props.onClick(e);
+            } else {
+                toggle();
+            }
         },
     });
 };

@@ -56,6 +56,7 @@
             margin-inline-start: auto;
             color: var(--gray-700);
             flex-shrink: 0;
+            transition: color 0.2s ease;
         }
 
         >p {

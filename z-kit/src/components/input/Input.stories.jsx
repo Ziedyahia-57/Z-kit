@@ -173,7 +173,7 @@ export const colorInput = {
     args: {
         darkmode: false,
         label: "Color",
-        placeholder: "#000000",
+        //placeholder: "#000000",
         disabled: false,
     },
     render: (args) => {
@@ -267,7 +267,7 @@ export const colorInputRTL = {
     args: {
         darkmode: false,
         label: "اللون",
-        placeholder: "#000000",
+        //placeholder: "#000000",
         disabled: false,
         rtl: true,
     },
