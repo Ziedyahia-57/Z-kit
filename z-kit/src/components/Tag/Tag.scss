@@ -53,10 +53,11 @@ $color-shades: (
     padding: 8px;
     border-radius: 8px;
     gap: 4px;
+    line-height: 1.5;
     align-items: center;
     cursor: pointer;
     user-select: none;
-    transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease, transform .2s cubic-bezier(0.55, 0.09, 0.68, 0.53);
+    transition: color 0.2s ease, background-color 0.2s ease, transform .2s cubic-bezier(0.55, 0.09, 0.68, 0.53);
 
     &:active {
         transform: scale(0.99);
@@ -82,12 +83,10 @@ $color-shades: (
     @each $color-name, $base-color in $colors {
         &.#{$color-name} {
             background-color: var(--#{$color-name}-100);
-            border: 1px solid var(--#{$color-name}-200);
             color: var(--#{$color-name}-800);
 
             &:hover {
                 background-color: var(--#{$color-name}-200);
-                border-color: var(--#{$color-name}-300);
                 color: var(--#{$color-name}-800);
             }
 
@@ -99,12 +98,10 @@ $color-shades: (
         @each $color-name, $base-color in $colors {
             &.#{$color-name} {
                 background-color: var(--#{$color-name}-900);
-                border-color: var(--#{$color-name}-800);
                 color: var(--#{$color-name}-200);
 
                 &:hover {
                     background-color: var(--#{$color-name}-800);
-                    border-color: var(--#{$color-name}-700);
                     color: var(--#{$color-name}-200);
                 }
             }

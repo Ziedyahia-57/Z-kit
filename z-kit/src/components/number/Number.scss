@@ -7,6 +7,7 @@ $segment-min: 2.2ch;
     display: inline-flex;
     flex-direction: column;
     gap: 8px;
+    line-height: 1.5;
 
     --content-width: max(#{$segment-min}, calc(var(--digit-count, 2) * 1.5ch));
 

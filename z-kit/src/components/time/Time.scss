@@ -6,6 +6,7 @@ $ampm-btn-width: 30px; // Approximate width of AM/PM button
     display: inline-flex;
     flex-direction: column;
     gap: 8px;
+    line-height: 1.5;
 
     // ---- Error Text styling ----
     .time-error {

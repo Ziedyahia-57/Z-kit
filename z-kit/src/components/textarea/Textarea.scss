@@ -5,6 +5,7 @@ $width: 97px;
     display: inline-flex;
     flex-direction: column;
     gap: 8px;
+    line-height: 1.5;
 
     .textarea-resize-row {
         position: absolute;
@@ -241,7 +242,8 @@ $width: 97px;
         padding-inline: 16px;
         border-radius: 8px;
         transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease,
-            padding-inline-start 0.2s ease;
+        padding-inline-start 0.2s ease;
+        line-height: 1.5;
         outline: none;
         background-color: var(--gray-25);
         border: 1px solid var(--gray-100);
