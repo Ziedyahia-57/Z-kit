@@ -59,41 +59,31 @@ const meta = {
       options: ["primary", 'secondary', "outline", "ghost"],
       description: "Defines the variant of the button",
     },
+    monochrome: {
+      control: { type: "boolean" },
+      name: "Monochrome",
+      description: "Defines if the button is monochrome",
+    },
     size: {
       control: { type: "select" },
       name: "Size",
       options: ["small", "medium", "large", "xlarge"],
       description: "Defines the size of the button",
     },
-    buttonType: {
-      control: "radio",
-      options: ["label", "label & icon", "icon"],
-      name: "Button Type",
-      description: "Choose button display mode",
-    },
     disabled: {
       control: { type: "boolean" },
       name: "Disabled",
       description: "Defines if the button is disabled",
     },
+    enableSound: {
+      control: { type: "boolean" },
+      name: "Enable Sound",
+      description: "Defines if the button click sound is enabled",
+    },
     children: {
       control: "text",
       name: "Label",
       description: "Content of the button",
-    },
-    icon: {
-      control: { type: "select" },
-      options: ["play", "pause", "star", "heart", "check", "plus"],
-      name: "Icon (when applicable)",
-      description: "Icon to display when button type includes icon",
-      if: { arg: "buttonType", neq: "label" },
-    },
-    iconPosition: {
-      control: { type: "select" },
-      options: ["left", "right"],
-      name: "Icon Position",
-      description: "Position of icon relative to label",
-      if: { arg: "buttonType", eq: "label & icon" },
     },
     onClick: {
       action: "clicked",
@@ -109,26 +99,37 @@ export const button = {
   args: {
     darkmode: false,
     variant: "primary",
-    children: "Add",
-    size: "large",
+    size: "medium",
+    monochrome: false,
     disabled: false,
-    buttonType: "label & icon",
-    icon: "plus",
-    iconPosition: "left",
+    submit: false,
+    enableSound: true,
+    onClick: () => { console.log("Button Clicked") },
   },
-};
-
+  render: (args) => (
+    <Button {...args}>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+      Add
+    </Button>
+  ),
+}
 export const buttonRTL = {
   name: "Button (rtl)",
   args: {
     darkmode: false,
     variant: "primary",
-    children: "إضافة",
-    size: "large",
+    size: "medium",
+    monochrome: false,
     disabled: false,
-    buttonType: "label & icon",
-    icon: "plus",
-    iconPosition: "left",
+    submit: false,
+    enableSound: true,
+    onClick: () => { console.log("Button Clicked") },
     rtl: true,
   },
-};
+  render: (args) => (
+    <Button {...args}>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+      إضافة
+    </Button>
+  ),
+}

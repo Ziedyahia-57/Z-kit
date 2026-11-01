@@ -590,10 +590,34 @@ function getIconConfigFromName(name) {
     return FILE_ICON_MAP[format] || { component: DefaultIcon, className: '' };
 }
 
-const getFileExtension = (filename) => {
-    if (!filename) return '';
-    return filename.split('.').pop()?.toLowerCase() || '';
+const getFileExtension = (name) => {
+    const fallback = 'Pasted file';
+
+    if (!name) {
+        return { fileName: fallback, format: 'file' };
+    }
+
+    const lastDot = name.lastIndexOf('.');
+
+    // No extension
+    if (lastDot === -1) {
+        return { fileName: name, format: 'file' };
+    }
+
+    // Dot at the beginning or no extension after the dot
+    if (lastDot === 0 || lastDot === name.length - 1) {
+        return { fileName: name, format: 'file' };
+    }
+
+    const format = name.slice(lastDot + 1).toUpperCase();
+
+    return {
+        fileName: name,
+        format
+    };
 };
+
+
 
 // Accepts either a raw byte count or an already-formatted string ("2.4 MB")
 // so existing callers that pre-format sizes keep working unchanged.
@@ -631,7 +655,6 @@ export const Attachment = ({
     onRetry,
     onRemove,
 }) => {
-    const extension = getFileExtension(name);
     const { component: IconComponent, className } = getIconConfigFromName(name);
     const displaySize = formatBytes(size);
 
@@ -639,6 +662,9 @@ export const Attachment = ({
     const isError = status === 'error';
     const hasKnownProgress = !indeterminate && typeof progress === 'number' && !Number.isNaN(progress);
     const clampedProgress = hasKnownProgress ? Math.min(100, Math.max(0, progress)) : null;
+
+    const { fileName, format } = getFileExtension(name);
+
 
     const handleActionClick = () => {
         if (isUploading) {
@@ -671,13 +697,13 @@ export const Attachment = ({
 
     return (
         <div className={`attachment${isError ? ' attachment--error' : ''}${isUploading ? ' attachment--uploading' : ''}`}>
-            <div className={`file-icon ${className}`} data-ext={extension}>
+            <div className={`file-icon ${className}`} data-ext={format}>
                 <IconComponent />
             </div>
 
             <div className="attachment-details">
                 <div className="file-name">
-                    <p>{name}</p>
+                    <p>{fileName}</p>
                 </div>
 
                 <div className="file-size">
@@ -690,10 +716,11 @@ export const Attachment = ({
                 size="small"
                 buttonType="icon"
                 colorScheme='neutralColor'
-                icon={actionIcon}
                 aria-label={actionLabel}
                 onClick={handleActionClick}
-            />
+            >
+                {actionIcon}
+            </Button>
 
             {isUploading && (
                 <div

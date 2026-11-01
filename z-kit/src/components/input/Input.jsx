@@ -9,7 +9,7 @@ import { Select } from '../select/Select'; //used by color input
 
 export function Input(props) {
     const {
-        label = "Input",
+        label,
         placeholder = "Placeholder",
         disabled,
         error,
@@ -118,7 +118,7 @@ Input.defaultProps = {
 
 export function PasswordInput(props) {
     const {
-        label = "Password",
+        label,
         placeholder = "Password",
         disabled,
         onChange,
@@ -238,7 +238,7 @@ export function PasswordInput(props) {
 
 export function EmailInput(props) {
     const {
-        label = "Email",
+        label,
         placeholder = "name@example.com",
         disabled,
         onChange,
@@ -574,7 +574,7 @@ function sanitizePhone(raw) {
 
 export function PhoneInput(props) {
     const {
-        label = "Phone",
+        label,
         placeholder = "+000 000 000 000",
         disabled,
         onChange,
@@ -1185,7 +1185,7 @@ function caretPositionForDigitCount(digitCount) {
 
 export const PaymentInput = (props) => {
     const {
-        label = "Payment",
+        label,
         placeholder = "0000 0000 0000 0000",
         disabled,
         onChange,
@@ -1641,7 +1641,7 @@ const ColorSwatch = ({ color }) => (
 
 export const ColorInput = (props) => {
     const {
-        label = "Color",
+        label,
         placeholder,
         disabled,
         onChange,

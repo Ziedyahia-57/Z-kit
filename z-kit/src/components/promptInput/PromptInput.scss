@@ -1,0 +1,122 @@
+@use '../tokens';
+
+.prompt {
+    display: flex;
+    padding: 12px;
+    gap: 8px;
+    flex-direction: column;
+    background: var(--gray-25);
+    border: 1px solid var(--gray-100);
+    border-radius: 8px;
+    max-width: 664px;
+
+    // Horizontal strip of pasted-file attachments. Scrolls instead of wrapping so
+    // the input's height stays predictable; the edge gradients below fade in only
+    // when there's actually more content to scroll to (CSS-only "scroll shadow").
+    .attachments {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        overflow-x: auto;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    .prompt-input {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        border: none;
+        outline: none;
+        padding: 8px;
+        line-height: 20px;
+        min-height: 24px;
+        max-height: 128px;
+        resize: none; // no drag handle — height is driven by content, not the user
+        overflow-y: auto;
+        touch-action: none;
+        transition: height 0.1s ease;
+
+        --caret-color: var(--gray-950);
+        caret-animation: manual;
+        animation: customCaretPulse 2.5s infinite;
+
+        &::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+            border-radius: 8px;
+            margin: 4px 0;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: transparent;
+            border-radius: 8px;
+        }
+
+        &.is-hovered::-webkit-scrollbar-thumb {
+            background: var(--gray-200);
+        }
+
+        &.is-hovered::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-300);
+        }
+
+        body[data-dark="true"] & {
+            --caret-color: var(--gray-50);
+
+            &.is-hovered::-webkit-scrollbar-thumb {
+                background: var(--gray-900);
+            }
+
+            &.is-hovered::-webkit-scrollbar-thumb:hover {
+                background: var(--gray-800);
+            }
+        }
+    }
+
+    .prompt-settings {
+        display: flex;
+        justify-content: space-between;
+
+        .tools,
+        .response {
+            display: flex;
+            gap: 8px;
+        }
+    }
+
+    button.primary {
+        background: var(--gray-900);
+        border-color: var(--gray-800);
+
+        &:disabled {
+            background: var(--gray-200);
+            border-color: var(--gray-200);
+            cursor: not-allowed;
+        }
+    }
+
+    .select .select-wrapper {
+        padding: 8px;
+        border-radius: 4px;
+        min-width: fit-content;
+        height: fit-content;
+        min-height: 0;
+
+        .select-value .item-label {
+            font-size: 14px;
+            line-height: 14px;
+        }
+
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+    }
+}

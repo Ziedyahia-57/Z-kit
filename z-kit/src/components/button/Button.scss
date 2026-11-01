@@ -1,70 +1,52 @@
 @use '../tokens';
 
-// Base button styles
+// Size configuration map
+$button-sizes: (
+    small: (padding: 0.5rem,
+        font-size: 0.875rem),
+    medium: (padding: 0.625rem,
+        font-size: 1rem),
+    large: (padding: 0.75rem,
+        font-size: 1rem),
+    xlarge: (padding: 0.875rem,
+        font-size: 1rem)
+);
+
 .button {
+    height: fit-content;
     display: inline-flex;
-    gap: 0.5rem;
     align-items: center;
     justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid;
     border-radius: 6px;
     cursor: pointer;
     line-height: 100%;
-    font-weight: 600;
+    font-weight: 300;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    transition: color 0.2s ease, background-color 0.2s ease, border 0.2s ease, transform 0.2s ease;
-    border: 1px solid;
-}
 
-// Size styles
-$sizes: 'small', 'medium', 'large', 'xlarge';
+    transition: color 0.2s ease,
+        background-color 0.2s ease,
+        border 0.2s ease,
+        transform 0.2s ease;
 
-@each $size in $sizes {
-    button.#{$size} {
-        @if $size =='small' {
-            padding: 0.5rem;
-            font-size: 0.875rem;
-            line-height: 1;
+    @each $size, $props in $button-sizes {
+        $padding: map-get($props, padding);
+        $font-size: map-get($props, font-size);
 
-            svg {
-                width: 0.875rem;
-                height: 0.875rem;
-            }
-        }
-
-        @else if $size =='medium' {
-            padding: 0.625rem;
-            font-size: 1rem;
-            line-height: 1;
+        &.#{$size} {
+            padding: $padding;
+            font-size: $font-size;
+            line-height: $font-size;
 
             svg {
-                width: 1rem;
-                height: 1rem;
-            }
-        }
-
-        @else if $size =='large' {
-            padding: 0.75rem;
-            font-size: 1rem;
-            line-height: 1;
-
-            svg {
-                width: 1rem;
-                height: 1rem;
-            }
-        }
-
-        @else if $size =='xlarge' {
-            padding: 0.875rem;
-            font-size: 1rem;
-            line-height: 1;
-
-            svg {
-                width: 1rem;
-                height: 1rem;
+                width: $font-size;
+                height: $font-size;
             }
         }
     }
 }
+
 
 .button {
 
@@ -158,10 +140,259 @@ $sizes: 'small', 'medium', 'large', 'xlarge';
                 color: var(--gray-400);
             }
         }
+    }
 
-        // .button-label {
-        //     font-weight: 400;
-        // }
+    // outline variant
+    &.outline {
+        background-color: transparent;
+        border-color: var(--primary-600);
+        color: var(--primary-600);
+
+        &:hover:not(:disabled) {
+            border-color: var(--primary-700);
+            color: var(--primary-700);
+        }
+
+        &:active:not(:disabled) {
+            border-color: var(--primary-800);
+            color: var(--primary-800);
+            transform: scale(0.99);
+        }
+
+        &:disabled {
+            border-color: var(--primary-200);
+            color: var(--primary-200);
+            cursor: not-allowed;
+        }
+
+        body[data-dark="true"] & {
+            border-color: var(--primary-500);
+            color: var(--primary-500);
+
+            &:hover:not(:disabled) {
+                border-color: var(--primary-400);
+                color: var(--primary-400);
+            }
+
+            &:active:not(:disabled) {
+                border-color: var(--primary-300);
+                color: var(--primary-300);
+            }
+
+            &:disabled {
+                border-color: var(--primary-800);
+                color: var(--primary-800);
+            }
+        }
+    }
+
+    // Ghost variant
+    &.ghost {
+        background-color: transparent;
+        border-color: transparent;
+        color: var(--primary-600);
+
+        &:hover:not(:disabled) {
+            background-color: var(--primary-50);
+            color: var(--primary-700);
+        }
+
+        &:active:not(:disabled) {
+            background-color: var(--primary-100);
+            color: var(--primary-800);
+            transform: scale(0.99);
+        }
+
+        &:disabled {
+            color: var(--primary-200);
+            cursor: not-allowed;
+        }
+
+        body[data-dark="true"] & {
+            color: var(--primary-500);
+
+            &:hover:not(:disabled) {
+                background-color: var(--primary-950);
+                color: var(--primary-400);
+            }
+
+            &:active:not(:disabled) {
+                background-color: var(--primary-900);
+                color: var(--primary-300);
+            }
+
+            &:disabled {
+                color: var(--primary-800);
+            }
+        }
+    }
+}
+
+
+
+.button {
+
+    // Primary variant
+    &.primary {
+        background-color: var(--primary-600);
+        border-color: var(--primary-600);
+        color: var(--gray-25);
+
+        &.monochrome {
+            background-color: var(--gray-800);
+            border-color: var(--gray-800);
+            color: var(--gray-25);
+        }
+
+        &:hover:not(:disabled) {
+            background-color: var(--primary-700);
+            border-color: var(--primary-700);
+
+            &.monochrome {
+                background-color: var(--gray-900);
+                border-color: var(--gray-900);
+            }
+        }
+
+        &:active:not(:disabled) {
+            background-color: var(--primary-800);
+            border-color: var(--primary-800);
+            transform: scale(0.99);
+
+            &.monochrome {
+                background-color: var(--gray-950);
+                border-color: var(--gray-950);
+            }
+        }
+
+        &:disabled {
+            background-color: var(--primary-200);
+            border-color: var(--primary-200);
+            color: var(--gray-50);
+            cursor: not-allowed;
+
+            &.monochrome {
+                background-color: var(--gray-200);
+                border-color: var(--gray-200);
+            }
+        }
+
+        body[data-dark="true"] & {
+            background-color: var(--primary-600);
+            border-color: var(--primary-600);
+            color: var(--gray-25);
+
+            &.monochrome {
+                background-color: var(--gray-100);
+                border-color: var(--gray-100);
+                color: var(--gray-950);
+            }
+
+            &:hover:not(:disabled) {
+                background-color: var(--primary-500);
+                border-color: var(--primary-500);
+
+                &.monochrome {
+                    background-color: var(--gray-50);
+                    border-color: var(--gray-50);
+                }
+            }
+
+            &:active:not(:disabled) {
+                background-color: var(--primary-400);
+                border-color: var(--primary-400);
+
+                &.monochrome {
+                    background-color: var(--gray-25);
+                    border-color: var(--gray-25);
+                }
+            }
+
+            &:disabled {
+                background-color: var(--primary-800);
+                border-color: var(--primary-800);
+                color: var(--gray-400);
+
+                &.monochrome {
+                    background-color: var(--gray-200);
+                    border-color: var(--gray-200);
+                    color: var(--gray-600);
+                }
+            }
+        }
+    }
+
+    // outline variant
+    &.secondary {
+        background-color: var(--gray-25);
+        border: 1px solid var(--gray-100);
+        color: var(--primary-600);
+
+        &.monochrome {
+            color: var(--gray-800);
+        }
+
+        &:hover:not(:disabled) {
+            background-color: var(--gray-50);
+            border-color: var(--gray-200);
+            color: var(--primary-700);
+
+            &.monochrome {
+                color: var(--gray-900);
+            }
+        }
+
+        &:active:not(:disabled) {
+            background-color: var(--gray-100);
+            border-color: var(--gray-300);
+            color: var(--primary-800);
+            transform: scale(0.99);
+
+            &.monochrome {
+                color: var(--gray-950);
+            }
+        }
+
+        &:disabled {
+            background-color: var(--gray-25);
+            border-color: var(--gray-50);
+            color: var(--primary-200);
+            cursor: not-allowed;
+
+            &.monochrome {
+                color: var(--gray-200);
+            }
+        }
+
+
+        body[data-dark="true"] & {
+            background-color: var(--gray-900);
+            border: 1px solid var(--gray-800);
+            color: var(--primary-600);
+
+            &.monochrome {
+                color: var(--gray-300);
+            }
+
+            &:hover:not(:disabled) {
+                background-color: var(--gray-900);
+                border-color: var(--gray-700);
+                color: var(--primary-500);
+            }
+
+            &:active:not(:disabled) {
+                background-color: var(--gray-900);
+                border-color: var(--gray-700);
+                color: var(--primary-400);
+            }
+
+            &:disabled {
+                /*edit this*/
+                background-color: var(--gray-950);
+                border-color: var(--gray-900);
+                color: var(--gray-400);
+            }
+        }
     }
 
     // outline variant

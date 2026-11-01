@@ -55,8 +55,12 @@ export const Select = React.forwardRef(function Select(
     const context = useContext(DropdownWrapperContext);
 
     const [active, setActive] = useState(false);
-    const [input, setInput] = useState(valueProp ?? '');
-    const [display, setDisplay] = useState(valueProp ? <span className="item-label">{valueProp}</span> : null);
+    const [input, setInput] = useState(typeof valueProp === 'string' ? valueProp : '');
+    const [display, setDisplay] = useState(
+        valueProp
+            ? (React.isValidElement(valueProp) ? valueProp : <span className="item-label">{valueProp}</span>)
+            : null
+    );
 
     const chevronRef = useRef(null);
     // Tracks the last-seen context.isOpen so we only react to *changes*,
@@ -66,8 +70,12 @@ export const Select = React.forwardRef(function Select(
     // Sync direct value prop when controlled from outside
     useEffect(() => {
         if (valueProp !== undefined) {
-            setInput(valueProp ?? '');
-            setDisplay(valueProp ? <span className="item-label">{valueProp}</span> : null);
+            setInput(typeof valueProp === 'string' ? valueProp : '');
+            setDisplay(
+                valueProp
+                    ? (React.isValidElement(valueProp) ? valueProp : <span className="item-label">{valueProp}</span>)
+                    : null
+            );
         }
     }, [valueProp]);
 
@@ -83,8 +91,10 @@ export const Select = React.forwardRef(function Select(
     }, []);
 
     const setValue = (displayNode, rawText) => {
-        setInput(rawText ?? '');
-        setDisplay(displayNode ?? null);
+        if (valueProp === undefined) {
+            setInput(rawText ?? '');
+            setDisplay(displayNode ?? null);
+        }
         setActive(false);
         chevronRef.current?.stopAnimation();
     };
@@ -94,7 +104,7 @@ export const Select = React.forwardRef(function Select(
         context?.registerSetValue?.(setValue);
         return () => context?.registerSetValue?.(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [context]);
+    }, [context, valueProp]);
 
     // Equivalent of componentDidUpdate: sync chevron + active state whenever
     // the DropdownWrapper's isOpen changes for ANY reason (button click,
