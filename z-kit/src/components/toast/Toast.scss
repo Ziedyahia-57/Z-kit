@@ -89,6 +89,7 @@ $types: (
     position: fixed;
     z-index: 9999;
     pointer-events: none;
+    line-height: 1.5;
 
     // Collapsed: grid stacks all toasts in the same cell
     display: grid;
