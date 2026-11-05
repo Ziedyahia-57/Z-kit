@@ -116,7 +116,7 @@ const ToastDemo = (args) => {
         });
     };
 
-    return <Button buttonType="label & icon" icon="plus" variant="secondary" onClick={showToast}>Add Event</Button>;
+    return <Button variant="secondary" monochrome={true} onClick={showToast}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus preview-icon"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add Event</Button>;
 };
 
 export const toastComponent = {
@@ -151,7 +151,7 @@ const ToastDemoRTL = (args) => {
         });
     };
 
-    return <Button buttonType="label & icon" icon="plus" variant="secondary" onClick={showToast}>إضافة حدث</Button>;
+    return <Button variant="secondary" monochrome={true} onClick={showToast}><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus preview-icon"><path d="M5 12h14"/><path d="M12 5v14"/></svg> إضافة حدث</Button>;
 };
 
 export const toastComponentRTL = {
