@@ -278,21 +278,6 @@ $types: (
         }
     }
 
-    button {
-        position: relative;
-        cursor: pointer;
-
-        &:hover {
-            background-color: var(--gray-100) !important;
-        }
-
-        svg {
-            color: var(--gray-600) !important;
-            width: 1.25rem;
-            height: 1.25rem;
-        }
-    }
-
     .actions {
         margin-inline-start: auto;
         display: flex;
@@ -353,17 +338,6 @@ $types: (
 
             .description {
                 color: var(--gray-400);
-            }
-        }
-
-        button {
-
-            svg {
-                color: var(--gray-400) !important;
-            }
-
-            &:hover {
-                background-color: var(--gray-800) !important;
             }
         }
 

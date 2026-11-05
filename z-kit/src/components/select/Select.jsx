@@ -163,7 +163,7 @@ export const Select = React.forwardRef(function Select(
             <button
                 ref={triggerRef}
                 className={`select-wrapper ${error ? 'error' : ''}`}
-                onClick={toggleSelect}
+                onMouseDown={toggleSelect}
                 aria-expanded={isExpanded}
                 disabled={disabled}
                 value={input}

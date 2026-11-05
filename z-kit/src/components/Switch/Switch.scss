@@ -1,10 +1,11 @@
+
 @use '../tokens';
 
 .switchComponent {
 
     .switchComponent-wrapper {
         display: grid;
-        grid-template-columns: 1fr 40px; // label left, toggle right
+        grid-template-columns: 1fr 40px;
         grid-template-rows: auto auto;
         align-items: center;
         column-gap: 12px;
@@ -21,7 +22,7 @@
             display: flex;
             align-items: center;
             grid-column: 2;
-            grid-row: 1 / 3; // spans both label + details rows
+            grid-row: 1 / 3;
             align-self: center;
             position: relative;
             width: 40px;
@@ -33,7 +34,7 @@
             cursor: pointer;
             flex-shrink: 0;
 
-            // The sliding thumb
+            // The sliding and expanding white dot
             &::after {
                 content: '';
                 position: absolute;
@@ -43,15 +44,57 @@
                 border-radius: 50%;
                 background: var(--gray-25);
                 box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+
+                transform: translateX(0) scaleX(1);
+                transform-origin: center;
                 transition: transform 0.2s ease;
+                will-change: transform;
             }
         }
 
+        // ON state
         .switchComponent-button:checked~.switchComponent-indicator {
             background: var(--primary-600);
 
             &::after {
-                transform: translateX(16px);
+                animation: switchThumbOn 0.3s ease-out forwards;
+            }
+        }
+
+        // OFF state
+        .switchComponent-button:not(:checked)~.switchComponent-indicator {
+            &::after {
+                animation: switchThumbOff 0.3s ease-out forwards;
+            }
+        }
+
+        // ON animation: expand, slide, return to original width
+        @keyframes switchThumbOn {
+            0% {
+                transform: translateX(0) scaleX(1);
+            }
+
+            40% {
+                transform: translateX(5px) scaleX(1.35);
+            }
+
+            100% {
+                transform: translateX(16px) scaleX(1);
+            }
+        }
+
+        // OFF animation: expand, slide back, return to original width
+        @keyframes switchThumbOff {
+            0% {
+                transform: translateX(16px) scaleX(1);
+            }
+
+            40% {
+                transform: translateX(5px) scaleX(1.35);
+            }
+
+            100% {
+                transform: translateX(0) scaleX(1);
             }
         }
 
@@ -81,6 +124,7 @@
             }
         }
 
+        // Dark mode
         body[data-dark="true"] & {
 
             .switchComponent-indicator {
@@ -109,7 +153,7 @@
         }
     }
 
-    // ── Disabled state ────────────────────────────────────────────────────
+    // Disabled state
     &.disabled {
 
         .switchComponent-wrapper {
@@ -139,6 +183,7 @@
             cursor: not-allowed;
         }
 
+        // Dark mode disabled state
         body[data-dark="true"] & {
 
             .switchComponent-indicator {

@@ -472,21 +472,20 @@ const Toast = ({
                 {description && <p className="description">{description}</p>}
             </div>
             <div className="actions">
-                {action && <Button icon="plus" variant="secondary" monochrome={true} size="small" buttonType="label" onClick={handleAction}>{action}</Button>}
+                {action && <Button variant="secondary" monochrome={true} size="medium" onClick={handleAction}>{action}</Button>}
                 <Button
                     className="close"
                     variant="ghost"
-                    size="small"
-                    buttonType="icon"
-                    icon={
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    monochrome={true} 
+                    size="medium"
+                    onClick={closeToast}
+                    enableSound={enableSound}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M18 6 6 18" />
                             <path d="m6 6 12 12" />
                         </svg>
-                    }
-                    onClick={closeToast}
-                    enableSound={enableSound}
-                />
+                </Button>
             </div>
 
             {duration > 0 && (
