@@ -472,7 +472,7 @@ const Toast = ({
                 {description && <p className="description">{description}</p>}
             </div>
             <div className="actions">
-                {action && <Button buttonType="label & icon" icon="plus" variant="secondary" size="small" buttonType="label" onClick={handleAction}>{action}</Button>}
+                {action && <Button icon="plus" variant="secondary" monochrome={true} size="small" buttonType="label" onClick={handleAction}>{action}</Button>}
                 <Button
                     className="close"
                     variant="ghost"

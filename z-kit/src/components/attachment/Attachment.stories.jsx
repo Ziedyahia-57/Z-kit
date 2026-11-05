@@ -17,7 +17,7 @@ const withDarkModeControl = (Story, context) => {
 
         if (darkmode) {
             document.body.setAttribute("data-dark", "true");
-            main?.style.setProperty("background", "var(--gray-950)", "important");
+            main?.style.setProperty("background", "var(--gray-975)", "important");
         } else {
             document.body.removeAttribute("data-dark");
             main?.style.setProperty("background", "var(--gray-25)", "important");

@@ -2,14 +2,10 @@
 
 // Size configuration map
 $button-sizes: (
-    small: (padding: 0.5rem,
-        font-size: 0.875rem),
-    medium: (padding: 0.625rem,
-        font-size: 1rem),
-    large: (padding: 0.75rem,
-        font-size: 1rem),
-    xlarge: (padding: 0.875rem,
-        font-size: 1rem)
+    small: (padding: 0.5rem, font-size: 0.875rem),
+    medium: (padding: 0.625rem, font-size: 1rem),
+    large: (padding: 0.75rem, font-size: 1rem),
+    xlarge: (padding: 0.875rem, font-size: 1rem)
 );
 
 .button {
@@ -47,310 +43,114 @@ $button-sizes: (
     }
 }
 
-
 .button {
 
-    // Primary variant
+    // Primary variant (Light)
     &.primary {
         background-color: var(--primary-600);
-        border-color: var(--primary-600);
-        color: var(--gray-25);
+        border-color: var(--primary-500);
+        color: var(--gray-50);
 
         &:hover:not(:disabled) {
             background-color: var(--primary-700);
-            border-color: var(--primary-700);
+            border-color: var(--primary-600);
         }
 
         &:active:not(:disabled) {
             background-color: var(--primary-800);
-            border-color: var(--primary-800);
+            border-color: var(--primary-700);
             transform: scale(0.99);
         }
 
         &:disabled {
-            background-color: var(--primary-200);
+            background-color: var(--primary-100);
             border-color: var(--primary-200);
-            color: var(--gray-50);
             cursor: not-allowed;
         }
 
+        // Primary variant (Dark)
         body[data-dark="true"] & {
             background-color: var(--primary-500);
-            border-color: var(--primary-500);
-            color: var(--gray-25);
+            border-color: var(--primary-600);
+            color: var(--gray-50);
 
             &:hover:not(:disabled) {
                 background-color: var(--primary-400);
-                border-color: var(--primary-400);
+                border-color: var(--primary-500);
             }
 
             &:active:not(:disabled) {
                 background-color: var(--primary-300);
-                border-color: var(--primary-300);
+                border-color: var(--primary-400);
             }
 
             &:disabled {
                 background-color: var(--primary-800);
-                border-color: var(--primary-800);
+                border-color: var(--primary-900);
                 color: var(--gray-400);
             }
         }
-    }
 
-    // outline variant
-    &.secondary {
-        background-color: var(--gray-25);
-        border: 1px solid var(--gray-100);
-        color: var(--gray-900);
-
-        &:hover:not(:disabled),
-        &:active:not(:disabled) {
-            background-color: var(--gray-25);
-            border-color: var(--gray-200);
-        }
-
-        &:active:not(:disabled) {
-            transform: scale(0.98);
-        }
-
-        &:disabled {
-            /*edit this*/
-            background-color: var(--gray-200);
-            border-color: var(--gray-300);
-            color: var(--gray-600);
-            cursor: not-allowed;
-        }
-
-
-        body[data-dark="true"] & {
-            background-color: var(--gray-900);
-            border: 1px solid var(--gray-800);
-            color: var(--gray-100);
-
-            &:hover:not(:disabled),
-            &:active:not(:disabled) {
-                background-color: var(--gray-900);
-                border-color: var(--gray-700);
-            }
-
-            &:disabled {
-                /*edit this*/
-                background-color: var(--gray-950);
-                border-color: var(--gray-900);
-                color: var(--gray-400);
-            }
-        }
-    }
-
-    // outline variant
-    &.outline {
-        background-color: transparent;
-        border-color: var(--primary-600);
-        color: var(--primary-600);
-
-        &:hover:not(:disabled) {
-            border-color: var(--primary-700);
-            color: var(--primary-700);
-        }
-
-        &:active:not(:disabled) {
-            border-color: var(--primary-800);
-            color: var(--primary-800);
-            transform: scale(0.99);
-        }
-
-        &:disabled {
-            border-color: var(--primary-200);
-            color: var(--primary-200);
-            cursor: not-allowed;
-        }
-
-        body[data-dark="true"] & {
-            border-color: var(--primary-500);
-            color: var(--primary-500);
-
-            &:hover:not(:disabled) {
-                border-color: var(--primary-400);
-                color: var(--primary-400);
-            }
-
-            &:active:not(:disabled) {
-                border-color: var(--primary-300);
-                color: var(--primary-300);
-            }
-
-            &:disabled {
-                border-color: var(--primary-800);
-                color: var(--primary-800);
-            }
-        }
-    }
-
-    // Ghost variant
-    &.ghost {
-        background-color: transparent;
-        border-color: transparent;
-        color: var(--primary-600);
-
-        &:hover:not(:disabled) {
-            background-color: var(--primary-50);
-            color: var(--primary-700);
-        }
-
-        &:active:not(:disabled) {
-            background-color: var(--primary-100);
-            color: var(--primary-800);
-            transform: scale(0.99);
-        }
-
-        &:disabled {
-            color: var(--primary-200);
-            cursor: not-allowed;
-        }
-
-        body[data-dark="true"] & {
-            color: var(--primary-500);
-
-            &:hover:not(:disabled) {
-                background-color: var(--primary-950);
-                color: var(--primary-400);
-            }
-
-            &:active:not(:disabled) {
-                background-color: var(--primary-900);
-                color: var(--primary-300);
-            }
-
-            &:disabled {
-                color: var(--primary-800);
-            }
-        }
-    }
-}
-
-
-
-.button {
-
-    // Primary variant
-    &.primary {
-        background-color: var(--primary-600);
-        border-color: var(--primary-600);
-        color: var(--gray-25);
-
+        // Primary monochrome variant (Light)
         &.monochrome {
             background-color: var(--gray-800);
-            border-color: var(--gray-800);
+            border-color: var(--gray-900);
             color: var(--gray-25);
-        }
-
-        &:hover:not(:disabled) {
-            background-color: var(--primary-700);
-            border-color: var(--primary-700);
-
-            &.monochrome {
-                background-color: var(--gray-900);
-                border-color: var(--gray-900);
-            }
-        }
-
-        &:active:not(:disabled) {
-            background-color: var(--primary-800);
-            border-color: var(--primary-800);
-            transform: scale(0.99);
-
-            &.monochrome {
-                background-color: var(--gray-950);
-                border-color: var(--gray-950);
-            }
-        }
-
-        &:disabled {
-            background-color: var(--primary-200);
-            border-color: var(--primary-200);
-            color: var(--gray-50);
-            cursor: not-allowed;
-
-            &.monochrome {
-                background-color: var(--gray-200);
-                border-color: var(--gray-200);
-            }
-        }
-
-        body[data-dark="true"] & {
-            background-color: var(--primary-600);
-            border-color: var(--primary-600);
-            color: var(--gray-25);
-
-            &.monochrome {
-                background-color: var(--gray-100);
-                border-color: var(--gray-100);
-                color: var(--gray-950);
-            }
 
             &:hover:not(:disabled) {
-                background-color: var(--primary-500);
-                border-color: var(--primary-500);
-
-                &.monochrome {
-                    background-color: var(--gray-50);
-                    border-color: var(--gray-50);
-                }
+                background-color: var(--gray-900);
+                border-color: var(--gray-950);
             }
 
             &:active:not(:disabled) {
-                background-color: var(--primary-400);
-                border-color: var(--primary-400);
-
-                &.monochrome {
-                    background-color: var(--gray-25);
-                    border-color: var(--gray-25);
-                }
+                background-color: var(--gray-950);
+                border-color: var(--gray-975);
             }
 
             &:disabled {
-                background-color: var(--primary-800);
-                border-color: var(--primary-800);
-                color: var(--gray-400);
+                background-color: var(--gray-100);
+                border-color: var(--gray-200);
+            }
 
-                &.monochrome {
-                    background-color: var(--gray-200);
+            // Primary monochrome variant (Dark)
+            body[data-dark="true"] & {
+                background-color: var(--gray-25);
+                border-color: var(--gray-50);
+                color: var(--gray-950);
+
+                &:hover:not(:disabled) {
+                    background-color: var(--gray-50);
+                    border-color: var(--gray-100);
+                }
+
+                &:active:not(:disabled) {
+                    background-color: var(--gray-100);
                     border-color: var(--gray-200);
-                    color: var(--gray-600);
+                }
+
+                &:disabled {
+                    background-color: var(--gray-800);
+                    border-color: var(--gray-900);
                 }
             }
         }
     }
 
-    // outline variant
+    // Secondary variant (Light)
     &.secondary {
         background-color: var(--gray-25);
-        border: 1px solid var(--gray-100);
-        color: var(--primary-600);
-
-        &.monochrome {
-            color: var(--gray-800);
-        }
+        border-color: var(--gray-50);
+        color: var(--primary-500);
 
         &:hover:not(:disabled) {
             background-color: var(--gray-50);
-            border-color: var(--gray-200);
-            color: var(--primary-700);
-
-            &.monochrome {
-                color: var(--gray-900);
-            }
+            border-color: var(--gray-100);
         }
 
         &:active:not(:disabled) {
             background-color: var(--gray-100);
-            border-color: var(--gray-300);
-            color: var(--primary-800);
+            border-color: var(--gray-200);
             transform: scale(0.99);
-
-            &.monochrome {
-                color: var(--gray-950);
-            }
         }
 
         &:disabled {
@@ -358,88 +158,79 @@ $button-sizes: (
             border-color: var(--gray-50);
             color: var(--primary-200);
             cursor: not-allowed;
-
-            &.monochrome {
-                color: var(--gray-200);
-            }
         }
 
-
+        // Secondary variant (Dark)
         body[data-dark="true"] & {
-            background-color: var(--gray-900);
-            border: 1px solid var(--gray-800);
-            color: var(--primary-600);
-
-            &.monochrome {
-                color: var(--gray-300);
-            }
-
-            &:hover:not(:disabled) {
-                background-color: var(--gray-900);
-                border-color: var(--gray-700);
-                color: var(--primary-500);
-            }
-
-            &:active:not(:disabled) {
-                background-color: var(--gray-900);
-                border-color: var(--gray-700);
-                color: var(--primary-400);
-            }
-
-            &:disabled {
-                /*edit this*/
-                background-color: var(--gray-950);
-                border-color: var(--gray-900);
-                color: var(--gray-400);
-            }
-        }
-    }
-
-    // outline variant
-    &.outline {
-        background-color: transparent;
-        border-color: var(--primary-600);
-        color: var(--primary-600);
-
-        &:hover:not(:disabled) {
-            border-color: var(--primary-700);
-            color: var(--primary-700);
-        }
-
-        &:active:not(:disabled) {
-            border-color: var(--primary-800);
-            color: var(--primary-800);
-            transform: scale(0.99);
-        }
-
-        &:disabled {
-            border-color: var(--primary-200);
-            color: var(--primary-200);
-            cursor: not-allowed;
-        }
-
-        body[data-dark="true"] & {
-            border-color: var(--primary-500);
+            background-color: var(--gray-975);
+            border-color: var(--gray-950);
             color: var(--primary-500);
 
             &:hover:not(:disabled) {
-                border-color: var(--primary-400);
-                color: var(--primary-400);
+                background-color: var(--gray-950);
+                border-color: var(--gray-900);
             }
 
             &:active:not(:disabled) {
-                border-color: var(--primary-300);
-                color: var(--primary-300);
+                background-color: var(--gray-900);
+                border-color: var(--gray-800);
             }
 
             &:disabled {
-                border-color: var(--primary-800);
+                background-color: var(--gray-975);
+                border-color: var(--gray-950);
                 color: var(--primary-800);
+            }
+        }
+
+        // Secondary monochrome variant (Light)
+        &.monochrome {
+            background-color: var(--gray-25);
+            border-color: var(--gray-50);
+            color: var(--gray-800);
+
+            &:hover:not(:disabled) {
+                background-color: var(--gray-50);
+                border-color: var(--gray-100);
+            }
+
+            &:active:not(:disabled) {
+                background-color: var(--gray-100);
+                border-color: var(--gray-200);
+            }
+
+            &:disabled {
+                background-color: var(--gray-25);
+                border-color: var(--gray-50);
+                color: var(--gray-200);
+            }
+
+            // Secondary monochrome variant (Dark)
+            body[data-dark="true"] & {
+                background-color: var(--gray-975);
+                border-color: var(--gray-950);
+                color: var(--gray-200);
+
+                &:hover:not(:disabled) {
+                    background-color: var(--gray-950);
+                    border-color: var(--gray-900);
+                }
+
+                &:active:not(:disabled) {
+                    background-color: var(--gray-900);
+                    border-color: var(--gray-800);
+                }
+
+                &:disabled {
+                    background-color: var(--gray-975);
+                    border-color: var(--gray-950);
+                    color: var(--gray-800);
+                }
             }
         }
     }
 
-    // Ghost variant
+    // Ghost variant (Light)
     &.ghost {
         background-color: transparent;
         border-color: transparent;
@@ -447,36 +238,83 @@ $button-sizes: (
 
         &:hover:not(:disabled) {
             background-color: var(--primary-50);
-            color: var(--primary-700);
+            border-color: var(--primary-50);
         }
 
         &:active:not(:disabled) {
             background-color: var(--primary-100);
-            color: var(--primary-800);
+            border-color: var(--primary-100);
             transform: scale(0.99);
         }
 
         &:disabled {
+            background-color: transparent;
+            border-color: transparent;
             color: var(--primary-200);
             cursor: not-allowed;
         }
 
+        // Ghost variant (Dark)
         body[data-dark="true"] & {
+            background-color: transparent;
+            border-color: transparent;
             color: var(--primary-500);
 
             &:hover:not(:disabled) {
                 background-color: var(--primary-950);
-                color: var(--primary-400);
+                border-color: var(--primary-950);
             }
 
             &:active:not(:disabled) {
                 background-color: var(--primary-900);
-                color: var(--primary-300);
+                border-color: var(--primary-900);
             }
 
             &:disabled {
+                background-color: transparent;
+                border-color: transparent;
                 color: var(--primary-800);
             }
         }
+
+        // Ghost monochrome variant (Light)
+        &.monochrome {
+            color: var(--gray-800);
+
+            &:hover:not(:disabled) {
+                background-color: var(--gray-50);
+                border-color: var(--gray-50);
+            }
+
+            &:active:not(:disabled) {
+                background-color: var(--gray-100);
+                border-color: var(--gray-100);
+            }
+
+            &:disabled {
+                color: var(--gray-200);
+            }
+
+            // Ghost monochrome variant (Dark)
+            body[data-dark="true"] & {
+                color: var(--gray-200);
+
+                &:hover:not(:disabled) {
+                    background-color: var(--gray-950);
+                    border-color: var(--gray-950);
+                }
+
+                &:active:not(:disabled) {
+                    background-color: var(--gray-900);
+                    border-color: var(--gray-900);
+                }
+
+                &:disabled {
+                    color: var(--gray-800);
+                }
+            }
+        }
     }
+
+
 }
